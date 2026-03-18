@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,13 +7,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-// plane imports
-import { useOutsideClickDetector } from "@plane/hooks";
-import { IconButton } from "@plane/propel/icon-button";
-import { useTranslation } from "@plane/i18n";
-import { SearchIcon, CloseIcon } from "@plane/propel/icons";
-import type { TCycleFilters } from "@plane/types";
-import { cn, calculateTotalFilters } from "@plane/utils";
+// taskpilot imports
+import { useOutsideClickDetector } from "@taskpilot/hooks";
+import { IconButton } from "@taskpilot/propel/icon-button";
+import { useTranslation } from "@taskpilot/i18n";
+import { SearchIcon, CloseIcon } from "@taskpilot/propel/icons";
+import type { TCycleFilters } from "@taskpilot/types";
+import { cn, calculateTotalFilters } from "@taskpilot/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 // hooks

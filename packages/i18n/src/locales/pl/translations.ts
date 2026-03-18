@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -89,7 +89,7 @@ export default {
       already_have_an_account: "Masz już konto?",
       login: "Zaloguj się",
       create_account: "Utwórz konto",
-      new_to_plane: "Nowy w Plane?",
+      new_to_plane: "Nowy w TaskPilot?",
       back_to_sign_in: "Powrót do logowania",
       resend_in: "Wyślij ponownie za {seconds} sekund",
       sign_in_with_unique_code: "Zaloguj się za pomocą unikalnego kodu",
@@ -407,7 +407,7 @@ export default {
   full_changelog: "Pełny dziennik zmian",
   support: "Wsparcie",
   forum: "Forum",
-  powered_by_plane_pages: "Oparte na Plane Pages",
+  powered_by_plane_pages: "Oparte na TaskPilot Pages",
   please_select_at_least_one_invitation: "Wybierz co najmniej jedno zaproszenie.",
   please_select_at_least_one_invitation_description:
     "Wybierz co najmniej jedno zaproszenie, aby dołączyć do przestrzeni roboczej.",
@@ -571,7 +571,7 @@ export default {
       not_right_now: "Nie teraz",
       create_project: {
         title: "Utwórz projekt",
-        description: "Większość rzeczy zaczyna się od projektu w Plane.",
+        description: "Większość rzeczy zaczyna się od projektu w TaskPilot.",
         cta: "Zacznij",
       },
       invite_team: {
@@ -585,7 +585,7 @@ export default {
         cta: "Skonfiguruj tę przestrzeń",
       },
       personalize_account: {
-        title: "Spersonalizuj Plane.",
+        title: "Spersonalizuj TaskPilot.",
         description: "Wybierz zdjęcie, kolory i inne.",
         cta: "Dostosuj teraz",
       },
@@ -618,8 +618,8 @@ export default {
         issues: "Elementy pracy",
       },
     },
-    new_at_plane: {
-      title: "Co nowego w Plane",
+    new_at_taskpilot: {
+      title: "Co nowego w TaskPilot",
     },
     quick_tutorial: {
       title: "Szybki samouczek",
@@ -1274,7 +1274,7 @@ export default {
   },
   workspace_creation: {
     heading: "Utwórz przestrzeń roboczą",
-    subheading: "Aby korzystać z Plane, musisz utworzyć lub dołączyć do przestrzeni roboczej.",
+    subheading: "Aby korzystać z TaskPilot, musisz utworzyć lub dołączyć do przestrzeni roboczej.",
     form: {
       name: {
         label: "Nazwij swoją przestrzeń roboczą",
@@ -1328,11 +1328,11 @@ export default {
       general: {
         title: "Podgląd projektów, aktywności i metryk",
         description:
-          "Witaj w Plane, cieszymy się, że jesteś. Utwórz pierwszy projekt, śledź elementy pracy, a ta strona stanie się centrum Twojego postępu. Administratorzy zobaczą tu również elementy pomocne zespołowi.",
+          "Witaj w TaskPilot, cieszymy się, że jesteś. Utwórz pierwszy projekt, śledź elementy pracy, a ta strona stanie się centrum Twojego postępu. Administratorzy zobaczą tu również elementy pomocne zespołowi.",
         primary_button: {
           text: "Utwórz pierwszy projekt",
           comic: {
-            title: "Wszystko zaczyna się od projektu w Plane",
+            title: "Wszystko zaczyna się od projektu w TaskPilot",
             description:
               "Projektem może być harmonogram produktu, kampania marketingowa czy wprowadzenie nowego samochodu.",
           },
@@ -1466,7 +1466,7 @@ export default {
         primary_button: {
           text: "Rozpocznij pierwszy projekt",
           comic: {
-            title: "Wszystko zaczyna się od projektu w Plane",
+            title: "Wszystko zaczyna się od projektu w TaskPilot",
             description:
               "Projekt może dotyczyć planu produktu, kampanii marketingowej lub uruchomienia nowego samochodu.",
           },
@@ -1478,7 +1478,7 @@ export default {
         primary_button: {
           text: "Rozpocznij pierwszy projekt",
           comic: {
-            title: "Wszystko zaczyna się od projektu w Plane",
+            title: "Wszystko zaczyna się od projektu w TaskPilot",
             description:
               "Projekt może dotyczyć planu produktu, kampanii marketingowej lub uruchomienia nowego samochodu.",
           },
@@ -1578,7 +1578,7 @@ export default {
     page_label: "{workspace} - Ustawienia ogólne",
     key_created: "Klucz utworzony",
     copy_key:
-      "Skopiuj i zapisz ten klucz w Plane Pages. Po zamknięciu nie będzie widoczny ponownie. Plik CSV z kluczem został pobrany.",
+      "Skopiuj i zapisz ten klucz w TaskPilot Pages. Po zamknięciu nie będzie widoczny ponownie. Plik CSV z kluczem został pobrany.",
     token_copied: "Token skopiowano do schowka.",
     settings: {
       general: {
@@ -1741,7 +1741,7 @@ export default {
     empty_state: {
       api_tokens: {
         title: "Brak tokenów API",
-        description: "Używaj API, aby zintegrować Plane z zewnętrznymi systemami.",
+        description: "Używaj API, aby zintegrować TaskPilot z zewnętrznymi systemami.",
       },
       webhooks: {
         title: "Brak webhooków",
@@ -1955,12 +1955,12 @@ export default {
       label: "Automatyzacja",
       "auto-archive": {
         title: "Automatyczna archiwizacja zamkniętych elementów",
-        description: "Plane będzie automatycznie archiwizował elementy, które zostały ukończone lub anulowane.",
+        description: "TaskPilot będzie automatycznie archiwizował elementy, które zostały ukończone lub anulowane.",
         duration: "Archiwizuj elementy zamknięte dłużej niż",
       },
       "auto-close": {
         title: "Automatyczne zamykanie elementów",
-        description: "Plane będzie automatycznie zamykał elementy, które nie zostały ukończone lub anulowane.",
+        description: "TaskPilot będzie automatycznie zamykał elementy, które nie zostały ukończone lub anulowane.",
         duration: "Zamknij elementy nieaktywne dłużej niż",
         auto_close_status: "Status automatycznego zamknięcia",
       },
@@ -2617,8 +2617,8 @@ export default {
     edited_by: "Edytowane przez",
   },
   self_hosted_maintenance_message: {
-    plane_didnt_start_up_this_could_be_because_one_or_more_plane_services_failed_to_start:
-      "Plane nie uruchomił się. Może to być spowodowane tym, że jedna lub więcej usług Plane nie mogła się uruchomić.",
+    taskpilot_didnt_start_up_this_could_be_because_one_or_more_taskpilot_services_failed_to_start:
+      "TaskPilot nie uruchomił się. Może to być spowodowane tym, że jedna lub więcej usług TaskPilot nie mogła się uruchomić.",
     choose_view_logs_from_setup_sh_and_docker_logs_to_be_sure:
       "Wybierz View Logs z setup.sh i logów Docker, aby mieć pewność.",
   },

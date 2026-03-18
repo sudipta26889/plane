@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
-import { MODULE_STATUS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import type { TModuleStatus } from "@plane/propel/icons";
-import { ModuleStatusIcon } from "@plane/propel/icons";
-import type { IModule } from "@plane/types";
-import { CustomSelect } from "@plane/ui";
+import { MODULE_STATUS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import type { TModuleStatus } from "@taskpilot/propel/icons";
+import { ModuleStatusIcon } from "@taskpilot/propel/icons";
+import type { IModule } from "@taskpilot/types";
+import { CustomSelect } from "@taskpilot/ui";
 
 type Props = {
   isDisabled: boolean;

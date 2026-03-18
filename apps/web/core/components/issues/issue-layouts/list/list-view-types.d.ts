@@ -1,5 +1,5 @@
-import type { TPlacement } from "@plane/propel/utils/placement";
-import type { TIssue } from "@plane/types";
+import type { TPlacement } from "@taskpilot/propel/utils/placement";
+import type { TIssue } from "@taskpilot/types";
 
 export interface IQuickActionProps {
   parentRef: React.RefObject<HTMLElement>;

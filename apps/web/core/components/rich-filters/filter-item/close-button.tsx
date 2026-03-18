@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React from "react";
 import { observer } from "mobx-react";
-// plane imports
-import { CloseIcon } from "@plane/propel/icons";
-import type { IFilterInstance } from "@plane/shared-state";
-import type { TExternalFilter, TFilterProperty } from "@plane/types";
+// taskpilot imports
+import { CloseIcon } from "@taskpilot/propel/icons";
+import type { IFilterInstance } from "@taskpilot/shared-state";
+import type { TExternalFilter, TFilterProperty } from "@taskpilot/types";
 
 interface FilterItemCloseButtonProps<P extends TFilterProperty, E extends TExternalFilter> {
   conditionId: string;

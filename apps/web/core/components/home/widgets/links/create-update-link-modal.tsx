@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,12 +8,12 @@ import type { FC } from "react";
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// plane types
-// plane ui
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import type { TLinkEditableFields } from "@plane/types";
-import { Input, ModalCore } from "@plane/ui";
+// taskpilot types
+// taskpilot ui
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import type { TLinkEditableFields } from "@taskpilot/types";
+import { Input, ModalCore } from "@taskpilot/ui";
 import type { TLinkOperations } from "./use-links";
 
 export type TLinkOperationsModal = Exclude<TLinkOperations, "remove">;

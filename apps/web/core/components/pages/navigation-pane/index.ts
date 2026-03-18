@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane web imports
-import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/plane-web/components/pages/navigation-pane";
+// taskpilot web imports
+import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/taskpilot-web/components/pages/navigation-pane";
 
 export * from "./root";
 export * from "./types";

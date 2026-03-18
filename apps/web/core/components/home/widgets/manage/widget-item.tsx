@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -19,13 +19,13 @@ import { attachInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { createRoot } from "react-dom/client";
-// plane types
-import { useTranslation } from "@plane/i18n";
-import type { InstructionType, TWidgetEntityData } from "@plane/types";
-// plane ui
-import { DropIndicator, ToggleSwitch } from "@plane/ui";
-// plane utils
-import { cn } from "@plane/utils";
+// taskpilot types
+import { useTranslation } from "@taskpilot/i18n";
+import type { InstructionType, TWidgetEntityData } from "@taskpilot/types";
+// taskpilot ui
+import { DropIndicator, ToggleSwitch } from "@taskpilot/ui";
+// taskpilot utils
+import { cn } from "@taskpilot/utils";
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 import { HOME_WIDGETS_LIST } from "../../home-dashboard-widgets";

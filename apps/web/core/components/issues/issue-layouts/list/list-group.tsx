@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,10 +9,10 @@ import { useEffect, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
-// plane imports
-import { DRAG_ALLOWED_GROUPS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
+// taskpilot imports
+import { DRAG_ALLOWED_GROUPS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
 import type {
   IGroupByColumn,
   TIssueMap,
@@ -21,10 +21,10 @@ import type {
   TIssue,
   IIssueDisplayProperties,
   TIssueKanbanFilters,
-} from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
-import { Row } from "@plane/ui";
-import { cn } from "@plane/utils";
+} from "@taskpilot/types";
+import { EIssueLayoutTypes } from "@taskpilot/types";
+import { Row } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
 // hooks
@@ -32,8 +32,8 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useIssuesStore } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
-// Plane-web
-import { useWorkFlowFDragNDrop } from "@/plane-web/components/workflow";
+// TaskPilot-web
+import { useWorkFlowFDragNDrop } from "@/taskpilot-web/components/workflow";
 //
 import { GroupDragOverlay } from "../group-drag-overlay";
 import { ListQuickAddIssueButton, QuickAddIssueRoot } from "../quick-add";

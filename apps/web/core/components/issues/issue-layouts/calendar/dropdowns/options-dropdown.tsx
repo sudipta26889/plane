@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -13,18 +13,18 @@ import { Popover, Transition } from "@headlessui/react";
 // hooks
 // ui
 // icons
-import type { TSupportedFilterTypeForUpdate } from "@plane/constants";
-import { EIssueFilterType } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { CheckIcon, ChevronUpIcon } from "@plane/propel/icons";
-import type { TCalendarLayouts, TSupportedFilterForUpdate } from "@plane/types";
-import { ToggleSwitch } from "@plane/ui";
+import type { TSupportedFilterTypeForUpdate } from "@taskpilot/constants";
+import { EIssueFilterType } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { CheckIcon, ChevronUpIcon } from "@taskpilot/propel/icons";
+import type { TCalendarLayouts, TSupportedFilterForUpdate } from "@taskpilot/types";
+import { ToggleSwitch } from "@taskpilot/ui";
 // types
 // constants
 import { CALENDAR_LAYOUTS } from "@/constants/calendar";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import useSize from "@/hooks/use-window-size";
-import type { IProjectEpicsFilter } from "@/plane-web/store/issue/epic";
+import type { IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssuesFilter } from "@/store/issue/module";
 import type { IProjectIssuesFilter } from "@/store/issue/project";

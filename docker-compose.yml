@@ -1,56 +1,110 @@
+# TaskPilot Production Docker Compose
+#
+# All code is baked into images (no volume mounts).
+# Remote: PostgreSQL & Redis @ 192.168.11.118, MinIO @ 192.168.11.100
+# Local: Only RabbitMQ container
+# Routing: NPM handles SSL + subdomain routing externally
+#   taskpilot.sudiptadhara.in       → 4646 (web)
+#   taskpilot-api.sudiptadhara.in   → 4647 (api)
+#   taskpilot-live.sudiptadhara.in  → 4648 (live)
+#   Admin on 4649 (internal access)
+
 services:
+
+  # ---------- Frontend ----------
+
   web:
-    container_name: web
+    container_name: taskpilot-web
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile.web
       args:
         DOCKER_BUILDKIT: 1
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_WEB_BASE_URL: ${VITE_WEB_BASE_URL}
+        VITE_ADMIN_BASE_URL: ${VITE_ADMIN_BASE_URL}
+        VITE_ADMIN_BASE_PATH: ${VITE_ADMIN_BASE_PATH}
+        VITE_SPACE_BASE_URL: ${VITE_SPACE_BASE_URL}
+        VITE_SPACE_BASE_PATH: ${VITE_SPACE_BASE_PATH}
+        VITE_LIVE_BASE_URL: ${VITE_LIVE_BASE_URL}
+        VITE_LIVE_BASE_PATH: ${VITE_LIVE_BASE_PATH}
+    ports:
+      - "4646:4646"
     restart: always
     depends_on:
       - api
+    env_file:
+      - .env
 
   admin:
-    container_name: admin
+    container_name: taskpilot-admin
     build:
       context: .
       dockerfile: ./apps/admin/Dockerfile.admin
       args:
         DOCKER_BUILDKIT: 1
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_ADMIN_BASE_URL: ${VITE_ADMIN_BASE_URL}
+        VITE_ADMIN_BASE_PATH: ${VITE_ADMIN_BASE_PATH}
+    ports:
+      - "4649:4649"
     restart: always
     depends_on:
       - api
-      - web
+    env_file:
+      - .env
 
   space:
-    container_name: space
+    container_name: taskpilot-space
     build:
       context: .
       dockerfile: ./apps/space/Dockerfile.space
       args:
         DOCKER_BUILDKIT: 1
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_SPACE_BASE_URL: ${VITE_SPACE_BASE_URL}
+        VITE_SPACE_BASE_PATH: ${VITE_SPACE_BASE_PATH}
     restart: always
     depends_on:
       - api
-      - web
+    env_file:
+      - .env
+
+  live:
+    container_name: taskpilot-live
+    build:
+      context: .
+      dockerfile: ./apps/live/Dockerfile.live
+      args:
+        DOCKER_BUILDKIT: 1
+    ports:
+      - "4648:4648"
+    restart: always
+    env_file:
+      - .env
+    environment:
+      PORT: 4648
+
+  # ---------- Backend ----------
 
   api:
-    container_name: api
+    container_name: taskpilot-api
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
       args:
         DOCKER_BUILDKIT: 1
+    ports:
+      - "4647:4647"
     restart: always
     command: ./bin/docker-entrypoint-api.sh
     env_file:
-      - ./apps/api/.env
+      - .env
     depends_on:
-      - plane-db
-      - plane-redis
+      - taskpilot-mq
 
   worker:
-    container_name: bgworker
+    container_name: taskpilot-worker
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -59,14 +113,13 @@ services:
     restart: always
     command: ./bin/docker-entrypoint-worker.sh
     env_file:
-      - ./apps/api/.env
+      - .env
     depends_on:
       - api
-      - plane-db
-      - plane-redis
+      - taskpilot-mq
 
   beat-worker:
-    container_name: beatworker
+    container_name: taskpilot-beat-worker
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -75,60 +128,29 @@ services:
     restart: always
     command: ./bin/docker-entrypoint-beat.sh
     env_file:
-      - ./apps/api/.env
+      - .env
     depends_on:
       - api
-      - plane-db
-      - plane-redis
+      - taskpilot-mq
 
   migrator:
-    container_name: plane-migrator
+    container_name: taskpilot-migrator
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
       args:
         DOCKER_BUILDKIT: 1
-    restart: no
+    restart: "no"
     command: ./bin/docker-entrypoint-migrator.sh
     env_file:
-      - ./apps/api/.env
-    depends_on:
-      - plane-db
-      - plane-redis
-
-  live:
-    container_name: plane-live
-    build:
-      context: .
-      dockerfile: ./apps/live/Dockerfile.live
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: always
-
-  plane-db:
-    container_name: plane-db
-    image: postgres:15.7-alpine
-    restart: always
-    command: postgres -c 'max_connections=1000'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    env_file:
       - .env
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGDATA: /var/lib/postgresql/data
+    depends_on:
+      - taskpilot-mq
 
-  plane-redis:
-    container_name: plane-redis
-    image: valkey/valkey:7.2.11-alpine
-    restart: always
-    volumes:
-      - redisdata:/data
+  # ---------- Infrastructure (local) ----------
 
-  plane-mq:
-    container_name: plane-mq
+  taskpilot-mq:
+    container_name: taskpilot-mq
     image: rabbitmq:3.13.6-management-alpine
     restart: always
     env_file:
@@ -140,38 +162,5 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  plane-minio:
-    container_name: plane-minio
-    image: minio/minio
-    restart: always
-    command: server /export --console-address ":9090"
-    volumes:
-      - uploads:/export
-    environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
-
-  # Comment this if you already have a reverse proxy running
-  proxy:
-    container_name: proxy
-    build:
-      context: ./apps/proxy
-      dockerfile: Dockerfile.ce
-    restart: always
-    ports:
-      - ${LISTEN_HTTP_PORT}:80
-      - ${LISTEN_HTTPS_PORT}:443
-    environment:
-      FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
-      BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
-    depends_on:
-      - web
-      - api
-      - space
-      - admin
-
 volumes:
-  pgdata:
-  redisdata:
-  uploads:
   rabbitmq_data:

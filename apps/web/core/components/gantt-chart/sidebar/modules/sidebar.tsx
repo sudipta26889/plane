@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 // ui
-import { GANTT_TIMELINE_TYPE } from "@plane/types";
-import type { IBlockUpdateData } from "@plane/types";
-import { Loader } from "@plane/ui";
+import { GANTT_TIMELINE_TYPE } from "@taskpilot/types";
+import type { IBlockUpdateData } from "@taskpilot/types";
+import { Loader } from "@taskpilot/ui";
 // components
 // hooks
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,24 +9,24 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
 import { ChartNoAxesColumn, PanelRight, SlidersHorizontal } from "lucide-react";
-// plane imports
+// taskpilot imports
 import {
   EIssueFilterType,
   EUserPermissions,
   EUserPermissionsLevel,
   ISSUE_DISPLAY_FILTERS_BY_PAGE,
   WORK_ITEM_TRACKER_ELEMENTS,
-} from "@plane/constants";
-import { usePlatformOS } from "@plane/hooks";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { IconButton } from "@plane/propel/icon-button";
-import { CycleIcon } from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { ICustomSearchSelectOption, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@plane/types";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@plane/types";
-import { Breadcrumbs, BreadcrumbNavigationSearchDropdown, Header } from "@plane/ui";
-import { cn } from "@plane/utils";
+} from "@taskpilot/constants";
+import { usePlatformOS } from "@taskpilot/hooks";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { IconButton } from "@taskpilot/propel/icon-button";
+import { CycleIcon } from "@taskpilot/propel/icons";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { ICustomSearchSelectOption, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@taskpilot/types";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@taskpilot/types";
+import { Breadcrumbs, BreadcrumbNavigationSearchDropdown, Header } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { WorkItemsModal } from "@/components/analytics/work-items/modal";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
@@ -47,8 +47,8 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import useLocalStorage from "@/hooks/use-local-storage";
-// plane web imports
-import { CommonProjectBreadcrumbs } from "@/plane-web/components/breadcrumbs/common";
+// taskpilot web imports
+import { CommonProjectBreadcrumbs } from "@/taskpilot-web/components/breadcrumbs/common";
 
 export const CycleIssuesHeader = observer(function CycleIssuesHeader() {
   // refs

@@ -1,5 +1,5 @@
 {
-  "extends": "@plane/typescript-config/node-library.json",
+  "extends": "@taskpilot/typescript-config/node-library.json",
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]

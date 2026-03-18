@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -41,8 +41,8 @@ import {
   setText,
   openEmojiPicker,
 } from "@/helpers/editor-commands";
-// plane editor extensions
-import { coreEditorAdditionalSlashCommandOptions } from "@/plane-editor/extensions";
+// taskpilot editor extensions
+import { coreEditorAdditionalSlashCommandOptions } from "@/taskpilot-editor/extensions";
 // types
 import type { CommandProps, ISlashCommandItem, TSlashCommandSectionKeys } from "@/types";
 // local types

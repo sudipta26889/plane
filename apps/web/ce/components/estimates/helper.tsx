@@ -1,19 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import type { TEstimateSystemKeys } from "@plane/types";
-import { EEstimateSystem } from "@plane/types";
+import type { TEstimateSystemKeys } from "@taskpilot/types";
+import { EEstimateSystem } from "@taskpilot/types";
 
-export const isEstimateSystemEnabled = (key: TEstimateSystemKeys) => {
-  switch (key) {
-    case EEstimateSystem.POINTS:
-      return true;
-    case EEstimateSystem.CATEGORIES:
-      return true;
-    default:
-      return false;
-  }
-};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const isEstimateSystemEnabled = (key: TEstimateSystemKeys) => true;

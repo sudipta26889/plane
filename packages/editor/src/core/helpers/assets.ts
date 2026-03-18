@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-// plane imports
-import type { ADDITIONAL_EXTENSIONS } from "@plane/utils";
-import { CORE_EXTENSIONS } from "@plane/utils";
+// taskpilot imports
+import type { ADDITIONAL_EXTENSIONS } from "@taskpilot/utils";
+import { CORE_EXTENSIONS } from "@taskpilot/utils";
 // extensions
 import { getImageBlockId } from "@/extensions/custom-image/utils";
-// plane editor imports
-import { ADDITIONAL_ASSETS_META_DATA_RECORD } from "@/plane-editor/constants/assets";
+// taskpilot editor imports
+import { ADDITIONAL_ASSETS_META_DATA_RECORD } from "@/taskpilot-editor/constants/assets";
 // types
 import type { TEditorAsset } from "@/types";
 

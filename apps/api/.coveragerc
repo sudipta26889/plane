@@ -1,5 +1,5 @@
 [run]
-source = plane
+source = taskpilot
 omit =
     */tests/*
     */migrations/*

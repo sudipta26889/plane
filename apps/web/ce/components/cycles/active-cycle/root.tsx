@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import { Disclosure } from "@headlessui/react";
-import { EmptyStateDetailed } from "@plane/propel/empty-state";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import type { ICycle } from "@plane/types";
-import { Row } from "@plane/ui";
+import { EmptyStateDetailed } from "@taskpilot/propel/empty-state";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import type { ICycle } from "@taskpilot/types";
+import { Row } from "@taskpilot/ui";
 // assets
 import darkActiveCycleAsset from "@/app/assets/empty-state/cycle/active-dark.webp?url";
 import lightActiveCycleAsset from "@/app/assets/empty-state/cycle/active-light.webp?url";
@@ -101,7 +101,7 @@ export const ActiveCycleRoot = observer(function ActiveCycleRoot(props: IActiveC
   const { workspaceSlug, projectId, cycleId: propsCycleId, showHeader = true } = props;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { currentProjectActiveCycleId } = useCycle();

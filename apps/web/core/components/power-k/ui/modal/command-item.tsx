@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,9 +7,9 @@
 import React from "react";
 import { Command } from "cmdk";
 
-import { CheckIcon } from "@plane/propel/icons";
-// plane imports
-import { cn } from "@plane/utils";
+import { CheckIcon } from "@taskpilot/propel/icons";
+// taskpilot imports
+import { cn } from "@taskpilot/utils";
 // local imports
 import { KeySequenceBadge, ShortcutBadge } from "./command-item-shortcut-badge";
 

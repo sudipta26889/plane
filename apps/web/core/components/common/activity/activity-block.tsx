@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import type { FC, ReactNode } from "react";
 import { Network } from "lucide-react";
 // types
-import { Tooltip } from "@plane/propel/tooltip";
-import type { TWorkspaceBaseActivity } from "@plane/types";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { TWorkspaceBaseActivity } from "@taskpilot/types";
 // ui
 // helpers
-import { renderFormattedTime, renderFormattedDate, calculateTimeAgo } from "@plane/utils";
+import { renderFormattedTime, renderFormattedDate, calculateTimeAgo } from "@taskpilot/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local components

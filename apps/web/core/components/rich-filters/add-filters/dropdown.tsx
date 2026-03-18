@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React from "react";
 import { observer } from "mobx-react";
-// plane imports
-import { setToast, TOAST_TYPE } from "@plane/propel/toast";
-import type { IFilterInstance } from "@plane/shared-state";
-import type { TExternalFilter, TFilterProperty, TSupportedOperators } from "@plane/types";
-import { CustomSearchSelect } from "@plane/ui";
-import { getOperatorForPayload } from "@plane/utils";
+// taskpilot imports
+import { setToast, TOAST_TYPE } from "@taskpilot/propel/toast";
+import type { IFilterInstance } from "@taskpilot/shared-state";
+import type { TExternalFilter, TFilterProperty, TSupportedOperators } from "@taskpilot/types";
+import { CustomSearchSelect } from "@taskpilot/ui";
+import { getOperatorForPayload } from "@taskpilot/utils";
 
 export type TAddFilterDropdownProps<P extends TFilterProperty, E extends TExternalFilter> = {
   customButton: React.ReactNode;

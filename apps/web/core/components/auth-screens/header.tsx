@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
-import { AUTH_TRACKER_ELEMENTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { PlaneLockup } from "@plane/propel/icons";
+import { AUTH_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { TaskPilotLockup } from "@taskpilot/propel/icons";
 import { PageHead } from "@/components/core/page-title";
 import { EAuthModes } from "@/helpers/authentication.helper";
 import { useInstance } from "@/hooks/store/use-instance";
@@ -17,7 +17,7 @@ import { useInstance } from "@/hooks/store/use-instance";
 const authContentMap = {
   [EAuthModes.SIGN_IN]: {
     pageTitle: "Sign up",
-    text: "auth.common.new_to_plane",
+    text: "auth.common.new_to_taskpilot",
     linkText: "Sign up",
     linkHref: "/sign-up",
   },
@@ -70,10 +70,10 @@ export function AuthHeaderBase(props: TAuthHeaderBase) {
   const { pageTitle, additionalAction } = props;
   return (
     <>
-      <PageHead title={pageTitle + " - Plane"} />
+      <PageHead title={pageTitle + " - TaskPilot"} />
       <div className="sticky top-0 flex w-full flex-shrink-0 items-center justify-between gap-6">
         <Link href="/">
-          <PlaneLockup height={20} width={95} className="text-primary" />
+          <TaskPilotLockup height={20} width={95} className="text-primary" />
         </Link>
         {additionalAction}
       </div>

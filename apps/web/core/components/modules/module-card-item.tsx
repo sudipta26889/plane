@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,21 +10,21 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { Info, SquareUser } from "lucide-react";
-// plane package imports
+// taskpilot package imports
 import {
   MODULE_STATUS,
   PROGRESS_STATE_GROUPS_DETAILS,
   EUserPermissions,
   EUserPermissionsLevel,
   IS_FAVORITE_MENU_OPEN,
-} from "@plane/constants";
-import { useLocalStorage } from "@plane/hooks";
-import { WorkItemsIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IModule } from "@plane/types";
-import { Card, FavoriteStar, LinearProgressIndicator } from "@plane/ui";
-import { getDate, renderFormattedPayloadDate, generateQueryParams } from "@plane/utils";
+} from "@taskpilot/constants";
+import { useLocalStorage } from "@taskpilot/hooks";
+import { WorkItemsIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IModule } from "@taskpilot/types";
+import { Card, FavoriteStar, LinearProgressIndicator } from "@taskpilot/ui";
+import { getDate, renderFormattedPayloadDate, generateQueryParams } from "@taskpilot/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";

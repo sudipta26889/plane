@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,13 +7,13 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { EmptyStateDetailed } from "@plane/propel/empty-state";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { ISearchIssueResponse } from "@plane/types";
-import { EIssuesStoreType, EUserProjectRoles } from "@plane/types";
+// taskpilot imports
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { EmptyStateDetailed } from "@taskpilot/propel/empty-state";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { ISearchIssueResponse } from "@taskpilot/types";
+import { EIssuesStoreType, EUserProjectRoles } from "@taskpilot/types";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
@@ -30,7 +30,7 @@ export const ModuleEmptyState = observer(function ModuleEmptyState() {
   const moduleId = routerModuleId ? routerModuleId.toString() : undefined;
   // states
   const [moduleIssuesListModal, setModuleIssuesListModal] = useState(false);
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { issues } = useIssues(EIssuesStoreType.MODULE);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,18 +7,18 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // ui
-import { PROJECT_VIEW_TRACKER_ELEMENTS } from "@plane/constants";
-import { Button } from "@plane/propel/button";
-import { ViewsIcon } from "@plane/propel/icons";
-import { Breadcrumbs, Header } from "@plane/ui";
+import { PROJECT_VIEW_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { Button } from "@taskpilot/propel/button";
+import { ViewsIcon } from "@taskpilot/propel/icons";
+import { Breadcrumbs, Header } from "@taskpilot/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { ViewListHeader } from "@/components/views/view-list-header";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
-// plane web imports
-import { CommonProjectBreadcrumbs } from "@/plane-web/components/breadcrumbs/common";
+// taskpilot web imports
+import { CommonProjectBreadcrumbs } from "@/taskpilot-web/components/breadcrumbs/common";
 
 export const ProjectViewsHeader = observer(function ProjectViewsHeader() {
   const { workspaceSlug, projectId } = useParams();

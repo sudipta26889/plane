@@ -1,6 +1,6 @@
 {
-  "name": "Plane",
-  "short_name": "Plane",
+  "name": "TaskPilot",
+  "short_name": "TaskPilot",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

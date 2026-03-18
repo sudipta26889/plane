@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,9 +8,9 @@ import { observable, action, makeObservable, runInAction, computed, reaction } f
 
 // helpers
 import { computedFn } from "mobx-utils";
-import type { ICalendarPayload, ICalendarWeek } from "@plane/types";
-import { EStartOfTheWeek } from "@plane/types";
-import { generateCalendarData, getWeekNumberOfDate } from "@plane/utils";
+import type { ICalendarPayload, ICalendarWeek } from "@taskpilot/types";
+import { EStartOfTheWeek } from "@taskpilot/types";
+import { generateCalendarData, getWeekNumberOfDate } from "@taskpilot/utils";
 // types
 import type { IIssueRootStore } from "./root.store";
 

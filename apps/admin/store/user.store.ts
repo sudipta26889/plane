@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { action, observable, runInAction, makeObservable } from "mobx";
-// plane internal packages
-import type { TUserStatus } from "@plane/constants";
-import { EUserStatus } from "@plane/constants";
-import { AuthService, UserService } from "@plane/services";
-import type { IUser } from "@plane/types";
+// taskpilot internal packages
+import type { TUserStatus } from "@taskpilot/constants";
+import { EUserStatus } from "@taskpilot/constants";
+import { AuthService, UserService } from "@taskpilot/services";
+import type { IUser } from "@taskpilot/types";
 // root store
 import type { RootStore } from "@/store/root.store";
 

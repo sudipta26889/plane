@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { Button, getButtonStyling } from "@plane/propel/button";
-import { PlaneLogo } from "@plane/propel/icons";
-import type { IWorkspace } from "@plane/types";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { Button, getButtonStyling } from "@taskpilot/propel/button";
+import { TaskPilotLogo } from "@taskpilot/propel/icons";
+import type { IWorkspace } from "@taskpilot/types";
 // assets
 import WorkspaceCreationDisabled from "@/app/assets/workspace/workspace-creation-disabled.png?url";
 // components
@@ -65,7 +65,7 @@ const CreateWorkspacePage = observer(function CreateWorkspacePage() {
             className="absolute top-1/2 left-5 grid -translate-y-1/2 place-items-center px-3 sm:top-12 sm:left-1/2 sm:-translate-x-[15px] sm:translate-y-0 sm:px-0 sm:py-5 md:left-1/3"
             href="/"
           >
-            <PlaneLogo className="h-9 w-auto text-primary" />
+            <TaskPilotLogo className="h-9 w-auto text-primary" />
           </Link>
           <div className="absolute top-1/4 right-4 -translate-y-1/2 text-13 text-primary sm:fixed sm:top-12 sm:right-16 sm:translate-y-0 sm:py-5">
             {currentUser?.email}

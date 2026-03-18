@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useRouter } from "next/navigation";
-import { Logo } from "@plane/propel/emoji-icon-picker";
-import { PageIcon } from "@plane/propel/icons";
-// plane import
-import type { TActivityEntityData, TPageEntityData } from "@plane/types";
-import { Avatar } from "@plane/ui";
-import { calculateTimeAgo, getFileURL, getPageName } from "@plane/utils";
+import { Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { PageIcon } from "@taskpilot/propel/icons";
+// taskpilot import
+import type { TActivityEntityData, TPageEntityData } from "@taskpilot/types";
+import { Avatar } from "@taskpilot/ui";
+import { calculateTimeAgo, getFileURL, getPageName } from "@taskpilot/utils";
 import { ListItem } from "@/components/core/list";
 // hooks
 import { useMember } from "@/hooks/store/use-member";

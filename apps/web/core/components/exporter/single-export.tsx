@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,10 +7,10 @@
 import type { FC } from "react";
 import { useState } from "react";
 // ui
-import { Button } from "@plane/propel/button";
-import type { IExportData } from "@plane/types";
+import { Button } from "@taskpilot/propel/button";
+import type { IExportData } from "@taskpilot/types";
 // helpers
-import { getDate, renderFormattedDate } from "@plane/utils";
+import { getDate, renderFormattedDate } from "@taskpilot/utils";
 // types
 
 type Props = {

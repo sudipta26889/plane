@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,8 +9,8 @@ import { sortBy } from "lodash-es";
 import type { FC } from "react";
 import React, { useMemo, useRef, useState } from "react";
 import { usePopper } from "react-popper";
-// plane imports
-import { useOutsideClickDetector } from "@plane/hooks";
+// taskpilot imports
+import { useOutsideClickDetector } from "@taskpilot/hooks";
 // local imports
 import { useDropdownKeyPressed } from "../hooks/use-dropdown-key-pressed";
 import { cn } from "../utils";

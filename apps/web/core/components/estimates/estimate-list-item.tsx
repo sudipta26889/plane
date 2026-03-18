@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
-import { EEstimateSystem } from "@plane/constants";
-import { convertMinutesToHoursMinutesString } from "@plane/utils";
+// taskpilot imports
+import { EEstimateSystem } from "@taskpilot/constants";
+import { convertMinutesToHoursMinutesString } from "@taskpilot/utils";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useEstimate } from "@/hooks/store/estimates/use-estimate";
-// plane web imports
-import { EstimateListItemButtons } from "@/plane-web/components/estimates";
+// taskpilot web imports
+import { EstimateListItemButtons } from "@/taskpilot-web/components/estimates";
 
 type TEstimateListItem = {
   estimateId: string;

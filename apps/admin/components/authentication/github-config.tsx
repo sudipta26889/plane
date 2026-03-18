@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,11 +8,11 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 // icons
 import { Settings2 } from "lucide-react";
-// plane internal packages
-import { getButtonStyling } from "@plane/propel/button";
-import type { TInstanceAuthenticationMethodKeys } from "@plane/types";
-import { ToggleSwitch } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot internal packages
+import { getButtonStyling } from "@taskpilot/propel/button";
+import type { TInstanceAuthenticationMethodKeys } from "@taskpilot/types";
+import { ToggleSwitch } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { useInstance } from "@/hooks/store";
 

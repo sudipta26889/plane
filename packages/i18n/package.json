@@ -1,5 +1,5 @@
 {
-  "name": "@plane/i18n",
+  "name": "@taskpilot/i18n",
   "version": "1.2.0",
   "private": true,
   "description": "I18n shared across multiple apps internally",
@@ -26,7 +26,7 @@
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@plane/utils": "workspace:*",
+    "@taskpilot/utils": "workspace:*",
     "intl-messageformat": "^10.7.11",
     "lodash-es": "catalog:",
     "mobx": "catalog:",
@@ -34,7 +34,7 @@
     "react": "catalog:"
   },
   "devDependencies": {
-    "@plane/typescript-config": "workspace:*",
+    "@taskpilot/typescript-config": "workspace:*",
     "@types/lodash-es": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

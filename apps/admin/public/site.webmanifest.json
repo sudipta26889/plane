@@ -1,7 +1,7 @@
 {
-  "name": "Plane God Mode",
-  "short_name": "Plane God Mode",
-  "description": "Plane helps you plan your issues, cycles, and product modules.",
+  "name": "TaskPilot God Mode",
+  "short_name": "TaskPilot God Mode",
+  "description": "TaskPilot helps you plan your issues, cycles, and product modules.",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f9fafb",

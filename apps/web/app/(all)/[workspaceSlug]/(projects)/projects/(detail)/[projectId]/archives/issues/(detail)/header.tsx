@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,8 +8,8 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 // ui
-import { ArchiveIcon, WorkItemsIcon } from "@plane/propel/icons";
-import { Breadcrumbs, Header } from "@plane/ui";
+import { ArchiveIcon, WorkItemsIcon } from "@taskpilot/propel/icons";
+import { Breadcrumbs, Header } from "@taskpilot/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { IssueDetailQuickActions } from "@/components/issues/issue-detail/issue-detail-quick-actions";
@@ -17,8 +17,8 @@ import { IssueDetailQuickActions } from "@/components/issues/issue-detail/issue-
 import { ISSUE_DETAILS } from "@/constants/fetch-keys";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// plane web
-import { ProjectBreadcrumb } from "@/plane-web/components/breadcrumbs/project";
+// taskpilot web
+import { ProjectBreadcrumb } from "@/taskpilot-web/components/breadcrumbs/project";
 // services
 import { IssueService } from "@/services/issue";
 

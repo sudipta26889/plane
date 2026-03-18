@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,10 +7,10 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { FormProvider, useForm } from "react-hook-form";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { EFileAssetType } from "@plane/types";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { EFileAssetType } from "@taskpilot/types";
 // components
 import ProjectCommonAttributes from "@/components/project/create/common-attributes";
 import ProjectCreateHeader from "@/components/project/create/header";
@@ -19,8 +19,8 @@ import ProjectCreateButtons from "@/components/project/create/project-create-but
 import { getCoverImageType, uploadCoverImage } from "@/helpers/cover-image.helper";
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web types
-import type { TProject } from "@/plane-web/types/projects";
+// taskpilot web types
+import type { TProject } from "@/taskpilot-web/types/projects";
 import { ProjectAttributes } from "./attributes";
 import { getProjectFormValues } from "./utils";
 

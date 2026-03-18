@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { Telescope } from "lucide-react";
-// plane imports
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { IInstance, IInstanceAdmin } from "@plane/types";
-import { Input, ToggleSwitch } from "@plane/ui";
+// taskpilot imports
+import { Button } from "@taskpilot/propel/button";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { IInstance, IInstanceAdmin } from "@taskpilot/types";
+import { Input, ToggleSwitch } from "@taskpilot/ui";
 // components
 import { ControllerInput } from "@/components/common/controller-input";
 // hooks
@@ -122,12 +122,12 @@ export const GeneralConfigurationForm = observer(function GeneralConfigurationFo
               </div>
             </div>
             <div className="grow">
-              <div className="text-13 leading-5 font-medium text-primary">Let Plane collect anonymous usage data</div>
+              <div className="text-13 leading-5 font-medium text-primary">Let TaskPilot collect anonymous usage data</div>
               <div className="text-11 leading-5 font-regular text-tertiary">
-                No PII is collected.This anonymized data is used to understand how you use Plane and build new features
+                No PII is collected.This anonymized data is used to understand how you use TaskPilot and build new features
                 in line with{" "}
                 <a
-                  href="https://developers.plane.so/self-hosting/telemetry"
+                  href="#"
                   target="_blank"
                   className="text-accent-primary hover:underline"
                   rel="noreferrer"

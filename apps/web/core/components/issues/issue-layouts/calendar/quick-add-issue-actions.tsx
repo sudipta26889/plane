@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,14 +9,14 @@ import { differenceInCalendarDays } from "date-fns/differenceInCalendarDays";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 
-import { useTranslation } from "@plane/i18n";
-// plane imports
-import { PlusIcon } from "@plane/propel/icons";
-import { setPromiseToast } from "@plane/propel/toast";
-import type { ISearchIssueResponse, TIssue } from "@plane/types";
-import { EIssueLayoutTypes } from "@plane/types";
-import { CustomMenu } from "@plane/ui";
-import { cn } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+// taskpilot imports
+import { PlusIcon } from "@taskpilot/propel/icons";
+import { setPromiseToast } from "@taskpilot/propel/toast";
+import type { ISearchIssueResponse, TIssue } from "@taskpilot/types";
+import { EIssueLayoutTypes } from "@taskpilot/types";
+import { CustomMenu } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks

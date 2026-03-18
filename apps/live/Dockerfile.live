@@ -62,6 +62,6 @@ COPY --from=installer /app/apps/live/package.json ./apps/live/package.json
 
 ENV TURBO_TELEMETRY_DISABLED=1
 
-EXPOSE 3000
+EXPOSE 4648
 
 CMD ["node", "apps/live"]

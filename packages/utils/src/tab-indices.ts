@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import type { ETabIndices } from "@plane/constants";
-import { TAB_INDEX_MAP } from "@plane/constants";
+// taskpilot imports
+import type { ETabIndices } from "@taskpilot/constants";
+import { TAB_INDEX_MAP } from "@taskpilot/constants";
 
 export const getTabIndex = (type?: ETabIndices, isMobile: boolean = false) => {
   const getIndex = (key: string) =>

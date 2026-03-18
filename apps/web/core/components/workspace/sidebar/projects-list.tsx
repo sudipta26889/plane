@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -11,15 +11,15 @@ import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
 import { Ellipsis } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-// plane imports
-import { EUserPermissions, EUserPermissionsLevel, PROJECT_TRACKER_ELEMENTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { PlusIcon, ChevronRightIcon } from "@plane/propel/icons";
-import { IconButton } from "@plane/propel/icon-button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import { Loader } from "@plane/ui";
-import { copyUrlToClipboard, cn, orderJoinedProjects } from "@plane/utils";
+// taskpilot imports
+import { EUserPermissions, EUserPermissionsLevel, PROJECT_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { PlusIcon, ChevronRightIcon } from "@taskpilot/propel/icons";
+import { IconButton } from "@taskpilot/propel/icon-button";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { Loader } from "@taskpilot/ui";
+import { copyUrlToClipboard, cn, orderJoinedProjects } from "@taskpilot/utils";
 // components
 import { CreateProjectModal } from "@/components/project/create-project-modal";
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
@@ -29,8 +29,8 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
-// plane web imports
-import type { TProject } from "@/plane-web/types";
+// taskpilot web imports
+import type { TProject } from "@/taskpilot-web/types";
 // local imports
 import { SidebarProjectsListItem } from "./projects-list-item";
 

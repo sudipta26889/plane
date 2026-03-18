@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,13 +7,13 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
-// plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import type { EViewAccess, TViewFilterProps } from "@plane/types";
-import { EUserProjectRoles } from "@plane/types";
-import { Header, EHeaderVariant } from "@plane/ui";
-import { calculateTotalFilters } from "@plane/utils";
+// taskpilot imports
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import type { EViewAccess, TViewFilterProps } from "@taskpilot/types";
+import { EUserProjectRoles } from "@taskpilot/types";
+import { Header, EHeaderVariant } from "@taskpilot/ui";
+import { calculateTotalFilters } from "@taskpilot/utils";
 // assets
 import darkViewsAsset from "@/app/assets/empty-state/disabled-feature/views-dark.webp?url";
 import lightViewsAsset from "@/app/assets/empty-state/disabled-feature/views-light.webp?url";
@@ -35,7 +35,7 @@ function ProjectViewsPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store
   const { getProjectById, currentProjectDetails } = useProject();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,20 +9,20 @@ import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { SearchIcon, StateGroupIcon, ChevronDownIcon } from "@plane/propel/icons";
-import type { IState } from "@plane/types";
-import { ComboDropDown, Spinner } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { SearchIcon, StateGroupIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import type { IState } from "@taskpilot/types";
+import { ComboDropDown, Spinner } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { DropdownButton } from "@/components/dropdowns/buttons";
 import { BUTTON_VARIANTS_WITH_TEXT } from "@/components/dropdowns/constants";
 import type { TDropdownProps } from "@/components/dropdowns/types";
 // hooks
 import { useDropdown } from "@/hooks/use-dropdown";
-// plane web imports
-import { StateOption } from "@/plane-web/components/workflow";
+// taskpilot web imports
+import { StateOption } from "@/taskpilot-web/components/workflow";
 
 export type TWorkItemStateDropdownBaseProps = TDropdownProps & {
   alwaysAllowStateChange?: boolean;

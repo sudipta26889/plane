@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useTheme } from "next-themes";
-// plane imports
-import type { TBillingFrequency } from "@plane/types";
-import { EProductSubscriptionEnum } from "@plane/types";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import type { TBillingFrequency } from "@taskpilot/types";
+import { EProductSubscriptionEnum } from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 
 import ScribbleBlack from "@/app/assets/scribble/scribble-black.svg?url";
 import ScribbleWhite from "@/app/assets/scribble/scribble-white.svg?url";

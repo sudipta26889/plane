@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,9 +9,9 @@ import { Combobox } from "@headlessui/react";
 import React, { createContext, useCallback, useContext, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
-import { useOutsideClickDetector } from "@plane/hooks";
-import { CheckIcon, ChevronDownIcon } from "@plane/propel/icons";
-// plane helpers
+import { useOutsideClickDetector } from "@taskpilot/hooks";
+import { CheckIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+// taskpilot helpers
 // hooks
 import { useDropdownKeyDown } from "../hooks/use-dropdown-key-down";
 // helpers

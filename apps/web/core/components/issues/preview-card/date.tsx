@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { CalendarDays } from "lucide-react";
-// plane imports
-import { DueDatePropertyIcon, StartDatePropertyIcon } from "@plane/propel/icons";
-import type { TStateGroups } from "@plane/types";
-import { cn, renderFormattedDate, shouldHighlightIssueDueDate } from "@plane/utils";
+// taskpilot imports
+import { DueDatePropertyIcon, StartDatePropertyIcon } from "@taskpilot/propel/icons";
+import type { TStateGroups } from "@taskpilot/types";
+import { cn, renderFormattedDate, shouldHighlightIssueDueDate } from "@taskpilot/utils";
 
 type Props = {
   startDate: string | null;

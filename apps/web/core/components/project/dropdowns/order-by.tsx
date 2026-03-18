@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { ArrowDownWideNarrow } from "lucide-react";
-// plane imports
-import { PROJECT_ORDER_BY_OPTIONS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { getButtonStyling } from "@plane/propel/button";
-import { CheckIcon, ChevronDownIcon } from "@plane/propel/icons";
-import type { TProjectOrderByOptions } from "@plane/types";
-import { CustomMenu } from "@plane/ui";
+// taskpilot imports
+import { PROJECT_ORDER_BY_OPTIONS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { getButtonStyling } from "@taskpilot/propel/button";
+import { CheckIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import type { TProjectOrderByOptions } from "@taskpilot/types";
+import { CustomMenu } from "@taskpilot/ui";
 
 type Props = {
   onChange: (value: TProjectOrderByOptions) => void;

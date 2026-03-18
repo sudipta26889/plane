@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,14 +7,14 @@
 import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Star, StarOff, Users } from "lucide-react";
-// plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { LinkIcon, ModuleStatusIcon } from "@plane/propel/icons";
-import { setToast, TOAST_TYPE } from "@plane/propel/toast";
-import type { IModule, TModuleStatus } from "@plane/types";
-import { EUserPermissions } from "@plane/types";
-import { copyTextToClipboard } from "@plane/utils";
+// taskpilot imports
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { LinkIcon, ModuleStatusIcon } from "@taskpilot/propel/icons";
+import { setToast, TOAST_TYPE } from "@taskpilot/propel/toast";
+import type { IModule, TModuleStatus } from "@taskpilot/types";
+import { EUserPermissions } from "@taskpilot/types";
+import { copyTextToClipboard } from "@taskpilot/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks

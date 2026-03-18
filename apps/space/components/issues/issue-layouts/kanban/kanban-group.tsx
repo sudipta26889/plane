@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -15,8 +15,8 @@ import type {
   TIssueGroupByOptions,
   TPaginationData,
   TLoader,
-} from "@plane/types";
-import { cn } from "@plane/utils";
+} from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 // local imports

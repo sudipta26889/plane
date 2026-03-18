@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,14 +8,14 @@ import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { GripVertical } from "lucide-react";
-// plane imports
-import { EEstimateSystem, estimateCount } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { EditIcon, TrashIcon } from "@plane/propel/icons";
-import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@plane/types";
-import { convertMinutesToHoursMinutesString } from "@plane/utils";
-// plane web imports
-import { EstimatePointDelete } from "@/plane-web/components/estimates";
+// taskpilot imports
+import { EEstimateSystem, estimateCount } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { EditIcon, TrashIcon } from "@taskpilot/propel/icons";
+import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@taskpilot/types";
+import { convertMinutesToHoursMinutesString } from "@taskpilot/utils";
+// taskpilot web imports
+import { EstimatePointDelete } from "@/taskpilot-web/components/estimates";
 // local imports
 import { EstimatePointUpdate } from "./update";
 

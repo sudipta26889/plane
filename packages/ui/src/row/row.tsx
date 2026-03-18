@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -27,6 +27,6 @@ const Row = React.forwardRef(function Row(props: RowProps, ref: React.ForwardedR
   );
 });
 
-Row.displayName = "plane-ui-row";
+Row.displayName = "taskpilot-ui-row";
 
 export { Row, ERowVariant };

@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useCallback } from "react";
-// plane editor
-import type { TMentionSection, TMentionSuggestion } from "@plane/editor";
-// plane types
-import type { TSearchEntities, TSearchEntityRequestPayload, TSearchResponse, TUserSearchResponse } from "@plane/types";
-// plane ui
-import { Avatar } from "@plane/ui";
+// taskpilot editor
+import type { TMentionSection, TMentionSuggestion } from "@taskpilot/editor";
+// taskpilot types
+import type { TSearchEntities, TSearchEntityRequestPayload, TSearchResponse, TUserSearchResponse } from "@taskpilot/types";
+// taskpilot ui
+import { Avatar } from "@taskpilot/ui";
 // helpers
-import { getFileURL } from "@plane/utils";
-// plane web hooks
-import { useAdditionalEditorMention } from "@/plane-web/hooks/use-additional-editor-mention";
+import { getFileURL } from "@taskpilot/utils";
+// taskpilot web hooks
+import { useAdditionalEditorMention } from "@/taskpilot-web/hooks/use-additional-editor-mention";
 
 type TArgs = {
   enableAdvancedMentions?: boolean;

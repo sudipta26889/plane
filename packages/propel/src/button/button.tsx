@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -40,6 +40,6 @@ const Button = React.forwardRef(function Button(props: ButtonProps, ref: React.F
   );
 });
 
-Button.displayName = "plane-ui-button";
+Button.displayName = "taskpilot-ui-button";
 
 export { Button };

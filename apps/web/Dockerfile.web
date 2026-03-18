@@ -78,11 +78,12 @@ RUN pnpm turbo run build --filter=web
 FROM nginx:1.27-alpine AS production
 
 COPY apps/web/nginx/nginx.conf /etc/nginx/nginx.conf
+RUN rm -f /etc/nginx/conf.d/default.conf
 COPY --from=installer /app/apps/web/build/client /usr/share/nginx/html
 
-EXPOSE 3000
+EXPOSE 4646
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:3000/ >/dev/null || exit 1
+  CMD curl -fsS http://127.0.0.1:4646/ >/dev/null || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

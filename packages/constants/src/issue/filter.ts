@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,8 +9,8 @@ import type {
   ILayoutDisplayFiltersOptions,
   TIssueActivityComment,
   TWorkItemFilterProperty,
-} from "@plane/types";
-import { EIssuesStoreType } from "@plane/types";
+} from "@taskpilot/types";
+import { EIssuesStoreType } from "@taskpilot/types";
 import type { TIssueFilterPriorityObject } from "./common";
 import { ISSUE_DISPLAY_PROPERTIES_KEYS, SUB_ISSUES_DISPLAY_PROPERTIES_KEYS } from "./common";
 

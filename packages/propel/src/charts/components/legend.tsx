@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React from "react";
 import type { LegendProps } from "recharts";
-// plane imports
-import type { TChartLegend } from "@plane/types";
+// taskpilot imports
+import type { TChartLegend } from "@taskpilot/types";
 import { cn } from "../../utils/classname";
 
 export const getLegendProps = (args: TChartLegend): LegendProps => {

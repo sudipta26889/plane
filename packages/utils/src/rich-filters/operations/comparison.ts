@@ -1,19 +1,19 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { compact, isEqual, sortBy } from "lodash-es";
-// plane imports
+// taskpilot imports
 import type {
   TFilterConditionNode,
   TFilterExpression,
   TFilterGroupNode,
   TFilterProperty,
   TFilterValue,
-} from "@plane/types";
-import { FILTER_NODE_TYPE } from "@plane/types";
+} from "@taskpilot/types";
+import { FILTER_NODE_TYPE } from "@taskpilot/types";
 // local imports
 import { isConditionNode, isGroupNode } from "../types/core";
 import { processGroupNode } from "../types/shared";

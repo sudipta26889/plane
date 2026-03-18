@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import type { IUserLite, TFilterProperty } from "@plane/types";
-import { EQUALITY_OPERATOR } from "@plane/types";
+// taskpilot imports
+import type { IUserLite, TFilterProperty } from "@taskpilot/types";
+import { EQUALITY_OPERATOR } from "@taskpilot/types";
 // local imports
 import type { TCreateFilterConfig } from "../shared";
 import { createFilterConfig, createOperatorConfigEntry } from "../shared";

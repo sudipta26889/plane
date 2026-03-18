@@ -1,19 +1,19 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 
-import { MODULE_TRACKER_ELEMENTS } from "@plane/constants";
-import { CopyIcon, EditIcon, TrashIcon } from "@plane/propel/icons";
-// plane types
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { ILinkDetails } from "@plane/types";
-// plane ui
-import { getIconForLink, copyTextToClipboard, calculateTimeAgo } from "@plane/utils";
+import { MODULE_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { CopyIcon, EditIcon, TrashIcon } from "@taskpilot/propel/icons";
+// taskpilot types
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { ILinkDetails } from "@taskpilot/types";
+// taskpilot ui
+import { getIconForLink, copyTextToClipboard, calculateTimeAgo } from "@taskpilot/utils";
 // helpers
 //
 // hooks

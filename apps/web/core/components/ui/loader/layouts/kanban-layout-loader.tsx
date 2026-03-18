@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { forwardRef } from "react";
 import { range } from "lodash-es";
-// plane ui
-import { ContentWrapper } from "@plane/ui";
-// plane utils
-import { cn } from "@plane/utils";
+// taskpilot ui
+import { ContentWrapper } from "@taskpilot/ui";
+// taskpilot utils
+import { cn } from "@taskpilot/utils";
 
 export const KanbanIssueBlockLoader = forwardRef(function KanbanIssueBlockLoader(
   { cardHeight = 100, shouldAnimate = true }: { cardHeight?: number; shouldAnimate?: boolean },

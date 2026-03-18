@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { ArrowRight } from "lucide-react";
 // helpers
-import type { IBlockUpdateData, IGanttBlock } from "@plane/types";
-import { cn } from "@plane/utils";
+import type { IBlockUpdateData, IGanttBlock } from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";

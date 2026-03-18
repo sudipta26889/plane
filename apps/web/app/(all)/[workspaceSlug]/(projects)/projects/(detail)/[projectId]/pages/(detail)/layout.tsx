@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,8 +9,8 @@ import { Outlet } from "react-router";
 import useSWR from "swr";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
-// plane web hooks
-import { EPageStoreType, usePageStore } from "@/plane-web/hooks/store";
+// taskpilot web hooks
+import { EPageStoreType, usePageStore } from "@/taskpilot-web/hooks/store";
 // local components
 import type { Route } from "./+types/layout";
 import { PageDetailsHeader } from "./header";

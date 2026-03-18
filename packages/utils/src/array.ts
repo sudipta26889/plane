@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { isEmpty } from "lodash-es";
-import type { IIssueLabel, IIssueLabelTree } from "@plane/types";
+import type { IIssueLabel, IIssueLabelTree } from "@taskpilot/types";
 
 /**
  * @description Groups an array of objects by a specified key

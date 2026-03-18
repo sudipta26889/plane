@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,19 +9,19 @@ import type { FC } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter } from "next/navigation";
 import { PanelRight } from "lucide-react";
-import { PROFILE_VIEWER_TAB, PROFILE_ADMINS_TAB, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { YourWorkIcon, ChevronDownIcon } from "@plane/propel/icons";
-import type { IUserProfileProjectSegregation } from "@plane/types";
-import { Breadcrumbs, Header, CustomMenu } from "@plane/ui";
-import { cn } from "@plane/utils";
+import { PROFILE_VIEWER_TAB, PROFILE_ADMINS_TAB, EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { YourWorkIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import type { IUserProfileProjectSegregation } from "@taskpilot/types";
+import { Breadcrumbs, Header, CustomMenu } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { ProfileIssuesFilter } from "@/components/profile/profile-issues-filter";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-import { Button } from "@plane/propel/button";
+import { Button } from "@taskpilot/propel/button";
 
 type TUserProfileHeader = {
   userProjectsData: IUserProfileProjectSegregation | undefined;

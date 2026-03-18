@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
-import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate, ICalendarWeek } from "@plane/types";
-import { cn, getOrderedDays, renderFormattedPayloadDate } from "@plane/utils";
+// taskpilot imports
+import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate, ICalendarWeek } from "@taskpilot/types";
+import { cn, getOrderedDays, renderFormattedPayloadDate } from "@taskpilot/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 // types
-import type { IProjectEpicsFilter } from "@/plane-web/store/issue/epic";
+import type { IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssuesFilter } from "@/store/issue/module";
 import type { IProjectIssuesFilter } from "@/store/issue/project";

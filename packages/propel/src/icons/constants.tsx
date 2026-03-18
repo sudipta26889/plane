@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -59,7 +59,7 @@ export const ProjectIconsMap = [
 
 export const SubBrandIconsMap = [
   { icon: <Icon name="sub-brand.pi-chat" />, title: "PiChatLogo" },
-  { icon: <Icon name="sub-brand.plane" />, title: "PlaneIcon" },
+  { icon: <Icon name="sub-brand.taskpilot" />, title: "TaskPilotIcon" },
   { icon: <Icon name="sub-brand.wiki" />, title: "WikiIcon" },
 ];
 

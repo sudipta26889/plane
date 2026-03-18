@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState } from "react";
 import { XCircle } from "lucide-react";
-// plane imports
-import { PROFILE_SETTINGS_TRACKER_ELEMENTS } from "@plane/constants";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IApiToken } from "@plane/types";
-import { renderFormattedDate, calculateTimeAgo, renderFormattedTime } from "@plane/utils";
+// taskpilot imports
+import { PROFILE_SETTINGS_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IApiToken } from "@taskpilot/types";
+import { renderFormattedDate, calculateTimeAgo, renderFormattedTime } from "@taskpilot/utils";
 // components
 import { DeleteApiTokenModal } from "@/components/api-token/delete-token-modal";
 // hooks

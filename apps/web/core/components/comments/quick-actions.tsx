@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,15 +7,15 @@
 import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontal } from "lucide-react";
-// plane imports
-import { EIssueCommentAccessSpecifier } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { IconButton } from "@plane/propel/icon-button";
-import { LinkIcon, GlobeIcon, LockIcon, EditIcon, TrashIcon } from "@plane/propel/icons";
-import type { TIssueComment, TCommentsOperations } from "@plane/types";
-import type { TContextMenuItem } from "@plane/ui";
-import { CustomMenu } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { EIssueCommentAccessSpecifier } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { IconButton } from "@taskpilot/propel/icon-button";
+import { LinkIcon, GlobeIcon, LockIcon, EditIcon, TrashIcon } from "@taskpilot/propel/icons";
+import type { TIssueComment, TCommentsOperations } from "@taskpilot/types";
+import type { TContextMenuItem } from "@taskpilot/ui";
+import { CustomMenu } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { useUser } from "@/hooks/store/user";
 

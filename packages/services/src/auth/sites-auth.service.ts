@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { API_BASE_URL } from "@taskpilot/constants";
 // types
-import type { IEmailCheckData, IEmailCheckResponse } from "@plane/types";
+import type { IEmailCheckData, IEmailCheckResponse } from "@taskpilot/types";
 // services
 import { APIService } from "../api.service";
 
 /**
- * Service class for handling authentication-related operations for Plane space application
+ * Service class for handling authentication-related operations for TaskPilot space application
  * Provides methods for user authentication, password management, and session handling
  * @extends {APIService}
- * @remarks This service is only available for plane sites
+ * @remarks This service is only available for taskpilot sites
  */
 export class SitesAuthService extends APIService {
   /**

@@ -1,10 +1,10 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@plane/constants";
+import { API_BASE_URL } from "@taskpilot/constants";
 import type {
   GithubRepositoriesResponse,
   IProjectUserPropertiesResponse,
@@ -12,10 +12,10 @@ import type {
   TProjectAnalyticsCount,
   TProjectAnalyticsCountParams,
   TProjectIssuesSearchParams,
-} from "@plane/types";
+} from "@taskpilot/types";
 // helpers
-// plane web types
-import type { TProject, TPartialProject } from "@/plane-web/types";
+// taskpilot web types
+import type { TProject, TPartialProject } from "@/taskpilot-web/types";
 // services
 import { APIService } from "@/services/api.service";
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,13 +9,13 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { CheckCircle } from "lucide-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IAppIntegration, IWorkspaceIntegration } from "@plane/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { Button } from "@taskpilot/propel/button";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IAppIntegration, IWorkspaceIntegration } from "@taskpilot/types";
 // ui
-import { Loader } from "@plane/ui";
+import { Loader } from "@taskpilot/ui";
 // assets
 import GithubLogo from "@/app/assets/services/github.png?url";
 import SlackLogo from "@/app/assets/services/slack.png?url";
@@ -37,12 +37,12 @@ const integrationDetails: { [key: string]: any } = {
   github: {
     logo: GithubLogo,
     installed: "Activate GitHub on individual projects to sync with specific repositories.",
-    notInstalled: "Connect with GitHub with your Plane workspace to sync project work items.",
+    notInstalled: "Connect with GitHub with your TaskPilot workspace to sync project work items.",
   },
   slack: {
     logo: SlackLogo,
     installed: "Activate Slack on individual projects to sync with specific channels.",
-    notInstalled: "Connect with Slack with your Plane workspace to sync project work items.",
+    notInstalled: "Connect with Slack with your TaskPilot workspace to sync project work items.",
   },
 };
 

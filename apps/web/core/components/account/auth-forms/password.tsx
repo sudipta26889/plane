@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,13 +9,13 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 // icons
 import { Eye, EyeOff, Info, XCircle } from "lucide-react";
-// plane imports
-import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_EVENTS, AUTH_TRACKER_ELEMENTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { CloseIcon } from "@plane/propel/icons";
-import { Input, PasswordStrengthIndicator, Spinner } from "@plane/ui";
-import { getPasswordStrength } from "@plane/utils";
+// taskpilot imports
+import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_EVENTS, AUTH_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { CloseIcon } from "@taskpilot/propel/icons";
+import { Input, PasswordStrengthIndicator, Spinner } from "@taskpilot/ui";
+import { getPasswordStrength } from "@taskpilot/utils";
 // components
 import { ForgotPasswordPopover } from "@/components/account/auth-forms/forgot-password-popover";
 // constants
@@ -48,7 +48,7 @@ const authService = new AuthService();
 
 export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props) {
   const { email, isSMTPConfigured, handleAuthStep, handleEmailClear, mode, nextPath } = props;
-  // plane imports
+  // taskpilot imports
   const { t } = useTranslation();
   // ref
   const formRef = useRef<HTMLFormElement>(null);

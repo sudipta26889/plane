@@ -1,5 +1,5 @@
 {
-  "name": "@plane/services",
+  "name": "@taskpilot/services",
   "version": "1.2.0",
   "private": true,
   "license": "AGPL-3.0",
@@ -25,13 +25,13 @@
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@plane/constants": "workspace:*",
-    "@plane/types": "workspace:*",
+    "@taskpilot/constants": "workspace:*",
+    "@taskpilot/types": "workspace:*",
     "axios": "catalog:",
     "file-type": "^21.3.1"
   },
   "devDependencies": {
-    "@plane/typescript-config": "workspace:*",
+    "@taskpilot/typescript-config": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   }

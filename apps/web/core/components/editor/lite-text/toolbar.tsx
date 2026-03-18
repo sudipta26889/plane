@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,18 +7,18 @@
 import React, { useEffect, useState, useCallback } from "react";
 import type { LucideIcon } from "lucide-react";
 
-import { EIssueCommentAccessSpecifier } from "@plane/constants";
+import { EIssueCommentAccessSpecifier } from "@taskpilot/constants";
 // editor
-import type { EditorRefApi } from "@plane/editor";
+import type { EditorRefApi } from "@taskpilot/editor";
 // i18n
-import { useTranslation } from "@plane/i18n";
+import { useTranslation } from "@taskpilot/i18n";
 // ui
-import { Button } from "@plane/propel/button";
-import { GlobeIcon, LockIcon } from "@plane/propel/icons";
-import type { ISvgIcons } from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
+import { Button } from "@taskpilot/propel/button";
+import { GlobeIcon, LockIcon } from "@taskpilot/propel/icons";
+import type { ISvgIcons } from "@taskpilot/propel/icons";
+import { Tooltip } from "@taskpilot/propel/tooltip";
 // constants
-import { cn } from "@plane/utils";
+import { cn } from "@taskpilot/utils";
 import type { ToolbarMenuItem } from "@/constants/editor";
 import { TOOLBAR_ITEMS } from "@/constants/editor";
 // helpers

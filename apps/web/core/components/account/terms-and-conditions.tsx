@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React from "react";
 import Link from "next/link";
-import { EAuthModes } from "@plane/constants";
+import { EAuthModes } from "@taskpilot/constants";
 
 interface TermsAndConditionsProps {
   authType?: EAuthModes;
@@ -14,8 +14,8 @@ interface TermsAndConditionsProps {
 
 // Constants for better maintainability
 const LEGAL_LINKS = {
-  termsOfService: "https://plane.so/legals/terms-and-conditions",
-  privacyPolicy: "https://plane.so/legals/privacy-policy",
+  termsOfService: "#",
+  privacyPolicy: "#",
 } as const;
 
 const MESSAGES = {

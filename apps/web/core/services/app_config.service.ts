@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 // services
-import { API_BASE_URL } from "@plane/constants";
+import { API_BASE_URL } from "@taskpilot/constants";
 import { APIService } from "@/services/api.service";
 // helper
 // types
 // FIXME:
-// import { TAppConfig } from "@plane/types";
+// import { TAppConfig } from "@taskpilot/types";
 
 export class AppConfigService extends APIService {
   constructor() {

@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { ISSUE_LAYOUTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { ChevronDownIcon } from "@plane/propel/icons";
-import type { EIssueLayoutTypes } from "@plane/types";
-import { CustomMenu } from "@plane/ui";
+import { ISSUE_LAYOUTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { ChevronDownIcon } from "@taskpilot/propel/icons";
+import type { EIssueLayoutTypes } from "@taskpilot/types";
+import { CustomMenu } from "@taskpilot/ui";
 import { IssueLayoutIcon } from "../../layout-icon";
 
 export function MobileLayoutSelection({

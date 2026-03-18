@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { X } from "lucide-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
 // local imports
 import type { TPowerKContextType } from "../../core/types";
 import { useContextIndicator } from "../../hooks/use-context-indicator";

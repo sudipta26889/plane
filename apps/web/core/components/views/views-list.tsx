@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { EmptyStateDetailed } from "@plane/propel/empty-state";
-import { EUserProjectRoles } from "@plane/types";
+// taskpilot imports
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { EmptyStateDetailed } from "@taskpilot/propel/empty-state";
+import { EUserProjectRoles } from "@taskpilot/types";
 // components
 import { ListLayout } from "@/components/core/list";
 import { ViewListLoader } from "@/components/ui/loader/view-list-loader";
@@ -23,7 +23,7 @@ import { ProjectViewListItem } from "./view-list-item";
 
 export const ProjectViewsList = observer(function ProjectViewsList() {
   const { projectId } = useParams();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { toggleCreateViewModal } = useCommandPalette();

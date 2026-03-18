@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React from "react";
-// plane imports
-import { AreaChart } from "@plane/propel/charts/area-chart";
-import type { TChartData, TModuleCompletionChartDistribution } from "@plane/types";
-import { renderFormattedDateWithoutYear } from "@plane/utils";
+// taskpilot imports
+import { AreaChart } from "@taskpilot/propel/charts/area-chart";
+import type { TChartData, TModuleCompletionChartDistribution } from "@taskpilot/types";
+import { renderFormattedDateWithoutYear } from "@taskpilot/utils";
 
 type Props = {
   distribution: TModuleCompletionChartDistribution;

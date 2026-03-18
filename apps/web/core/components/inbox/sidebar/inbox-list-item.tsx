@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,11 +8,11 @@ import type { FC, MouseEvent } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-// plane imports
-import { PriorityIcon } from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
-import { Row, Avatar } from "@plane/ui";
-import { cn, renderFormattedDate, getFileURL } from "@plane/utils";
+// taskpilot imports
+import { PriorityIcon } from "@taskpilot/propel/icons";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { Row, Avatar } from "@taskpilot/ui";
+import { cn, renderFormattedDate, getFileURL } from "@taskpilot/utils";
 // components
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";
 // hooks
@@ -20,8 +20,8 @@ import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web imports
-import { InboxSourcePill } from "@/plane-web/components/inbox/source-pill";
+// taskpilot web imports
+import { InboxSourcePill } from "@/taskpilot-web/components/inbox/source-pill";
 // local imports
 import { InboxIssueStatus } from "../inbox-issue-status";
 
@@ -129,8 +129,8 @@ export const InboxIssueListItem = observer(function InboxIssueListItem(props: In
               )}
             </div>
             {/* created by */}
-            {createdByDetails && createdByDetails.email?.includes("intake@plane.so") ? (
-              <Avatar src={getFileURL("")} name={"Plane"} size="md" showTooltip />
+            {createdByDetails && createdByDetails.email?.includes("intake@") ? (
+              <Avatar src={getFileURL("")} name={"TaskPilot"} size="md" showTooltip />
             ) : createdByDetails ? (
               <ButtonAvatars showTooltip={false} userIds={createdByDetails?.id} />
             ) : null}

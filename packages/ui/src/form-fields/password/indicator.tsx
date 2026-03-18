@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { CircleCheck } from "lucide-react";
 import React from "react";
-import { E_PASSWORD_STRENGTH } from "@plane/constants";
-import { cn, getPasswordStrength, getPasswordCriteria } from "@plane/utils";
+import { E_PASSWORD_STRENGTH } from "@taskpilot/constants";
+import { cn, getPasswordStrength, getPasswordCriteria } from "@taskpilot/utils";
 import { getStrengthInfo, getFragmentColor } from "./helper";
 
 export interface PasswordStrengthIndicatorProps {

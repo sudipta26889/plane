@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-// plane imports
-import { CloseIcon, SearchIcon } from "@plane/propel/icons";
-import { Input } from "@plane/ui";
+// taskpilot imports
+import { CloseIcon, SearchIcon } from "@taskpilot/propel/icons";
+import { Input } from "@taskpilot/ui";
 // hooks
 import { usePowerK } from "@/hooks/store/use-power-k";
 // local imports

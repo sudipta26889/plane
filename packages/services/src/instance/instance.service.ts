@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { API_BASE_URL } from "@plane/constants";
+// taskpilot imports
+import { API_BASE_URL } from "@taskpilot/constants";
 import type {
   IFormattedInstanceConfiguration,
   IInstance,
@@ -13,7 +13,7 @@ import type {
   IInstanceConfiguration,
   IInstanceInfo,
   TPage,
-} from "@plane/types";
+} from "@taskpilot/types";
 // api service
 import { APIService } from "../api.service";
 

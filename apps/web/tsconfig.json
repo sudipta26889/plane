@@ -6,7 +6,7 @@
       "@/app/*": ["./app/*"],
       "@/helpers/*": ["./helpers/*"],
       "@/styles/*": ["./styles/*"],
-      "@/plane-web/*": ["./ce/*"],
+      "@/taskpilot-web/*": ["./ce/*"],
       "package.json": ["./package.json"]
     },
     "strictNullChecks": true,
@@ -17,6 +17,6 @@
     "noImplicitOverride": false,
     "types": ["vite/client"]
   },
-  "extends": "@plane/typescript-config/react-router.json",
+  "extends": "@taskpilot/typescript-config/react-router.json",
   "include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"]
 }

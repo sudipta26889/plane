@@ -4,7 +4,7 @@ FROM python:3.12.10-alpine
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 
-ENV INSTANCE_CHANGELOG_URL=https://sites.plane.so/pages/691ef037bcfe416a902e48cb55f59891/
+ENV INSTANCE_CHANGELOG_URL=""
 
 # Update system packages for security
 RUN apk update && apk upgrade
@@ -41,18 +41,18 @@ RUN apk add --no-cache --virtual .build-deps \
 
 # Add in Django deps and generate Django's static files
 COPY manage.py manage.py
-COPY plane plane/
+COPY taskpilot taskpilot/
 COPY templates templates/
 COPY package.json package.json
 
 RUN apk --no-cache add "bash~=5.2"
 COPY ./bin ./bin/
 
-RUN mkdir -p /code/plane/logs
+RUN mkdir -p /code/taskpilot/logs
 RUN chmod +x ./bin/*
 RUN chmod -R 777 /code
 
 # Expose container port and run entry point script
-EXPOSE 8000
+EXPOSE 4647
 
 CMD ["./bin/docker-entrypoint-api.sh"]

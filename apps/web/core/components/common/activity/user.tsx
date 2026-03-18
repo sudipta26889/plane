@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,7 +8,7 @@ import type { FC } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 // types
-import type { TWorkspaceBaseActivity } from "@plane/types";
+import type { TWorkspaceBaseActivity } from "@taskpilot/types";
 // store hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -30,7 +30,7 @@ export const User = observer(function User(props: TUser) {
   return (
     <>
       {customUserName || actorDetail?.display_name.includes("-intake") ? (
-        <span className="font-medium text-primary">{customUserName || "Plane"}</span>
+        <span className="font-medium text-primary">{customUserName || "TaskPilot"}</span>
       ) : (
         <Link
           href={`/${workspaceDetail?.slug}/profile/${actorDetail?.id}`}

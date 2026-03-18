@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,14 +7,14 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane imports
-import { ROLE, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { LinkIcon, TrashIcon, ChevronDownIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { TContextMenuItem } from "@plane/ui";
-import { CustomSelect, CustomMenu } from "@plane/ui";
-import { cn, copyTextToClipboard } from "@plane/utils";
+// taskpilot imports
+import { ROLE, EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { LinkIcon, TrashIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { TContextMenuItem } from "@taskpilot/ui";
+import { CustomSelect, CustomMenu } from "@taskpilot/ui";
+import { cn, copyTextToClipboard } from "@taskpilot/utils";
 // components
 import { ConfirmWorkspaceMemberRemove } from "@/components/workspace/confirm-workspace-member-remove";
 // hooks
@@ -31,7 +31,7 @@ export const WorkspaceInvitationsListItem = observer(function WorkspaceInvitatio
   const { workspaceSlug } = useParams();
   // states
   const [removeMemberModal, setRemoveMemberModal] = useState(false);
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { allowPermissions, workspaceInfoBySlug } = useUserPermissions();

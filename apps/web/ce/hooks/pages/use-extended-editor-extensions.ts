@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import type { IEditorPropsExtended } from "@plane/editor";
-import type { TSearchEntityRequestPayload, TSearchResponse } from "@plane/types";
+import type { IEditorPropsExtended } from "@taskpilot/editor";
+import type { TSearchEntityRequestPayload, TSearchResponse } from "@taskpilot/types";
 import type { TPageInstance } from "@/store/pages/base-page";
 import type { EPageStoreType } from "../store";
 

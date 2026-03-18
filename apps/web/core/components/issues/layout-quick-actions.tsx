@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { TContextMenuItem } from "@plane/ui";
-import { CustomMenu } from "@plane/ui";
-import { copyUrlToClipboard, cn } from "@plane/utils";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { TContextMenuItem } from "@taskpilot/ui";
+import { CustomMenu } from "@taskpilot/ui";
+import { copyUrlToClipboard, cn } from "@taskpilot/utils";
 import { useLayoutMenuItems } from "@/components/common/quick-actions-helper";
 import { Ellipsis, MoreHorizontal } from "lucide-react";
-import { IconButton } from "@plane/propel/icon-button";
+import { IconButton } from "@taskpilot/propel/icon-button";
 
 type Props = {
   workspaceSlug: string;

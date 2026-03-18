@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,12 +8,12 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Combobox } from "@headlessui/react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { SearchIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { ISearchIssueResponse } from "@plane/types";
-import { Loader, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { SearchIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { ISearchIssueResponse } from "@taskpilot/types";
+import { Loader, EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
 // assets
 import darkIssuesAsset from "@/app/assets/empty-state/search/issues-dark.webp?url";
 import lightIssuesAsset from "@/app/assets/empty-state/search/issues-light.webp?url";

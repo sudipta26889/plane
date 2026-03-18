@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React from "react";
 import { useTheme } from "next-themes";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import type { ISearchIssueResponse } from "@plane/types";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import type { ISearchIssueResponse } from "@taskpilot/types";
 // assets
 import darkIssuesAsset from "@/app/assets/empty-state/search/issues-dark.webp?url";
 import lightIssuesAsset from "@/app/assets/empty-state/search/issues-light.webp?url";
@@ -27,7 +27,7 @@ interface EmptyStateProps {
 export function IssueSearchModalEmptyState({ issues, searchTerm, debouncedSearchTerm, isSearching }: EmptyStateProps) {
   // theme hook
   const { resolvedTheme } = useTheme();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // derived values
   const searchResolvedPath = resolvedTheme === "light" ? lightSearchAsset : darkSearchAsset;

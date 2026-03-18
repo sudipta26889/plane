@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { Download } from "lucide-react";
-import type { IExportData } from "@plane/types";
-import { getDate, getFileURL, renderFormattedDate } from "@plane/utils";
+import type { IExportData } from "@taskpilot/types";
+import { getDate, getFileURL, renderFormattedDate } from "@taskpilot/utils";
 
 type RowData = IExportData;
 const checkExpiry = (inputDateString: string) => {

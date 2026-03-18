@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { EUserPermissions, EUserPermissionsLevel, LOGIN_MEDIUM_LABELS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { renderFormattedDate } from "@plane/utils";
+import { EUserPermissions, EUserPermissionsLevel, LOGIN_MEDIUM_LABELS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { renderFormattedDate } from "@taskpilot/utils";
 import { MemberHeaderColumn } from "@/components/project/member-header-column";
 import type { RowData } from "@/components/workspace/settings/member-columns";
 import { AccountTypeColumn, NameColumn } from "@/components/workspace/settings/member-columns";

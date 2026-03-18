@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,14 +8,14 @@ import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Editor } from "@tiptap/react";
 import type { FC, ReactNode } from "react";
 import { useCallback, useEffect, useRef } from "react";
-// plane utils
-import { cn } from "@plane/utils";
+// taskpilot utils
+import { cn } from "@taskpilot/utils";
 // constants
 import { DEFAULT_DISPLAY_CONFIG } from "@/constants/config";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // components
 import type { TCollabValue } from "@/contexts";
-import { LinkContainer } from "@/plane-editor/components/link-container";
+import { LinkContainer } from "@/taskpilot-editor/components/link-container";
 // plugins
 import { nodeHighlightPluginKey } from "@/plugins/highlight";
 // types

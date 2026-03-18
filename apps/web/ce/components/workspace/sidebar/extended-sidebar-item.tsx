@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -12,13 +12,13 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Pin, PinOff } from "lucide-react";
-// plane imports
-import type { IWorkspaceSidebarNavigationItem } from "@plane/constants";
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Tooltip } from "@plane/propel/tooltip";
-import { DragHandle, DropIndicator } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import type { IWorkspaceSidebarNavigationItem } from "@taskpilot/constants";
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { DragHandle, DropIndicator } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks

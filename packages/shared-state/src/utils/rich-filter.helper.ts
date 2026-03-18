@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import type { TBuildFilterExpressionParams, TExternalFilter, TFilterProperty, TFilterValue } from "@plane/types";
-import { LOGICAL_OPERATOR } from "@plane/types";
-import { getOperatorForPayload } from "@plane/utils";
+// taskpilot imports
+import type { TBuildFilterExpressionParams, TExternalFilter, TFilterProperty, TFilterValue } from "@taskpilot/types";
+import { LOGICAL_OPERATOR } from "@taskpilot/types";
+import { getOperatorForPayload } from "@taskpilot/utils";
 // local imports
 import { FilterInstance } from "../store/rich-filters/filter";
 

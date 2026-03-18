@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,10 +7,10 @@
 import type { SetStateAction } from "react";
 import { observer } from "mobx-react";
 import { GripVertical } from "lucide-react";
-import { EIconSize, STATE_TRACKER_ELEMENTS } from "@plane/constants";
-// plane imports
-import { EditIcon, StateGroupIcon } from "@plane/propel/icons";
-import type { IState, TStateOperationsCallbacks } from "@plane/types";
+import { EIconSize, STATE_TRACKER_ELEMENTS } from "@taskpilot/constants";
+// taskpilot imports
+import { EditIcon, StateGroupIcon } from "@taskpilot/propel/icons";
+import type { IState, TStateOperationsCallbacks } from "@taskpilot/types";
 // local imports
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { StateDelete, StateMarksAsDefault } from "./options";

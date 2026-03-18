@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,10 +8,10 @@ import type { FC } from "react";
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-import { useTranslation } from "@plane/i18n";
-import { SearchIcon, CloseIcon } from "@plane/propel/icons";
-import type { IIssueFilterOptions, IState } from "@plane/types";
-import { cn } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+import { SearchIcon, CloseIcon } from "@taskpilot/propel/icons";
+import type { IIssueFilterOptions, IState } from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 import {
   FilterAssignees,
   FilterDueDate,
@@ -23,7 +23,7 @@ import {
   FilterStateGroup,
 } from "@/components/issues/issue-layouts/filters";
 import { isFiltersApplied } from "@/components/issues/issue-layouts/utils";
-import { FilterIssueTypes } from "@/plane-web/components/issues/filters/issue-types";
+import { FilterIssueTypes } from "@/taskpilot-web/components/issues/filters/issue-types";
 type TSubIssueFiltersProps = {
   handleFiltersUpdate: (key: keyof IIssueFilterOptions, value: string | string[]) => void;
   filters: IIssueFilterOptions;
@@ -34,7 +34,7 @@ type TSubIssueFiltersProps = {
 
 export const SubIssueFilters = observer(function SubIssueFilters(props: TSubIssueFiltersProps) {
   const { handleFiltersUpdate, filters, memberIds, states, availableFilters } = props;
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // states
   const [filtersSearchQuery, setFiltersSearchQuery] = useState("");

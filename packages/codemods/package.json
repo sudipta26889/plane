@@ -1,5 +1,5 @@
 {
-  "name": "@plane/codemods",
+  "name": "@taskpilot/codemods",
   "version": "1.2.0",
   "private": true,
   "scripts": {

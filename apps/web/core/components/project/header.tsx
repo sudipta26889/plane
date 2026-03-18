@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,18 +7,18 @@
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 // i18n
-import { EUserPermissions, EUserPermissionsLevel, PROJECT_TRACKER_ELEMENTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
+import { EUserPermissions, EUserPermissionsLevel, PROJECT_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
 // ui
-import { Button } from "@plane/propel/button";
-import { ProjectIcon } from "@plane/propel/icons";
-import { Breadcrumbs, Header } from "@plane/ui";
+import { Button } from "@taskpilot/propel/button";
+import { ProjectIcon } from "@taskpilot/propel/icons";
+import { Breadcrumbs, Header } from "@taskpilot/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUserPermissions } from "@/hooks/store/user";
-// plane web constants
+// taskpilot web constants
 // components
 import HeaderFilters from "./filters";
 import { ProjectSearch } from "./search-projects";

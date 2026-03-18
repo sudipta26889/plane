@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { makeObservable } from "mobx";
-import type { TIssueServiceType } from "@plane/types";
+import type { TIssueServiceType } from "@taskpilot/types";
 import type { IIssueDetail as IIssueDetailCore } from "@/store/issue/issue-details/root.store";
 import { IssueDetail as IssueDetailCore } from "@/store/issue/issue-details/root.store";
 import type { IIssueRootStore } from "@/store/issue/root.store";

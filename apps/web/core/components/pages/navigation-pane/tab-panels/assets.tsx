@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,14 +8,14 @@ import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Download } from "lucide-react";
-// plane imports
-import { CORE_EXTENSIONS } from "@plane/editor";
-import type { TEditorAsset } from "@plane/editor";
-import { useTranslation } from "@plane/i18n";
-import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@plane/utils";
-// plane web imports
-import { AdditionalPageNavigationPaneAssetItem } from "@/plane-web/components/pages/navigation-pane/tab-panels/assets";
-import { PageNavigationPaneAssetsTabEmptyState } from "@/plane-web/components/pages/navigation-pane/tab-panels/empty-states/assets";
+// taskpilot imports
+import { CORE_EXTENSIONS } from "@taskpilot/editor";
+import type { TEditorAsset } from "@taskpilot/editor";
+import { useTranslation } from "@taskpilot/i18n";
+import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@taskpilot/utils";
+// taskpilot web imports
+import { AdditionalPageNavigationPaneAssetItem } from "@/taskpilot-web/components/pages/navigation-pane/tab-panels/assets";
+import { PageNavigationPaneAssetsTabEmptyState } from "@/taskpilot-web/components/pages/navigation-pane/tab-panels/empty-states/assets";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

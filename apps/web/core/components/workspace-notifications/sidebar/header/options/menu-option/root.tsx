@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,16 +7,16 @@
 import type { ReactNode } from "react";
 import { observer } from "mobx-react";
 import { CheckCircle, Clock, MoreVertical } from "lucide-react";
-import { useTranslation } from "@plane/i18n";
-// plane imports
-import { ArchiveIcon, CheckIcon } from "@plane/propel/icons";
-import type { TNotificationFilter } from "@plane/types";
-import { PopoverMenu } from "@plane/ui";
+import { useTranslation } from "@taskpilot/i18n";
+// taskpilot imports
+import { ArchiveIcon, CheckIcon } from "@taskpilot/propel/icons";
+import type { TNotificationFilter } from "@taskpilot/types";
+import { PopoverMenu } from "@taskpilot/ui";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 // local imports
 import { NotificationMenuOptionItem } from "./menu-item";
-import { IconButton } from "@plane/propel/icon-button";
+import { IconButton } from "@taskpilot/propel/icon-button";
 
 export type TPopoverMenuOptions = {
   key: string;

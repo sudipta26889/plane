@@ -1,12 +1,12 @@
-# Plane Community All-In-One (AIO) Docker Image
+# TaskPilot Community All-In-One (AIO) Docker Image
 
-The Plane Community All-In-One Docker image packages all Plane services into a single container for easy deployment and testing. This image includes web interface, API server, background workers, live server, and more.
+The TaskPilot Community All-In-One Docker image packages all TaskPilot services into a single container for easy deployment and testing. This image includes web interface, API server, background workers, live server, and more.
 
 ## What's Included
 
 The AIO image contains the following services:
 
-- **Web App** (Port 3001): Main Plane web interface
+- **Web App** (Port 3001): Main TaskPilot web interface
 - **Space** (Port 3002): Public project spaces
 - **Admin** (Port 3003): Administrative interface  
 - **API Server** (Port 3004): Backend API
@@ -49,7 +49,7 @@ You must provide these environment variables:
 ### Basic Usage
 
 ```bash
-docker run --name plane-aio --rm -it \
+docker run --name taskpilot-aio --rm -it \
     -p 80:80 \
     -e DOMAIN_NAME=your-domain.com \
     -e DATABASE_URL=postgresql://user:pass@host:port/database \
@@ -59,7 +59,7 @@ docker run --name plane-aio --rm -it \
     -e AWS_ACCESS_KEY_ID=your-access-key \
     -e AWS_SECRET_ACCESS_KEY=your-secret-key \
     -e AWS_S3_BUCKET_NAME=your-bucket \
-    artifacts.plane.so/makeplane/plane-aio-community:latest
+    artifacts.taskpilot.app/taskpilot/taskpilot-aio-community:latest
 ```
 
 ### Example with IP Address
@@ -69,16 +69,16 @@ MYIP=192.168.68.169
 docker run --name myaio --rm -it \
     -p 80:80 \
     -e DOMAIN_NAME=${MYIP} \
-    -e DATABASE_URL=postgresql://plane:plane@${MYIP}:15432/plane \
+    -e DATABASE_URL=postgresql://taskpilot:taskpilot@${MYIP}:15432/taskpilot \
     -e REDIS_URL=redis://${MYIP}:16379 \
-    -e AMQP_URL=amqp://plane:plane@${MYIP}:15673/plane \
+    -e AMQP_URL=amqp://taskpilot:taskpilot@${MYIP}:15673/taskpilot \
     -e AWS_REGION=us-east-1 \
     -e AWS_ACCESS_KEY_ID=5MV45J9NF5TEFZWYCRAX \
     -e AWS_SECRET_ACCESS_KEY=7xMqAiAHsf2UUjMH+EwICXlyJL9TO30m8leEaDsL \
-    -e AWS_S3_BUCKET_NAME=plane-app \
+    -e AWS_S3_BUCKET_NAME=taskpilot-app \
     -e AWS_S3_ENDPOINT_URL=http://${MYIP}:19000 \
     -e FILE_SIZE_LIMIT=10485760 \
-    artifacts.plane.so/makeplane/plane-aio-community:latest
+    artifacts.taskpilot.app/taskpilot/taskpilot-aio-community:latest
 ```
 
 ## Configuration Options
@@ -125,13 +125,13 @@ To build the AIO image yourself:
 
 ```bash
 cd deployments/aio/community
-IMAGE_NAME=myplane-aio ./build.sh --release=v0.27.1 [--platform=linux/amd64]
+IMAGE_NAME=mytaskpilot-aio ./build.sh --release=v0.27.1 [--platform=linux/amd64]
 ```
 
 Available build options:
 
-- `--release`: Plane version to build (required)
-- `--image-name`: Custom image name (default: `plane-aio-community`)
+- `--release`: TaskPilot version to build (required)
+- `--image-name`: Custom image name (default: `taskpilot-aio-community`)
 
 ## Troubleshooting
 
@@ -171,4 +171,4 @@ The container will validate required environment variables on startup and displa
 
 ## Support
 
-For issues and support, please refer to the official Plane documentation.
+For issues and support, please refer to the official TaskPilot documentation.

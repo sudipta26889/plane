@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,9 +7,9 @@
 import type { FC } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane imports
-import type { TIssue } from "@plane/types";
-import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
+// taskpilot imports
+import type { TIssue } from "@taskpilot/types";
+import { EIssueServiceType, EIssuesStoreType } from "@taskpilot/types";
 // components
 import { BulkDeleteIssuesModal } from "@/components/core/modals/bulk-delete-issues-modal";
 import { DeleteIssueModal } from "@/components/issues/delete-issue-modal";

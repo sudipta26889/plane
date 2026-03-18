@@ -1,21 +1,21 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useContext } from "react";
 import { merge } from "lodash-es";
-import type { TIssueMap } from "@plane/types";
-import { EIssuesStoreType } from "@plane/types";
+import type { TIssueMap } from "@taskpilot/types";
+import { EIssuesStoreType } from "@taskpilot/types";
 import { StoreContext } from "@/lib/store-context";
-// plane web types
-import type { IProjectEpics, IProjectEpicsFilter } from "@/plane-web/store/issue/epic";
+// taskpilot web types
+import type { IProjectEpics, IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
 // types
-import type { ITeamIssues, ITeamIssuesFilter } from "@/plane-web/store/issue/team";
-import type { ITeamProjectWorkItemsFilter, ITeamProjectWorkItems } from "@/plane-web/store/issue/team-project";
-import type { ITeamViewIssues, ITeamViewIssuesFilter } from "@/plane-web/store/issue/team-views";
-import type { IWorkspaceIssues } from "@/plane-web/store/issue/workspace/issue.store";
+import type { ITeamIssues, ITeamIssuesFilter } from "@/taskpilot-web/store/issue/team";
+import type { ITeamProjectWorkItemsFilter, ITeamProjectWorkItems } from "@/taskpilot-web/store/issue/team-project";
+import type { ITeamViewIssues, ITeamViewIssuesFilter } from "@/taskpilot-web/store/issue/team-views";
+import type { IWorkspaceIssues } from "@/taskpilot-web/store/issue/workspace/issue.store";
 import type { IArchivedIssues, IArchivedIssuesFilter } from "@/store/issue/archived";
 import type { ICycleIssues, ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssues, IModuleIssuesFilter } from "@/store/issue/module";

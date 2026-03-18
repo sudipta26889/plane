@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// plane internal packages
-import { Tooltip } from "@plane/propel/tooltip";
-import { cn } from "@plane/utils";
+// taskpilot internal packages
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { useTheme } from "@/hooks/store";
 import { useSidebarMenu } from "@/hooks/use-sidebar-menu";

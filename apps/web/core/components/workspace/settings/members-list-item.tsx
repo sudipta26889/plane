@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { isEmpty } from "lodash-es";
 import { observer } from "mobx-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { IWorkspaceMember } from "@plane/types";
-import { Table } from "@plane/ui";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { IWorkspaceMember } from "@taskpilot/types";
+import { Table } from "@taskpilot/ui";
 // components
 import { MembersLayoutLoader } from "@/components/ui/loader/layouts/members-layout-loader";
 import { ConfirmWorkspaceMemberRemove } from "@/components/workspace/confirm-workspace-member-remove";
@@ -20,8 +20,8 @@ import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions, useUserSettings } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// plane web imports
-import { useMemberColumns } from "@/plane-web/components/workspace/settings/useMemberColumns";
+// taskpilot web imports
+import { useMemberColumns } from "@/taskpilot-web/components/workspace/settings/useMemberColumns";
 
 type Props = {
   memberDetails: (IWorkspaceMember | null)[];

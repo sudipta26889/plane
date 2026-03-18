@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-// plane imports
-import { PROFILE_VIEWER_TAB, PROFILE_ADMINS_TAB } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Header, EHeaderVariant } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { PROFILE_VIEWER_TAB, PROFILE_ADMINS_TAB } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Header, EHeaderVariant } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 
 type Props = {
   isAuthorized: boolean;

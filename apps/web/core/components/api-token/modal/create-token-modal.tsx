@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState } from "react";
 import { mutate } from "swr";
-// plane imports
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { APITokenService } from "@plane/services";
-import type { IApiToken } from "@plane/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
-import { renderFormattedDate, csvDownload } from "@plane/utils";
+// taskpilot imports
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { APITokenService } from "@taskpilot/services";
+import type { IApiToken } from "@taskpilot/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
+import { renderFormattedDate, csvDownload } from "@taskpilot/utils";
 // constants
 import { API_TOKENS_LIST } from "@/constants/fetch-keys";
 // local imports

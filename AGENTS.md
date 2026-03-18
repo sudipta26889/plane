@@ -9,7 +9,7 @@
 - `pnpm check:types` - TypeScript type checking
 - `pnpm fix` - Auto-fix format and lint issues
 - `pnpm turbo run <command> --filter=<package>` - Target specific package/app
-- `pnpm --filter=@plane/ui storybook` - Start Storybook on port 6006
+- `pnpm --filter=@taskpilot/ui storybook` - Start Storybook on port 6006
 
 ## Code Style
 
@@ -21,4 +21,4 @@
 - **Error Handling**: Use try-catch with proper error types, log errors appropriately
 - **State Management**: MobX stores in `packages/shared-state`, reactive patterns
 - **Testing**: All features require unit tests, use existing test framework per package
-- **Components**: Build in `@plane/ui` with Storybook for isolated development
+- **Components**: Build in `@taskpilot/ui` with Storybook for isolated development

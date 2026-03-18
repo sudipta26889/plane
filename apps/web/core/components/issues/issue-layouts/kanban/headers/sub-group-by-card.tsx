@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,11 +8,11 @@ import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
 import { Circle } from "lucide-react";
-import { ChevronDownIcon, ChevronUpIcon } from "@plane/propel/icons";
-// Plane
-import type { TIssueGroupByOptions, TIssueKanbanFilters } from "@plane/types";
-// Plane-web
-import { WorkFlowGroupTree } from "@/plane-web/components/workflow";
+import { ChevronDownIcon, ChevronUpIcon } from "@taskpilot/propel/icons";
+// TaskPilot
+import type { TIssueGroupByOptions, TIssueKanbanFilters } from "@taskpilot/types";
+// TaskPilot-web
+import { WorkFlowGroupTree } from "@/taskpilot-web/components/workflow";
 // mobx
 
 interface IHeaderSubGroupByCard {

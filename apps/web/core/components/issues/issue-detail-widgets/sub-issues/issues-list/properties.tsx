@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
+// taskpilot imports
 import type { SyntheticEvent } from "react";
 import { useMemo } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@plane/i18n";
-import { StartDatePropertyIcon, DueDatePropertyIcon } from "@plane/propel/icons";
-import type { IIssueDisplayProperties, TIssue } from "@plane/types";
-import { getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+import { StartDatePropertyIcon, DueDatePropertyIcon } from "@taskpilot/propel/icons";
+import type { IIssueDisplayProperties, TIssue } from "@taskpilot/types";
+import { getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@taskpilot/utils";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -27,7 +27,7 @@ export const setValueIntoLocalStorage = (key: string, value: any) => {
   }
 };
 
-// TODO: Remove this once we migrate to the new hooks from plane/helpers
+// TODO: Remove this once we migrate to the new hooks from taskpilot/helpers
 const useLocalStorage = <T,>(key: string, initialValue: T) => {
   const [storedValue, setStoredValue] = useState<T | null>(() => getValueFromLocalStorage(key, initialValue));
 

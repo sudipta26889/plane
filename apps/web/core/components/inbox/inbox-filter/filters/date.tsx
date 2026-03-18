@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,8 +8,8 @@ import type { FC } from "react";
 import { useState } from "react";
 import { concat, uniq } from "lodash-es";
 import { observer } from "mobx-react";
-import { PAST_DURATION_FILTER_OPTIONS } from "@plane/constants";
-import type { TInboxIssueFilterDateKeys } from "@plane/types";
+import { PAST_DURATION_FILTER_OPTIONS } from "@taskpilot/constants";
+import type { TInboxIssueFilterDateKeys } from "@taskpilot/types";
 // components
 import { DateFilterModal } from "@/components/core/filters/date-filter-modal";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,11 +8,11 @@ import React from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-// plane imports
-import { ETabIndices } from "@plane/constants";
+// taskpilot imports
+import { ETabIndices } from "@taskpilot/constants";
 // types
-import type { TIssue } from "@plane/types";
-import { getTabIndex } from "@plane/utils";
+import type { TIssue } from "@taskpilot/types";
+import { getTabIndex } from "@taskpilot/utils";
 // components
 import { ProjectDropdown } from "@/components/dropdowns/project/dropdown";
 // hooks

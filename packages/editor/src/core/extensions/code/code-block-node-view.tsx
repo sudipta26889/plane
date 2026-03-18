@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,11 +10,11 @@ import ts from "highlight.js/lib/languages/typescript";
 import { common, createLowlight } from "lowlight";
 import { CheckIcon } from "lucide-react";
 import { useState } from "react";
-import { CopyIcon } from "@plane/propel/icons";
+import { CopyIcon } from "@taskpilot/propel/icons";
 // ui
-import { Tooltip } from "@plane/propel/tooltip";
-// plane utils
-import { cn } from "@plane/utils";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+// taskpilot utils
+import { cn } from "@taskpilot/utils";
 // types
 import type { TCodeBlockAttributes } from "./types";
 import { ECodeBlockAttributeNames } from "./types";

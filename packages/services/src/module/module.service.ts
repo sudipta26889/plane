@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 // types
-import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@plane/types";
+import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@taskpilot/types";
 // services
 import { APIService } from "../api.service";
 

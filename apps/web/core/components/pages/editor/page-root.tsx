@@ -1,21 +1,21 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import type { CollaborationState, EditorRefApi } from "@plane/editor";
-import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@plane/types";
+// taskpilot imports
+import type { CollaborationState, EditorRefApi } from "@taskpilot/editor";
+import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@taskpilot/types";
 // hooks
 import { usePageFallback } from "@/hooks/use-page-fallback";
-// plane web import
+// taskpilot web import
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
-import { PageModals } from "@/plane-web/components/pages";
-import { usePagesPaneExtensions, useExtendedEditorProps } from "@/plane-web/hooks/pages";
-import type { EPageStoreType } from "@/plane-web/hooks/store";
+import { PageModals } from "@/taskpilot-web/components/pages";
+import { usePagesPaneExtensions, useExtendedEditorProps } from "@/taskpilot-web/hooks/pages";
+import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

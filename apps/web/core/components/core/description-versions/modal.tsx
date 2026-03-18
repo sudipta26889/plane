@@ -1,27 +1,27 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useCallback, useRef } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import type { EditorRefApi } from "@plane/editor";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { CopyIcon, ChevronLeftIcon, ChevronRightIcon } from "@plane/propel/icons";
-import { setToast, TOAST_TYPE } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { TDescriptionVersion } from "@plane/types";
-import { Avatar, EModalPosition, EModalWidth, Loader, ModalCore } from "@plane/ui";
-import { calculateTimeAgo, cn, getFileURL } from "@plane/utils";
+// taskpilot imports
+import type { EditorRefApi } from "@taskpilot/editor";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { CopyIcon, ChevronLeftIcon, ChevronRightIcon } from "@taskpilot/propel/icons";
+import { setToast, TOAST_TYPE } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { TDescriptionVersion } from "@taskpilot/types";
+import { Avatar, EModalPosition, EModalWidth, Loader, ModalCore } from "@taskpilot/ui";
+import { calculateTimeAgo, cn, getFileURL } from "@taskpilot/utils";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-import { IconButton } from "@plane/propel/icon-button";
+import { IconButton } from "@taskpilot/propel/icon-button";
 
 type Props = {
   activeVersionDescription: string | undefined;

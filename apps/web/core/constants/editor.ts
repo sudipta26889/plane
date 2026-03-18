@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -30,10 +30,10 @@ import {
   TextQuote,
   Underline,
 } from "lucide-react";
-// plane imports
-import type { TCommandExtraProps, TEditorCommands, TEditorFontStyle } from "@plane/editor";
-import { MonospaceIcon, SansSerifIcon, SerifIcon } from "@plane/propel/icons";
-import { convertRemToPixel } from "@plane/utils";
+// taskpilot imports
+import type { TCommandExtraProps, TEditorCommands, TEditorFontStyle } from "@taskpilot/editor";
+import { MonospaceIcon, SansSerifIcon, SerifIcon } from "@taskpilot/propel/icons";
+import { convertRemToPixel } from "@taskpilot/utils";
 
 type TEditorTypes = "lite" | "document" | "sticky";
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,7 +7,7 @@
 import { useCallback, useMemo } from "react";
 import type { RefObject } from "react";
 import { useSearchParams } from "next/navigation";
-import type { EditorRefApi } from "@plane/editor";
+import type { EditorRefApi } from "@taskpilot/editor";
 import {
   PAGE_NAVIGATION_PANE_TAB_KEYS,
   PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM,
@@ -15,8 +15,8 @@ import {
 } from "@/components/pages/navigation-pane";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useQueryParams } from "@/hooks/use-query-params";
-import type { TPageNavigationPaneTab } from "@/plane-web/components/pages/navigation-pane";
-import type { INavigationPaneExtension } from "@/plane-web/types/pages/pane-extensions";
+import type { TPageNavigationPaneTab } from "@/taskpilot-web/components/pages/navigation-pane";
+import type { INavigationPaneExtension } from "@/taskpilot-web/types/pages/pane-extensions";
 import type { TPageInstance } from "@/store/pages/base-page";
 
 export type TPageExtensionHookParams = {

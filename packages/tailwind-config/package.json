@@ -1,5 +1,5 @@
 {
-  "name": "@plane/tailwind-config",
+  "name": "@taskpilot/tailwind-config",
   "version": "1.2.0",
   "license": "AGPL-3.0",
   "description": "common tailwind configuration across monorepo",

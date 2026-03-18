@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,15 +7,15 @@
 import { useEffect, useMemo } from "react";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-// plane imports
-import type { TSaveViewOptions, TUpdateViewOptions } from "@plane/constants";
-import type { IWorkItemFilterInstance } from "@plane/shared-state";
-import type { IIssueFilters, TWorkItemFilterExpression } from "@plane/types";
+// taskpilot imports
+import type { TSaveViewOptions, TUpdateViewOptions } from "@taskpilot/constants";
+import type { IWorkItemFilterInstance } from "@taskpilot/shared-state";
+import type { IIssueFilters, TWorkItemFilterExpression } from "@taskpilot/types";
 // store hooks
 import { useWorkItemFilters } from "@/hooks/store/work-item-filters/use-work-item-filters";
-// plane web imports
-import type { TWorkItemFiltersEntityProps } from "@/plane-web/hooks/work-item-filters/use-work-item-filters-config";
-import { useWorkItemFiltersConfig } from "@/plane-web/hooks/work-item-filters/use-work-item-filters-config";
+// taskpilot web imports
+import type { TWorkItemFiltersEntityProps } from "@/taskpilot-web/hooks/work-item-filters/use-work-item-filters-config";
+import { useWorkItemFiltersConfig } from "@/taskpilot-web/hooks/work-item-filters/use-work-item-filters-config";
 // local imports
 import type { TSharedWorkItemFiltersHOCProps, TSharedWorkItemFiltersProps } from "./shared";
 

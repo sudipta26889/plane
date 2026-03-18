@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-// plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import type { TPageNavigationTabs } from "@plane/types";
-import { EUserProjectRoles } from "@plane/types";
+// taskpilot imports
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import type { TPageNavigationTabs } from "@taskpilot/types";
+import { EUserProjectRoles } from "@taskpilot/types";
 // assets
 import darkPagesAsset from "@/app/assets/empty-state/disabled-feature/pages-dark.webp?url";
 import lightPagesAsset from "@/app/assets/empty-state/disabled-feature/pages-light.webp?url";
@@ -24,8 +24,8 @@ import { PagesListView } from "@/components/pages/pages-list-view";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// plane web hooks
-import { EPageStoreType } from "@/plane-web/hooks/store";
+// taskpilot web hooks
+import { EPageStoreType } from "@/taskpilot-web/hooks/store";
 import type { Route } from "./+types/page";
 
 const getPageType = (pageType?: string | null): TPageNavigationTabs => {
@@ -42,7 +42,7 @@ function ProjectPagesPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { getProjectById, currentProjectDetails } = useProject();

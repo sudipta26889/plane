@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { NewTabIcon, EditIcon, TrashIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import { getIconForLink, copyTextToClipboard, calculateTimeAgo } from "@plane/utils";
+import { NewTabIcon, EditIcon, TrashIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { getIconForLink, copyTextToClipboard, calculateTimeAgo } from "@taskpilot/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";

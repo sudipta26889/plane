@@ -1,15 +1,164 @@
+# TaskPilot Development Docker Compose — HOT RELOAD
+# Remote services: PostgreSQL & Redis at 192.168.11.118, MinIO at 192.168.11.100:7612
+# Nginx Proxy Manager is external
+
 services:
-  plane-redis:
-    image: valkey/valkey:7.2.11-alpine
+  web:
+    container_name: taskpilot-web-dev
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: unless-stopped
+    networks:
+      - dev_env
+    ports:
+      - "4646:4646"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - api
+
+  api:
+    container_name: taskpilot-api-dev
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: unless-stopped
+    networks:
+      - dev_env
+    ports:
+      - "4647:4647"
+    volumes:
+      - ./apps/api:/code
+    command: ./bin/docker-entrypoint-api-local.sh
+    env_file:
+      - .env
+    depends_on:
+      - taskpilot-mq
+
+  worker:
+    container_name: taskpilot-worker-dev
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
     restart: unless-stopped
     networks:
       - dev_env
     volumes:
-      - redisdata:/data
-    ports:
-      - "6379:6379"
+      - ./apps/api:/code
+    command: ./bin/docker-entrypoint-worker.sh
+    env_file:
+      - .env
+    depends_on:
+      - api
+      - taskpilot-mq
 
-  plane-mq:
+  beat-worker:
+    container_name: taskpilot-beat-worker-dev
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: unless-stopped
+    networks:
+      - dev_env
+    volumes:
+      - ./apps/api:/code
+    command: ./bin/docker-entrypoint-beat.sh
+    env_file:
+      - .env
+    depends_on:
+      - api
+      - taskpilot-mq
+
+  migrator:
+    container_name: taskpilot-migrator-dev
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: "no"
+    networks:
+      - dev_env
+    volumes:
+      - ./apps/api:/code
+    command: ./bin/docker-entrypoint-migrator.sh --settings=taskpilot.settings.local
+    env_file:
+      - .env
+    depends_on:
+      - taskpilot-mq
+
+  live:
+    container_name: taskpilot-live-dev
+    build:
+      context: .
+      dockerfile: ./apps/live/Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: unless-stopped
+    networks:
+      - dev_env
+    ports:
+      - "4648:4648"
+    volumes:
+      - .:/app
+      - node_modules_live:/app/node_modules
+    env_file:
+      - .env
+    environment:
+      PORT: 4648
+
+  admin:
+    container_name: taskpilot-admin-dev
+    build:
+      context: .
+      dockerfile: ./apps/admin/Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: unless-stopped
+    networks:
+      - dev_env
+    ports:
+      - "4649:4649"
+    volumes:
+      - .:/app
+      - node_modules_admin:/app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - api
+
+  space:
+    container_name: taskpilot-space-dev
+    build:
+      context: .
+      dockerfile: ./apps/space/Dockerfile.dev
+      args:
+        DOCKER_BUILDKIT: 1
+    restart: unless-stopped
+    networks:
+      - dev_env
+    volumes:
+      - .:/app
+      - node_modules_space:/app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - api
+
+  taskpilot-mq:
+    container_name: taskpilot-mq-dev
     image: rabbitmq:3.13.6-management-alpine
     restart: unless-stopped
     networks:
@@ -23,206 +172,12 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
 
-  plane-minio:
-    image: minio/minio
-    restart: unless-stopped
-    networks:
-      - dev_env
-    entrypoint: >
-      /bin/sh -c "
-      mkdir -p /export/${AWS_S3_BUCKET_NAME} &&
-      minio server /export --console-address ':9090' &
-      sleep 5 &&
-      mc alias set myminio http://localhost:9000 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY} &&
-      mc mb myminio/${AWS_S3_BUCKET_NAME} -p || true
-      && tail -f /dev/null
-      "
-    volumes:
-      - uploads:/export
-    env_file:
-      - .env
-    environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
-    ports:
-      - "9000:9000"
-      - "9090:9090"
-
-  plane-db:
-    image: postgres:15.7-alpine
-    restart: unless-stopped
-    networks:
-      - dev_env
-    command: postgres -c 'max_connections=1000'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    env_file:
-      - .env
-    environment:
-      PGDATA: /var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: ./web/Dockerfile.dev
-  #   restart: unless-stopped
-  #   networks:
-  #     - dev_env
-  #   volumes:
-  #     - ./web:/app/web
-  #   env_file:
-  #     - ./web/.env
-  #   depends_on:
-  #     - api
-  #     - worker
-
-  # space:
-  #   build:
-  #     context: .
-  #     dockerfile: ./space/Dockerfile.dev
-  #   restart: unless-stopped
-  #   networks:
-  #     - dev_env
-  #   volumes:
-  #     - ./space:/app/space
-  #   depends_on:
-  #     - api
-  #     - worker
-  #     - web
-
-  # admin:
-  #   build:
-  #     context: .
-  #     dockerfile: ./admin/Dockerfile.dev
-  #   restart: unless-stopped
-  #   networks:
-  #     - dev_env
-  #   volumes:
-  #     - ./admin:/app/admin
-  #   depends_on:
-  #     - api
-  #     - worker
-  #     - web
-
-  # live:
-  #   build:
-  #     context: .
-  #     dockerfile: ./live/Dockerfile.dev
-  #   restart: unless-stopped
-  #   networks:
-  #     - dev_env
-  #   volumes:
-  #     - ./live:/app/live
-  #   depends_on:
-  #     - api
-  #     - worker
-  #     - web
-
-  api:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile.dev
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: unless-stopped
-    networks:
-      - dev_env
-    volumes:
-      - ./apps/api:/code
-    command: ./bin/docker-entrypoint-api-local.sh
-    env_file:
-      - ./apps/api/.env
-    depends_on:
-      - plane-db
-      - plane-redis
-      - plane-mq
-    ports:
-      - "8000:8000"
-
-  worker:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile.dev
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: unless-stopped
-    networks:
-      - dev_env
-    volumes:
-      - ./apps/api:/code
-    command: ./bin/docker-entrypoint-worker.sh
-    env_file:
-      - ./apps/api/.env
-    depends_on:
-      - api
-      - plane-db
-      - plane-redis
-
-  beat-worker:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile.dev
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: unless-stopped
-    networks:
-      - dev_env
-    volumes:
-      - ./apps/api:/code
-    command: ./bin/docker-entrypoint-beat.sh
-    env_file:
-      - ./apps/api/.env
-    depends_on:
-      - api
-      - plane-db
-      - plane-redis
-
-  migrator:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile.dev
-      args:
-        DOCKER_BUILDKIT: 1
-    restart: "no"
-    networks:
-      - dev_env
-    volumes:
-      - ./apps/api:/code
-    command: ./bin/docker-entrypoint-migrator.sh --settings=plane.settings.local
-    env_file:
-      - ./apps/api/.env
-    depends_on:
-      - plane-db
-      - plane-redis
-
-  # proxy:
-  #   build:
-  #     context: ./apps/proxy
-  #     dockerfile: Dockerfile.ce
-  #   restart: unless-stopped
-  #   networks:
-  #     - dev_env
-  #   ports:
-  #     - ${LISTEN_HTTP_PORT}:80
-  #     - ${LISTEN_HTTPS_PORT}:443
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     FILE_SIZE_LIMIT: ${FILE_SIZE_LIMIT:-5242880}
-  #     BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-uploads}
-  #   depends_on:
-  #     - api
-  #     - web
-  #     - space
-  #     - admin
-
 volumes:
-  redisdata:
-  uploads:
-  pgdata:
   rabbitmq_data:
+  node_modules:
+  node_modules_live:
+  node_modules_admin:
+  node_modules_space:
 
 networks:
   dev_env:

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,8 +7,8 @@
 import React from "react";
 import { AlertCircle } from "lucide-react";
 // ui
-import { Button } from "@plane/propel/button";
-import { TransferIcon } from "@plane/propel/icons";
+import { Button } from "@taskpilot/propel/button";
+import { TransferIcon } from "@taskpilot/propel/icons";
 
 type Props = {
   handleClick: () => void;

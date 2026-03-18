@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import type { ADDITIONAL_EXTENSIONS } from "@plane/utils";
-import { CORE_EXTENSIONS } from "@plane/utils";
-// plane editor imports
-import type { ExtensionFileSetStorageKey } from "@/plane-editor/types/storage";
+// taskpilot imports
+import type { ADDITIONAL_EXTENSIONS } from "@taskpilot/utils";
+import { CORE_EXTENSIONS } from "@taskpilot/utils";
+// taskpilot editor imports
+import type { ExtensionFileSetStorageKey } from "@/taskpilot-editor/types/storage";
 
 export type NodeFileMapType = Partial<
   Record<

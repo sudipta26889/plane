@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { Request, Response } from "express";
 import { Effect, Schema, Cause } from "effect";
-import { Controller, Post } from "@plane/decorators";
-import { logger } from "@plane/logger";
+import { Controller, Post } from "@taskpilot/decorators";
+import { logger } from "@taskpilot/logger";
 import { AppError } from "@/lib/errors";
 import { PdfExportRequestBody, PdfValidationError, PdfAuthenticationError } from "@/schema/pdf-export";
 import { PdfExportService, exportToPdf } from "@/services/pdf-export";

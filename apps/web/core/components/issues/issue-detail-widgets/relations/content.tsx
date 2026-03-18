@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,19 +7,19 @@
 import type { FC } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
-import { Collapsible } from "@plane/ui";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import type { TIssue, TIssueServiceType } from "@taskpilot/types";
+import { EIssueServiceType } from "@taskpilot/types";
+import { Collapsible } from "@taskpilot/ui";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// Plane-web
-import { CreateUpdateEpicModal } from "@/plane-web/components/epics/epic-modal";
-import { useTimeLineRelationOptions } from "@/plane-web/components/relations";
-import type { TIssueRelationTypes } from "@/plane-web/types";
+// TaskPilot-web
+import { CreateUpdateEpicModal } from "@/taskpilot-web/components/epics/epic-modal";
+import { useTimeLineRelationOptions } from "@/taskpilot-web/components/relations";
+import type { TIssueRelationTypes } from "@/taskpilot-web/types";
 // helper
 import { DeleteIssueModal } from "../../delete-issue-modal";
 import { RelationIssueList } from "../../relations/issue-list";
@@ -44,7 +44,7 @@ export type TRelationObject = {
 
 export const RelationsCollapsibleContent = observer(function RelationsCollapsibleContent(props: Props) {
   const { workspaceSlug, issueId, disabled = false, issueServiceType = EIssueServiceType.ISSUES } = props;
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // state
   const [issueCrudState, setIssueCrudState] = useState<{

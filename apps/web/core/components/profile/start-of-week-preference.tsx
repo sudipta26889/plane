@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
-import { START_OF_THE_WEEK_OPTIONS } from "@plane/constants";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { EStartOfTheWeek } from "@plane/types";
-import { CustomSelect } from "@plane/ui";
+// taskpilot imports
+import { START_OF_THE_WEEK_OPTIONS } from "@taskpilot/constants";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { EStartOfTheWeek } from "@taskpilot/types";
+import { CustomSelect } from "@taskpilot/ui";
 // components
 import { SettingsControlItem } from "@/components/settings/control-item";
 // hooks

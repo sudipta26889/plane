@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import type { ISearchIssueResponse, TIssue } from "@plane/types";
+// taskpilot imports
+import type { ISearchIssueResponse, TIssue } from "@taskpilot/types";
 // components
 import { IssueModalContext } from "@/components/issues/issue-modal/context";
 // hooks

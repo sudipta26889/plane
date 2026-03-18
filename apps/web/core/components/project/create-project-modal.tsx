@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useEffect, useState } from "react";
-import { EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
-import { getAssetIdFromUrl, checkURLValidity } from "@plane/utils";
-// plane ui
+import { EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
+import { getAssetIdFromUrl, checkURLValidity } from "@taskpilot/utils";
+// taskpilot ui
 // helpers
 // hooks
 import useKeypress from "@/hooks/use-keypress";
-// plane web components
-import { CreateProjectForm } from "@/plane-web/components/projects/create/root";
-// plane web types
-import type { TProject } from "@/plane-web/types/projects";
+// taskpilot web components
+import { CreateProjectForm } from "@/taskpilot-web/components/projects/create/root";
+// taskpilot web types
+import type { TProject } from "@/taskpilot-web/types/projects";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();

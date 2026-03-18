@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { action, computed, makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
-// plane imports
-import type { TConfigOptions } from "@plane/constants";
-import { DEFAULT_FILTER_CONFIG_OPTIONS } from "@plane/constants";
-import type { TExternalFilter, TFilterConfig, TFilterProperty } from "@plane/types";
+// taskpilot imports
+import type { TConfigOptions } from "@taskpilot/constants";
+import { DEFAULT_FILTER_CONFIG_OPTIONS } from "@taskpilot/constants";
+import type { TExternalFilter, TFilterConfig, TFilterProperty } from "@taskpilot/types";
 // local imports
 import type { IFilterConfig } from "./config";
 import { FilterConfig } from "./config";

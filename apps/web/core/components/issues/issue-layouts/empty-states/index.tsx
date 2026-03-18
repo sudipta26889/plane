@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane web components
-import { EIssuesStoreType } from "@plane/types";
-import { TeamEmptyState } from "@/plane-web/components/issues/issue-layouts/empty-states/team-issues";
-import { TeamProjectWorkItemEmptyState } from "@/plane-web/components/issues/issue-layouts/empty-states/team-project";
-import { TeamViewEmptyState } from "@/plane-web/components/issues/issue-layouts/empty-states/team-view-issues";
+// taskpilot web components
+import { EIssuesStoreType } from "@taskpilot/types";
+import { TeamEmptyState } from "@/taskpilot-web/components/issues/issue-layouts/empty-states/team-issues";
+import { TeamProjectWorkItemEmptyState } from "@/taskpilot-web/components/issues/issue-layouts/empty-states/team-project";
+import { TeamViewEmptyState } from "@/taskpilot-web/components/issues/issue-layouts/empty-states/team-view-issues";
 // components
 import { ProjectArchivedEmptyState } from "./archived-issues";
 import { CycleEmptyState } from "./cycle";

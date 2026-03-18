@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import type { TDocumentPayload, TDuplicateAssetData, TDuplicateAssetResponse, TEditorAssetType } from "@plane/types";
-// plane web imports
+// taskpilot imports
+import type { TDocumentPayload, TDuplicateAssetData, TDuplicateAssetResponse, TEditorAssetType } from "@taskpilot/types";
+// taskpilot web imports
 import {
   extractAdditionalAssetsFromHTMLContent,
   replaceAdditionalAssetsInHTMLContent,
-} from "@/plane-editor/helpers/parser";
+} from "@/taskpilot-editor/helpers/parser";
 // local imports
 import { convertHTMLDocumentToAllFormats } from "./yjs-utils";
 

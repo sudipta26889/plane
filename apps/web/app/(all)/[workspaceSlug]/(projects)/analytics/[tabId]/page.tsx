@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,13 +7,13 @@
 import { useState, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
-// plane package imports
-import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { EmptyStateDetailed } from "@plane/propel/empty-state";
-import { Tabs } from "@plane/propel/tabs";
+// taskpilot package imports
+import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { EmptyStateDetailed } from "@taskpilot/propel/empty-state";
+import { Tabs } from "@taskpilot/propel/tabs";
 // components
-import { cn } from "@plane/utils";
+import { cn } from "@taskpilot/utils";
 import AnalyticsFilterActions from "@/components/analytics/analytics-filter-actions";
 import { PageHead } from "@/components/core/page-title";
 // hooks
@@ -21,7 +21,7 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
-import { useAnalyticsTabs } from "@/plane-web/components/analytics/use-analytics-tabs";
+import { useAnalyticsTabs } from "@/taskpilot-web/components/analytics/use-analytics-tabs";
 import type { Route } from "./+types/page";
 
 function AnalyticsPage({ params }: Route.ComponentProps) {
@@ -30,7 +30,7 @@ function AnalyticsPage({ params }: Route.ComponentProps) {
   // hooks
   const router = useRouter();
 
-  // plane imports
+  // taskpilot imports
   const { t } = useTranslation();
 
   // store hooks

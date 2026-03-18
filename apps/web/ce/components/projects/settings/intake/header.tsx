@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,10 +9,10 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { RefreshCcw } from "lucide-react";
 // ui
-import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { Breadcrumbs, Header } from "@plane/ui";
+import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { Breadcrumbs, Header } from "@taskpilot/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { InboxIssueCreateModalRoot } from "@/components/inbox/modals/create-modal";
@@ -20,9 +20,9 @@ import { InboxIssueCreateModalRoot } from "@/components/inbox/modals/create-moda
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { useUserPermissions } from "@/hooks/store/user";
-// plane web imports
-import { CommonProjectBreadcrumbs } from "@/plane-web/components/breadcrumbs/common";
-import { IntakeIcon } from "@plane/propel/icons";
+// taskpilot web imports
+import { CommonProjectBreadcrumbs } from "@/taskpilot-web/components/breadcrumbs/common";
+import { IntakeIcon } from "@taskpilot/propel/icons";
 
 export const ProjectInboxHeader = observer(function ProjectInboxHeader() {
   // states

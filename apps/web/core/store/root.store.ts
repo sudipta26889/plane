@@ -1,25 +1,25 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { enableStaticRendering } from "mobx-react";
-// plane imports
-import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY } from "@plane/i18n";
-import type { IWorkItemFilterStore } from "@plane/shared-state";
-import { WorkItemFilterStore } from "@plane/shared-state";
-// plane web store
-import type { IAnalyticsStore } from "@/plane-web/store/analytics.store";
-import { AnalyticsStore } from "@/plane-web/store/analytics.store";
-import type { ICommandPaletteStore } from "@/plane-web/store/command-palette.store";
-import { CommandPaletteStore } from "@/plane-web/store/command-palette.store";
-import { PowerKStore } from "@/plane-web/store/power-k.store";
-import type { IPowerKStore } from "@/plane-web/store/power-k.store";
-import type { RootStore } from "@/plane-web/store/root.store";
-import type { IStateStore } from "@/plane-web/store/state.store";
-import { StateStore } from "@/plane-web/store/state.store";
-import { WorkspaceRootStore } from "@/plane-web/store/workspace";
+// taskpilot imports
+import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY } from "@taskpilot/i18n";
+import type { IWorkItemFilterStore } from "@taskpilot/shared-state";
+import { WorkItemFilterStore } from "@taskpilot/shared-state";
+// taskpilot web store
+import type { IAnalyticsStore } from "@/taskpilot-web/store/analytics.store";
+import { AnalyticsStore } from "@/taskpilot-web/store/analytics.store";
+import type { ICommandPaletteStore } from "@/taskpilot-web/store/command-palette.store";
+import { CommandPaletteStore } from "@/taskpilot-web/store/command-palette.store";
+import { PowerKStore } from "@/taskpilot-web/store/power-k.store";
+import type { IPowerKStore } from "@/taskpilot-web/store/power-k.store";
+import type { RootStore } from "@/taskpilot-web/store/root.store";
+import type { IStateStore } from "@/taskpilot-web/store/state.store";
+import { StateStore } from "@/taskpilot-web/store/state.store";
+import { WorkspaceRootStore } from "@/taskpilot-web/store/workspace";
 // stores
 import type { ICycleStore } from "./cycle.store";
 import { CycleStore } from "./cycle.store";

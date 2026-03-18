@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,13 +8,13 @@ import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
-// Plane Imports
-import { CYCLE_STATUS, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { ChevronRightIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { ICycle } from "@plane/types";
-import { getDate, renderFormattedPayloadDate } from "@plane/utils";
+// TaskPilot Imports
+import { CYCLE_STATUS, EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { ChevronRightIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { ICycle } from "@taskpilot/types";
+import { getDate, renderFormattedPayloadDate } from "@taskpilot/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 // hooks

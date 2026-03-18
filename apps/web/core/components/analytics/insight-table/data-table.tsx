@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -22,13 +22,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { useTranslation } from "@plane/i18n";
-import { EmptyStateCompact } from "@plane/propel/empty-state";
-import { SearchIcon, CloseIcon } from "@plane/propel/icons";
-// plane package imports
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@plane/propel/table";
-import { cn } from "@plane/utils";
-// plane web components
+import { useTranslation } from "@taskpilot/i18n";
+import { EmptyStateCompact } from "@taskpilot/propel/empty-state";
+import { SearchIcon, CloseIcon } from "@taskpilot/propel/icons";
+// taskpilot package imports
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@taskpilot/propel/table";
+import { cn } from "@taskpilot/utils";
+// taskpilot web components
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

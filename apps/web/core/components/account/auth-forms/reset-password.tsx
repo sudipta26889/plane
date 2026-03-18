@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,12 +10,12 @@ import { useSearchParams } from "next/navigation";
 // icons
 import { Eye, EyeOff } from "lucide-react";
 // ui
-import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { Input, PasswordStrengthIndicator } from "@plane/ui";
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { Input, PasswordStrengthIndicator } from "@taskpilot/ui";
 // components
-import { getPasswordStrength } from "@plane/utils";
+import { getPasswordStrength } from "@taskpilot/utils";
 // helpers
 import type { EAuthenticationErrorCodes, TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { EErrorAlertType, authErrorHandler } from "@/helpers/authentication.helper";
@@ -60,7 +60,7 @@ export const ResetPasswordForm = observer(function ResetPasswordForm() {
   const [isPasswordInputFocused, setIsPasswordInputFocused] = useState(false);
   const [isRetryPasswordInputFocused, setIsRetryPasswordInputFocused] = useState(false);
   const [errorInfo, setErrorInfo] = useState<TAuthErrorInfo | undefined>(undefined);
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
 
   const handleShowPassword = (key: keyof typeof showPassword) =>

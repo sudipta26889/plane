@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-// plane imports
-import { WORKSPACE_DEFAULT_SEARCH_RESULT } from "@plane/constants";
-import type { IWorkspaceSearchResults } from "@plane/types";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { WORKSPACE_DEFAULT_SEARCH_RESULT } from "@taskpilot/constants";
+import type { IWorkspaceSearchResults } from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { usePowerK } from "@/hooks/store/use-power-k";
 import useDebounce from "@/hooks/use-debounce";
-// plane web imports
-import { PowerKModalNoSearchResultsCommand } from "@/plane-web/components/command-palette/power-k/search/no-results-command";
+// taskpilot web imports
+import { PowerKModalNoSearchResultsCommand } from "@/taskpilot-web/components/command-palette/power-k/search/no-results-command";
 import { WorkspaceService } from "@/services/workspace.service";
 // local imports
 import type { TPowerKContext, TPowerKPageType } from "../../core/types";

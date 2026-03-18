@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -12,8 +12,8 @@ import type {
   EInboxIssueSource,
   TIssue,
   TInboxDuplicateIssueDetails,
-} from "@plane/types";
-import { EInboxIssueStatus } from "@plane/types";
+} from "@taskpilot/types";
+import { EInboxIssueStatus } from "@taskpilot/types";
 // helpers
 // services
 import { InboxIssueService } from "@/services/inbox";

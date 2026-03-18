@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,8 +7,8 @@
 import type { FC } from "react";
 import { CalendarDays, LayersIcon, Paperclip } from "lucide-react";
 // types
-import { ISSUE_GROUP_BY_OPTIONS } from "@plane/constants";
-import type { ISvgIcons } from "@plane/propel/icons";
+import { ISSUE_GROUP_BY_OPTIONS } from "@taskpilot/constants";
+import type { ISvgIcons } from "@taskpilot/propel/icons";
 import {
   LinkIcon,
   CycleIcon,
@@ -20,14 +20,14 @@ import {
   LabelPropertyIcon,
   PriorityPropertyIcon,
   StartDatePropertyIcon,
-} from "@plane/propel/icons";
+} from "@taskpilot/propel/icons";
 import type {
   IGroupByColumn,
   IIssueDisplayProperties,
   TGetColumns,
   TIssueGroupByOptions,
   TSpreadsheetColumn,
-} from "@plane/types";
+} from "@taskpilot/types";
 // components
 import {
   SpreadsheetAssigneeColumn,

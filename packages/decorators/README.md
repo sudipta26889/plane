@@ -1,4 +1,4 @@
-# @plane/decorators
+# @taskpilot/decorators
 
 A lightweight TypeScript decorator library for building Express.js controllers with a clean, declarative syntax.
 
@@ -12,12 +12,12 @@ A lightweight TypeScript decorator library for building Express.js controllers w
 
 ## Installation
 
-This package is part of the Plane workspace and can be used by adding it to your project's dependencies:
+This package is part of the TaskPilot workspace and can be used by adding it to your project's dependencies:
 
 ```json
 {
   "dependencies": {
-    "@plane/decorators": "workspace:*"
+    "@taskpilot/decorators": "workspace:*"
   }
 }
 ```
@@ -27,7 +27,7 @@ This package is part of the Plane workspace and can be used by adding it to your
 ### Basic REST Controller
 
 ```typescript
-import { Controller, Get, Post, BaseController } from "@plane/decorators";
+import { Controller, Get, Post, BaseController } from "@taskpilot/decorators";
 import { Router, Request, Response } from "express";
 
 @Controller("/api/users")
@@ -52,7 +52,7 @@ userController.registerRoutes(router);
 ### WebSocket Controller
 
 ```typescript
-import { Controller, WebSocket, BaseWebSocketController } from "@plane/decorators";
+import { Controller, WebSocket, BaseWebSocketController } from "@taskpilot/decorators";
 import { Request } from "express";
 import { WebSocket as WS } from "ws";
 
@@ -92,4 +92,4 @@ chatController.registerWebSocketRoutes(router);
 
 ## License
 
-This project is licensed under the [GNU Affero General Public License v3.0](https://github.com/makeplane/plane/blob/master/LICENSE.txt).
+This project is licensed under the [GNU Affero General Public License v3.0](https://github.com/taskpilot/plane/blob/master/LICENSE.txt).

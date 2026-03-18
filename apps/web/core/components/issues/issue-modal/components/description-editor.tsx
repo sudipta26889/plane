@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,15 +9,15 @@ import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { Sparkle } from "lucide-react";
-// plane imports
-import { ETabIndices } from "@plane/constants";
-import type { EditorRefApi } from "@plane/editor";
-import { useTranslation } from "@plane/i18n";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { TIssue } from "@plane/types";
-import { EFileAssetType } from "@plane/types";
-import { Loader } from "@plane/ui";
-import { getDescriptionPlaceholderI18n, getTabIndex } from "@plane/utils";
+// taskpilot imports
+import { ETabIndices } from "@taskpilot/constants";
+import type { EditorRefApi } from "@taskpilot/editor";
+import { useTranslation } from "@taskpilot/i18n";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { TIssue } from "@taskpilot/types";
+import { EFileAssetType } from "@taskpilot/types";
+import { Loader } from "@taskpilot/ui";
+import { getDescriptionPlaceholderI18n, getTabIndex } from "@taskpilot/utils";
 // components
 import { GptAssistantPopover } from "@/components/core/modals/gpt-assistant-popover";
 import { RichTextEditor } from "@/components/editor/rich-text";
@@ -28,7 +28,7 @@ import { useInstance } from "@/hooks/store/use-instance";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import useKeypress from "@/hooks/use-keypress";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web services
+// taskpilot web services
 import { WorkspaceService } from "@/services/workspace.service";
 // services
 import { AIService } from "@/services/ai.service";

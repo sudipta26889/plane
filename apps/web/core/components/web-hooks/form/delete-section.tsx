@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { Disclosure, Transition } from "@headlessui/react";
-import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@plane/constants";
-import { Button } from "@plane/propel/button";
-import { ChevronDownIcon, ChevronUpIcon } from "@plane/propel/icons";
+import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { Button } from "@taskpilot/propel/button";
+import { ChevronDownIcon, ChevronUpIcon } from "@taskpilot/propel/icons";
 
 type Props = {
   openDeleteModal: () => void;

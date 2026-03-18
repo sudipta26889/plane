@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 import { Tab } from "@headlessui/react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import type { TWorkItemFilterCondition } from "@plane/shared-state";
-import type { TCycleDistribution, TCycleEstimateDistribution, TCyclePlotType } from "@plane/types";
-import { cn, toFilterArray } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import type { TWorkItemFilterCondition } from "@taskpilot/shared-state";
+import type { TCycleDistribution, TCycleEstimateDistribution, TCyclePlotType } from "@taskpilot/types";
+import { cn, toFilterArray } from "@taskpilot/utils";
 // components
 import type { TAssigneeData } from "@/components/core/sidebar/progress-stats/assignee";
 import { AssigneeStatComponent } from "@/components/core/sidebar/progress-stats/assignee";
@@ -52,7 +52,7 @@ export const CycleProgressStats = observer(function CycleProgressStats(props: TC
     size = "sm",
     totalIssuesCount,
   } = props;
-  // plane imports
+  // taskpilot imports
   const { t } = useTranslation();
   // store imports
   const { storedValue: currentTab, setValue: setCycleTab } = useLocalStorage(

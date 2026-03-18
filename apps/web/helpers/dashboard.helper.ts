@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,10 +7,10 @@
 import { endOfMonth, endOfWeek, endOfYear, startOfMonth, startOfWeek, startOfYear } from "date-fns";
 // helpers
 // types
-import { DURATION_FILTER_OPTIONS, EDurationFilters } from "@plane/constants";
-import type { TIssuesListTypes } from "@plane/types";
+import { DURATION_FILTER_OPTIONS, EDurationFilters } from "@taskpilot/constants";
+import type { TIssuesListTypes } from "@taskpilot/types";
 // constants
-import { renderFormattedDate, renderFormattedPayloadDate } from "@plane/utils";
+import { renderFormattedDate, renderFormattedPayloadDate } from "@taskpilot/utils";
 
 // -------------------- DEPRECATED --------------------
 

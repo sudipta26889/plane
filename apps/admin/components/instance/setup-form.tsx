@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,12 +8,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 // icons
 import { Eye, EyeOff } from "lucide-react";
-// plane internal packages
-import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@plane/constants";
-import { Button } from "@plane/propel/button";
-import { AuthService } from "@plane/services";
-import { Checkbox, Input, PasswordStrengthIndicator, Spinner } from "@plane/ui";
-import { getPasswordStrength, validatePersonName, validateCompanyName } from "@plane/utils";
+// taskpilot internal packages
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@taskpilot/constants";
+import { Button } from "@taskpilot/propel/button";
+import { AuthService } from "@taskpilot/services";
+import { Checkbox, Input, PasswordStrengthIndicator, Spinner } from "@taskpilot/ui";
+import { getPasswordStrength, validatePersonName, validateCompanyName } from "@taskpilot/utils";
 // components
 import { AuthHeader } from "@/app/(all)/(home)/auth-header";
 import { Banner } from "../common/banner";
@@ -142,8 +142,8 @@ export function InstanceSetupForm() {
       <div className="mt-10 flex w-full flex-grow flex-col items-center justify-center py-6">
         <div className="relative flex w-full max-w-[22.5rem] flex-col gap-6">
           <FormHeader
-            heading="Setup your Plane Instance"
-            subHeading="Post setup you will be able to manage this Plane instance."
+            heading="Setup your TaskPilot Instance"
+            subHeading="Post setup you will be able to manage this TaskPilot instance."
           />
           {errorData.type &&
             errorData?.message &&
@@ -352,10 +352,10 @@ export function InstanceSetupForm() {
                 />
               </div>
               <label className="cursor-pointer text-13 font-medium text-tertiary" htmlFor="is_telemetry_enabled">
-                Allow Plane to anonymously collect usage events.{" "}
+                Allow TaskPilot to anonymously collect usage events.{" "}
                 <a
                   tabIndex={-1}
-                  href="https://developers.plane.so/self-hosting/telemetry"
+                  href="#"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:text-blue-600 flex-shrink-0 text-13 font-medium"

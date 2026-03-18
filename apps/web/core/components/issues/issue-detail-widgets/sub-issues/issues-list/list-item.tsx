@@ -1,19 +1,19 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 import { Link as Loader } from "lucide-react";
-import { useTranslation } from "@plane/i18n";
-import { LinkIcon, EditIcon, TrashIcon, CloseIcon, ChevronRightIcon } from "@plane/propel/icons";
-// plane imports
-import { Tooltip } from "@plane/propel/tooltip";
-import type { TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
-import { EIssueServiceType, EIssuesStoreType } from "@plane/types";
-import { ControlLink, CustomMenu } from "@plane/ui";
-import { cn, generateWorkItemLink } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+import { LinkIcon, EditIcon, TrashIcon, CloseIcon, ChevronRightIcon } from "@taskpilot/propel/icons";
+// taskpilot imports
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { TIssue, TIssueServiceType, TSubIssueOperations } from "@taskpilot/types";
+import { EIssueServiceType, EIssuesStoreType } from "@taskpilot/types";
+import { ControlLink, CustomMenu } from "@taskpilot/ui";
+import { cn, generateWorkItemLink } from "@taskpilot/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
 import { WithDisplayPropertiesHOC } from "@/components/issues/issue-layouts/properties/with-display-properties-HOC";
@@ -22,8 +22,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
+// taskpilot web components
+import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 // local components
 import { SubIssuesListItemProperties } from "./properties";
 import { SubIssuesListRoot } from "./root";

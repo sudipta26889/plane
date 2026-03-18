@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 // types
-import type { ICycle, IModule, IProjectView, IWorkspaceView } from "@plane/types";
-import type { TContextMenuItem } from "@plane/ui";
+import type { ICycle, IModule, IProjectView, IWorkspaceView } from "@taskpilot/types";
+import type { TContextMenuItem } from "@taskpilot/ui";
 // hooks
-import { useQuickActionsFactory } from "@/plane-web/components/common/quick-actions-factory";
+import { useQuickActionsFactory } from "@/taskpilot-web/components/common/quick-actions-factory";
 
 // Types
 interface UseCycleMenuItemsProps {

@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useMemo } from "react";
 import { XCircle, ArchiveRestoreIcon } from "lucide-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { LinkIcon, CopyIcon, NewTabIcon, EditIcon, ArchiveIcon, TrashIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { EIssuesStoreType, TIssue } from "@plane/types";
-import type { TContextMenuItem } from "@plane/ui";
-import { copyUrlToClipboard, generateWorkItemLink } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { LinkIcon, CopyIcon, NewTabIcon, EditIcon, ArchiveIcon, TrashIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { EIssuesStoreType, TIssue } from "@taskpilot/types";
+import type { TContextMenuItem } from "@taskpilot/ui";
+import { copyUrlToClipboard, generateWorkItemLink } from "@taskpilot/utils";
 // types
-import { createCopyMenuWithDuplication } from "@/plane-web/components/issues/issue-layouts/quick-action-dropdowns";
+import { createCopyMenuWithDuplication } from "@/taskpilot-web/components/issues/issue-layouts/quick-action-dropdowns";
 
 // Generic helper function to handle optional function calls gracefully
 // Overload for functions without parameters

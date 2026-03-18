@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,8 +7,8 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { OctagonAlert } from "lucide-react";
-// plane imports
-import type { IWorkspaceMemberInvitation, TOnboardingSteps } from "@plane/types";
+// taskpilot imports
+import type { IWorkspaceMemberInvitation, TOnboardingSteps } from "@taskpilot/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 // hooks

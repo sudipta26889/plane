@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { onStatelessPayload } from "@hocuspocus/server";
-import { DocumentCollaborativeEvents } from "@plane/editor/lib";
-import type { TDocumentEventsServer } from "@plane/editor/lib";
+import { DocumentCollaborativeEvents } from "@taskpilot/editor/lib";
+import type { TDocumentEventsServer } from "@taskpilot/editor/lib";
 
 /**
  * Broadcast the client event to all the clients so that they can update their state

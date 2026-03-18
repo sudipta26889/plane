@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -11,21 +11,21 @@ import { Rocket } from "lucide-react";
 // headless ui
 import { Combobox } from "@headlessui/react";
 // i18n
-import { useTranslation } from "@plane/i18n";
-import { SearchIcon } from "@plane/propel/icons";
+import { useTranslation } from "@taskpilot/i18n";
+import { SearchIcon } from "@taskpilot/propel/icons";
 // types
-import type { ISearchIssueResponse } from "@plane/types";
+import type { ISearchIssueResponse } from "@taskpilot/types";
 // ui
-import { Loader, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
-import { generateWorkItemLink, getTabIndex } from "@plane/utils";
+import { Loader, EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
+import { generateWorkItemLink, getTabIndex } from "@taskpilot/utils";
 // components
 import { IssueSearchModalEmptyState } from "@/components/core/modals/issue-search-modal-empty-state";
 // helpers
 // hooks
 import useDebounce from "@/hooks/use-debounce";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
+// taskpilot web components
+import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 // services
 import { ProjectService } from "@/services/project";
 

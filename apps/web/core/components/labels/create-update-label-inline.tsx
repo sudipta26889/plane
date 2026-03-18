@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,13 +10,13 @@ import { TwitterPicker } from "react-color";
 import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import { Popover, Transition } from "@headlessui/react";
-// plane imports
-import { getRandomLabelColor, LABEL_COLOR_OPTIONS, PROJECT_SETTINGS_TRACKER_EVENTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { IIssueLabel } from "@plane/types";
-import { Input } from "@plane/ui";
+// taskpilot imports
+import { getRandomLabelColor, LABEL_COLOR_OPTIONS, PROJECT_SETTINGS_TRACKER_EVENTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { IIssueLabel } from "@taskpilot/types";
+import { Input } from "@taskpilot/ui";
 
 // error codes
 const errorCodes = {

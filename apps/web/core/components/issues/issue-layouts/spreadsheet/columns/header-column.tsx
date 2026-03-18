@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 //ui
 import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckIcon, ChevronDownIcon, Eraser, MoveRight } from "lucide-react";
 // constants
-import { SPREADSHEET_PROPERTY_DETAILS } from "@plane/constants";
+import { SPREADSHEET_PROPERTY_DETAILS } from "@taskpilot/constants";
 // i18n
-import { useTranslation } from "@plane/i18n";
+import { useTranslation } from "@taskpilot/i18n";
 // types
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssueOrderByOptions } from "@plane/types";
-import { CustomMenu, Row } from "@plane/ui";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssueOrderByOptions } from "@taskpilot/types";
+import { CustomMenu, Row } from "@taskpilot/ui";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { SpreadSheetPropertyIcon } from "../../utils";
 

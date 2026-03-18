@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
-import type { IIssueLabel, IPragmaticPayloadLocation, InstructionType, TDropTarget } from "@plane/types";
+import type { IIssueLabel, IPragmaticPayloadLocation, InstructionType, TDropTarget } from "@taskpilot/types";
 
 export type TargetData = {
   id: string;

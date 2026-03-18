@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@plane/i18n";
-import { EmptyStateCompact } from "@plane/propel/empty-state";
-import type { CompactAssetType } from "@plane/propel/empty-state";
+import { useTranslation } from "@taskpilot/i18n";
+import { EmptyStateCompact } from "@taskpilot/propel/empty-state";
+import type { CompactAssetType } from "@taskpilot/propel/empty-state";
 
 const getDisplayContent = (type: string): { assetKey: CompactAssetType; text: string } => {
   switch (type) {

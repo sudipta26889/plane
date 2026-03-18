@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,11 +9,11 @@ import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { CheckIcon, SearchIcon, ModuleIcon } from "@plane/propel/icons";
-import type { IModule } from "@plane/types";
-import { cn, sortBySelectedFirst } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { CheckIcon, SearchIcon, ModuleIcon } from "@taskpilot/propel/icons";
+import type { IModule } from "@taskpilot/types";
+import { cn, sortBySelectedFirst } from "@taskpilot/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 
@@ -43,7 +43,7 @@ export const ModuleOptions = observer(function ModuleOptions(props: Props) {
   // states
   const [query, setQuery] = useState("");
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { isMobile } = usePlatformOS();

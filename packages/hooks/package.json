@@ -1,5 +1,5 @@
 {
-  "name": "@plane/hooks",
+  "name": "@taskpilot/hooks",
   "version": "1.2.0",
   "private": true,
   "description": "React hooks that are shared across multiple apps internally",
@@ -29,7 +29,7 @@
     "react": "catalog:"
   },
   "devDependencies": {
-    "@plane/typescript-config": "workspace:*",
+    "@taskpilot/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "tsdown": "catalog:",

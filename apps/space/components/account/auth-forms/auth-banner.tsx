@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { Info } from "lucide-react";
-import { CloseIcon } from "@plane/propel/icons";
+import { CloseIcon } from "@taskpilot/propel/icons";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 

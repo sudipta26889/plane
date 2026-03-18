@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,18 +10,18 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Hotel } from "lucide-react";
-// plane ui
-import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { useLocalStorage } from "@plane/hooks";
-import { useTranslation } from "@plane/i18n";
-import { MembersPropertyIcon, CheckIcon, ProjectIcon, CloseIcon } from "@plane/propel/icons";
-import { cn, getFileURL } from "@plane/utils";
+// taskpilot ui
+import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { useLocalStorage } from "@taskpilot/hooks";
+import { useTranslation } from "@taskpilot/i18n";
+import { MembersPropertyIcon, CheckIcon, ProjectIcon, CloseIcon } from "@taskpilot/propel/icons";
+import { cn, getFileURL } from "@taskpilot/utils";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-// plane web constants
+// taskpilot web constants
 
 export const NoProjectsEmptyState = observer(function NoProjectsEmptyState() {
   // navigation

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,10 +7,10 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { CircleCheck, CircleX, Clock, FileStack, PanelLeft, MoveRight } from "lucide-react";
-import { LinkIcon, NewTabIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from "@plane/propel/icons";
-import type { TNameDescriptionLoader } from "@plane/types";
-import { Header, CustomMenu, EHeaderVariant } from "@plane/ui";
-import { cn, findHowManyDaysLeft, generateWorkItemLink } from "@plane/utils";
+import { LinkIcon, NewTabIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon } from "@taskpilot/propel/icons";
+import type { TNameDescriptionLoader } from "@taskpilot/types";
+import { Header, CustomMenu, EHeaderVariant } from "@taskpilot/ui";
+import { cn, findHowManyDaysLeft, generateWorkItemLink } from "@taskpilot/utils";
 // components
 import { NameDescriptionUpdateStatus } from "@/components/issues/issue-update-status";
 // hooks

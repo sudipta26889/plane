@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { isEqual, cloneDeep } from "lodash-es";
 import { observer } from "mobx-react";
-// plane imports
-import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissionsLevel } from "@plane/constants";
-import { setToast, TOAST_TYPE } from "@plane/propel/toast";
-import type { IWorkspaceView, TWorkItemFilterExpression } from "@plane/types";
-import { EUserProjectRoles, EViewAccess } from "@plane/types";
+// taskpilot imports
+import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissionsLevel } from "@taskpilot/constants";
+import { setToast, TOAST_TYPE } from "@taskpilot/propel/toast";
+import type { IWorkspaceView, TWorkItemFilterExpression } from "@taskpilot/types";
+import { EUserProjectRoles, EViewAccess } from "@taskpilot/types";
 // components
 import { removeNillKeys } from "@/components/issues/issue-layouts/utils";
 import { CreateUpdateWorkspaceViewModal } from "@/components/workspace/views/modal";

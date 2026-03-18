@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,7 +7,7 @@
 import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import type { EIssueFilterType } from "@plane/constants";
+import type { EIssueFilterType } from "@taskpilot/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -15,7 +15,7 @@ import type {
   ISubWorkItemFilters,
   TGroupedIssues,
   TIssue,
-} from "@plane/types";
+} from "@taskpilot/types";
 import { getFilteredWorkItems, getGroupedWorkItemIds, updateSubWorkItemFilters } from "../helpers/base-issues-utils";
 import type { IssueSubIssuesStore } from "./sub_issues.store";
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,8 +10,8 @@ import { EditorWrapper } from "@/components/editors";
 import { BlockMenu, EditorBubbleMenu } from "@/components/menus";
 // extensions
 import { SideMenuExtension } from "@/extensions";
-// plane editor imports
-import { RichTextEditorAdditionalExtensions } from "@/plane-editor/extensions/rich-text-extensions";
+// taskpilot editor imports
+import { RichTextEditorAdditionalExtensions } from "@/taskpilot-editor/extensions/rich-text-extensions";
 // types
 import type { EditorRefApi, IRichTextEditorProps } from "@/types";
 

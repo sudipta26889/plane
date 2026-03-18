@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
-import { Logo } from "@plane/propel/emoji-icon-picker";
-import { ChevronRightIcon } from "@plane/propel/icons";
+import { Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { ChevronRightIcon } from "@taskpilot/propel/icons";
 // icons
-import { Row } from "@plane/ui";
+import { Row } from "@taskpilot/ui";
 // helpers
-import { cn } from "@plane/utils";
+import { cn } from "@taskpilot/utils";
 import { useProject } from "@/hooks/store/use-project";
 
 type Props = {

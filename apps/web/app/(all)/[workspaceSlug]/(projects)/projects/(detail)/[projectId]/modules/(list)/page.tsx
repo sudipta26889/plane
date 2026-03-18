@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
-// plane imports
-import { EUserPermissionsLevel } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import type { TModuleFilters } from "@plane/types";
-import { EUserProjectRoles } from "@plane/types";
-import { calculateTotalFilters } from "@plane/utils";
+// taskpilot imports
+import { EUserPermissionsLevel } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import type { TModuleFilters } from "@taskpilot/types";
+import { EUserProjectRoles } from "@taskpilot/types";
+import { calculateTotalFilters } from "@taskpilot/utils";
 // assets
 import darkModulesAsset from "@/app/assets/empty-state/disabled-feature/modules-dark.webp?url";
 import lightModulesAsset from "@/app/assets/empty-state/disabled-feature/modules-light.webp?url";
@@ -33,7 +33,7 @@ function ProjectModulesPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store
   const { getProjectById, currentProjectDetails } = useProject();

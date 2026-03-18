@@ -1,5 +1,5 @@
 {
-  "name": "@plane/types",
+  "name": "@taskpilot/types",
   "version": "1.2.0",
   "private": true,
   "license": "AGPL-3.0",
@@ -22,7 +22,7 @@
     "clean": "rm -rf .turbo && rm -rf .next && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
-    "@plane/typescript-config": "workspace:*",
+    "@taskpilot/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

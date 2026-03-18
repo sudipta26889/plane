@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { IWorkspaceIntegration } from "@plane/types";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { IWorkspaceIntegration } from "@taskpilot/types";
 // assets
 import GithubLogo from "@/app/assets/logos/github-square.png?url";
 import SlackLogo from "@/app/assets/services/slack.png?url";

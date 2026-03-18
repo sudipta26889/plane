@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,11 +9,11 @@ import { Info } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
-import { useOutsideClickDetector } from "@plane/hooks";
-import { CheckIcon, SearchIcon, ChevronDownIcon } from "@plane/propel/icons";
-// plane imports
+import { useOutsideClickDetector } from "@taskpilot/hooks";
+import { CheckIcon, SearchIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+// taskpilot imports
 // local imports
-import { Tooltip } from "@plane/propel/tooltip";
+import { Tooltip } from "@taskpilot/propel/tooltip";
 import { useDropdownKeyDown } from "../hooks/use-dropdown-key-down";
 import { cn } from "../utils";
 import type { ICustomSearchSelectProps } from "./helper";

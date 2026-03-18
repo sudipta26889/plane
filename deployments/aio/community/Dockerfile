@@ -6,12 +6,12 @@ FROM --platform=$BUILDPLATFORM tonistiigi/binfmt AS binfmt
 # **************************************************
 FROM node:22-alpine AS node
 
-FROM artifacts.plane.so/makeplane/plane-frontend:${PLANE_VERSION} AS web-img
-FROM artifacts.plane.so/makeplane/plane-backend:${PLANE_VERSION} AS backend-img
-FROM artifacts.plane.so/makeplane/plane-space:${PLANE_VERSION} AS space-img
-FROM artifacts.plane.so/makeplane/plane-admin:${PLANE_VERSION} AS admin-img
-FROM artifacts.plane.so/makeplane/plane-live:${PLANE_VERSION} AS live-img
-FROM artifacts.plane.so/makeplane/plane-proxy:${PLANE_VERSION} AS proxy-img
+FROM taskpilot/taskpilot-frontend:${PLANE_VERSION} AS web-img
+FROM taskpilot/taskpilot-backend:${PLANE_VERSION} AS backend-img
+FROM taskpilot/taskpilot-space:${PLANE_VERSION} AS space-img
+FROM taskpilot/taskpilot-admin:${PLANE_VERSION} AS admin-img
+FROM taskpilot/taskpilot-live:${PLANE_VERSION} AS live-img
+FROM taskpilot/taskpilot-proxy:${PLANE_VERSION} AS proxy-img
 
 # **************************************************
 #  STAGE 1: Runner
@@ -51,7 +51,7 @@ RUN pip install supervisor
 RUN mkdir -p /etc/supervisor/conf.d
 
 COPY start.sh /app/start.sh
-COPY dist/plane.env /app/plane.env
+COPY dist/taskpilot.env /app/taskpilot.env
 COPY supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
 RUN mkdir -p /app/logs/access && \

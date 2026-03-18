@@ -1,5 +1,5 @@
 {
-  "extends": "@plane/typescript-config/react-library.json",
+  "extends": "@taskpilot/typescript-config/react-library.json",
   "compilerOptions": {
     "exactOptionalPropertyTypes": false,
     "noImplicitReturns": false,
@@ -8,7 +8,7 @@
     "paths": {
       "src/*": ["./src/*"],
       "@/*": ["./src/core/*"],
-      "@/plane-editor/*": ["./src/ce/*"],
+      "@/taskpilot-editor/*": ["./src/ce/*"],
       "@/styles/*": ["./src/styles/*"]
     }
   },

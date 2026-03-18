@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import type { FC } from "react";
 import { useEffect } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import type { EditorRefApi } from "@plane/editor";
-import { EFileAssetType } from "@plane/types";
-import type { TNameDescriptionLoader } from "@plane/types";
+// taskpilot imports
+import type { EditorRefApi } from "@taskpilot/editor";
+import { EFileAssetType } from "@taskpilot/types";
+import type { TNameDescriptionLoader } from "@taskpilot/types";
 // components
-import { getTextContent } from "@plane/utils";
+import { getTextContent } from "@taskpilot/utils";
 // components
 import { DescriptionVersionsRoot } from "@/components/core/description-versions";
 import { DescriptionInput } from "@/components/editor/rich-text/description-input";
@@ -22,11 +22,11 @@ import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
-// plane web components
-import { DeDupeIssuePopoverRoot } from "@/plane-web/components/de-dupe/duplicate-popover";
-import { IssueTypeSwitcher } from "@/plane-web/components/issues/issue-details/issue-type-switcher";
-// plane web hooks
-import { useDebouncedDuplicateIssues } from "@/plane-web/hooks/use-debounced-duplicate-issues";
+// taskpilot web components
+import { DeDupeIssuePopoverRoot } from "@/taskpilot-web/components/de-dupe/duplicate-popover";
+import { IssueTypeSwitcher } from "@/taskpilot-web/components/issues/issue-details/issue-type-switcher";
+// taskpilot web hooks
+import { useDebouncedDuplicateIssues } from "@/taskpilot-web/hooks/use-debounced-duplicate-issues";
 // services
 import { WorkItemVersionService } from "@/services/issue";
 // local components

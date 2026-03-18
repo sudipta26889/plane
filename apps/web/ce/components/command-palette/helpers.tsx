@@ -1,22 +1,22 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { LayoutGrid } from "lucide-react";
-// plane imports
-import { CycleIcon, ModuleIcon, PageIcon, ProjectIcon, ViewsIcon } from "@plane/propel/icons";
+// taskpilot imports
+import { CycleIcon, ModuleIcon, PageIcon, ProjectIcon, ViewsIcon } from "@taskpilot/propel/icons";
 import type {
   IWorkspaceDefaultSearchResult,
   IWorkspaceIssueSearchResult,
   IWorkspacePageSearchResult,
   IWorkspaceProjectSearchResult,
   IWorkspaceSearchResult,
-} from "@plane/types";
-import { generateWorkItemLink } from "@plane/utils";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
+} from "@taskpilot/types";
+import { generateWorkItemLink } from "@taskpilot/utils";
+// taskpilot web components
+import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 
 export type TCommandGroups = {
   [key: string]: {

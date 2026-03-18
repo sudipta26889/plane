@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -11,12 +11,12 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 // ui
 import { LogOut } from "lucide-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { Button, getButtonStyling } from "@plane/propel/button";
-import { PlaneLogo } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import { cn } from "@plane/utils";
+import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { Button, getButtonStyling } from "@taskpilot/propel/button";
+import { TaskPilotLogo } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { cn } from "@taskpilot/utils";
 // assets
 import WorkSpaceNotAvailable from "@/app/assets/workspace/workspace-not-available.png?url";
 // components
@@ -155,7 +155,7 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
         <div className="relative container mx-auto flex h-full w-full flex-col overflow-hidden overflow-y-auto px-5 py-14 md:px-0">
           <div className="relative flex flex-shrink-0 items-center justify-between gap-4">
             <div className="z-10 flex-shrink-0 bg-surface-2 py-4">
-              <PlaneLogo className="h-9 w-auto text-primary" />
+              <TaskPilotLogo className="h-9 w-auto text-primary" />
             </div>
             <div className="relative flex items-center gap-2">
               <div className="text-13 font-medium">{currentUser?.email}</div>
@@ -171,7 +171,7 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
           </div>
           <div className="relative flex h-full w-full flex-grow flex-col items-center justify-center space-y-3">
             <div className="relative flex-shrink-0">
-              <img src={WorkSpaceNotAvailable} className="h-[220px] object-contain object-center" alt="Plane logo" />
+              <img src={WorkSpaceNotAvailable} className="h-[220px] object-contain object-center" alt="TaskPilot logo" />
             </div>
             <h3 className="text-center text-16 font-semibold">Workspace not found</h3>
             <p className="text-center text-13 text-secondary">

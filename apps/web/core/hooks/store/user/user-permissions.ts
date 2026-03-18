@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,8 +7,8 @@
 import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
-// plane web imports
-import type { IUserPermissionStore } from "@/plane-web/store/user/permission.store";
+// taskpilot web imports
+import type { IUserPermissionStore } from "@/taskpilot-web/store/user/permission.store";
 
 export const useUserPermissions = (): IUserPermissionStore => {
   const context = useContext(StoreContext);

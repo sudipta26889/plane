@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -15,9 +15,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-// plane imports
-import { AXIS_LABEL_CLASSNAME } from "@plane/constants";
-import type { TScatterChartProps } from "@plane/types";
+// taskpilot imports
+import { AXIS_LABEL_CLASSNAME } from "@taskpilot/constants";
+import type { TScatterChartProps } from "@taskpilot/types";
 // local components
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";

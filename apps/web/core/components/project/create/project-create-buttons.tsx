@@ -1,18 +1,18 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useFormContext } from "react-hook-form";
-// plane imports
-import { ETabIndices } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import type { IProject } from "@plane/types";
+// taskpilot imports
+import { ETabIndices } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import type { IProject } from "@taskpilot/types";
 // ui
 // helpers
-import { getTabIndex } from "@plane/utils";
+import { getTabIndex } from "@taskpilot/utils";
 
 type Props = {
   handleClose: () => void;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,12 +10,12 @@ import { observer } from "mobx-react";
 // icons
 import { CircleAlert, XCircle } from "lucide-react";
 // types
-import { Button } from "@plane/propel/button";
-import type { IEmailCheckData } from "@plane/types";
+import { Button } from "@taskpilot/propel/button";
+import type { IEmailCheckData } from "@taskpilot/types";
 // ui
-import { Input, Spinner } from "@plane/ui";
+import { Input, Spinner } from "@taskpilot/ui";
 // helpers
-import { cn } from "@plane/utils";
+import { cn } from "@taskpilot/utils";
 import { checkEmailValidity } from "@/helpers/string.helper";
 
 type TAuthEmailForm = {

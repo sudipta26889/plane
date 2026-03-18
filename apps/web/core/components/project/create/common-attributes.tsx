@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,18 +7,18 @@
 import type { ChangeEvent } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
-import { InfoIcon } from "@plane/propel/icons";
-// plane imports
-import { ETabIndices } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
+import { InfoIcon } from "@taskpilot/propel/icons";
+// taskpilot imports
+import { ETabIndices } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
 // ui
-import { Tooltip } from "@plane/propel/tooltip";
-import { Input, TextArea } from "@plane/ui";
-import { cn, projectIdentifierSanitizer, getTabIndex } from "@plane/utils";
-// plane utils
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { Input, TextArea } from "@taskpilot/ui";
+import { cn, projectIdentifierSanitizer, getTabIndex } from "@taskpilot/utils";
+// taskpilot utils
 // helpers
-// plane-web types
-import type { TProject } from "@/plane-web/types/projects";
+// taskpilot-web types
+import type { TProject } from "@/taskpilot-web/types/projects";
 
 type Props = {
   setValue: UseFormSetValue<TProject>;

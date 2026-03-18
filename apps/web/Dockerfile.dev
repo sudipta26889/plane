@@ -8,6 +8,6 @@ COPY . .
 RUN corepack enable pnpm && pnpm add -g turbo
 RUN pnpm install
 
-EXPOSE 3000
+EXPOSE 4646
 VOLUME [ "/app/node_modules", "/app/web/node_modules" ]
 CMD ["pnpm", "dev", "--filter=web"]

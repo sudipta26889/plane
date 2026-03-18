@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React, { useEffect, useState, useCallback } from "react";
-// plane imports
-import { TOOLBAR_ITEMS } from "@plane/editor";
-import type { ToolbarMenuItem, EditorRefApi } from "@plane/editor";
-import { Button } from "@plane/propel/button";
-import { Tooltip } from "@plane/propel/tooltip";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { TOOLBAR_ITEMS } from "@taskpilot/editor";
+import type { ToolbarMenuItem, EditorRefApi } from "@taskpilot/editor";
+import { Button } from "@taskpilot/propel/button";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { cn } from "@taskpilot/utils";
 
 type Props = {
   executeCommand: (item: ToolbarMenuItem) => void;

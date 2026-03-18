@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,22 +8,22 @@ import { useEffect, useState, useRef } from "react";
 import { Rocket } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // i18n
-import { useTranslation } from "@plane/i18n";
+import { useTranslation } from "@taskpilot/i18n";
 // types
-import { Button } from "@plane/propel/button";
-import { SearchIcon, CloseIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { ISearchIssueResponse, TProjectIssuesSearchParams } from "@plane/types";
+import { Button } from "@taskpilot/propel/button";
+import { SearchIcon, CloseIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { ISearchIssueResponse, TProjectIssuesSearchParams } from "@taskpilot/types";
 // ui
-import { Loader, ToggleSwitch, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
-import { generateWorkItemLink, getTabIndex } from "@plane/utils";
+import { Loader, ToggleSwitch, EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
+import { generateWorkItemLink, getTabIndex } from "@taskpilot/utils";
 // helpers
 // hooks
 import useDebounce from "@/hooks/use-debounce";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
+// taskpilot web components
+import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 // services
 import { ProjectService } from "@/services/project";
 // components

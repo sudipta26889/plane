@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,16 +7,16 @@
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import { ChartNoAxesColumn, SlidersHorizontal } from "lucide-react";
-// plane imports
-import { EIssueFilterType, ISSUE_STORE_TO_FILTERS_MAP } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@plane/types";
-import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
+// taskpilot imports
+import { EIssueFilterType, ISSUE_STORE_TO_FILTERS_MAP } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@taskpilot/types";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@taskpilot/types";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
-// plane web imports
-import type { TProject } from "@/plane-web/types";
+// taskpilot web imports
+import type { TProject } from "@/taskpilot-web/types";
 // local imports
 import { WorkItemsModal } from "../analytics/work-items/modal";
 import { WorkItemFiltersToggle } from "../work-item-filters/filters-toggle";

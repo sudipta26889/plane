@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@plane/i18n";
-import { CloseIcon } from "@plane/propel/icons";
-// plane imports
-import type { EViewAccess, TViewFilterProps } from "@plane/types";
-import { Tag } from "@plane/ui";
-import { replaceUnderscoreIfSnakeCase } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+import { CloseIcon } from "@taskpilot/propel/icons";
+// taskpilot imports
+import type { EViewAccess, TViewFilterProps } from "@taskpilot/types";
+import { Tag } from "@taskpilot/ui";
+import { replaceUnderscoreIfSnakeCase } from "@taskpilot/utils";
 // components
 import { AppliedDateFilters } from "@/components/common/applied-filters/date";
 import { AppliedMembersFilters } from "@/components/common/applied-filters/members";

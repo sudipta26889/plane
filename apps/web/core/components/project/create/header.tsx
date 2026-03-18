@@ -1,25 +1,25 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-// plane imports
-import { ETabIndices } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@plane/propel/emoji-icon-picker";
-import { CloseIcon } from "@plane/propel/icons";
-// plane types
-import type { IProject } from "@plane/types";
-// plane ui
-import { getTabIndex } from "@plane/utils";
+// taskpilot imports
+import { ETabIndices } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { CloseIcon } from "@taskpilot/propel/icons";
+// taskpilot types
+import type { IProject } from "@taskpilot/types";
+// taskpilot ui
+import { getTabIndex } from "@taskpilot/utils";
 // components
 import { CoverImage } from "@/components/common/cover-image";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
-// plane web imports
-import { ProjectTemplateSelect } from "@/plane-web/components/projects/create/template-select";
+// taskpilot web imports
+import { ProjectTemplateSelect } from "@/taskpilot-web/components/projects/create/template-select";
 
 type Props = {
   handleClose: () => void;

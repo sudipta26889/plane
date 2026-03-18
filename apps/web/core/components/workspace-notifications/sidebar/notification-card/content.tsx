@@ -1,18 +1,18 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { ReactNode } from "react";
-// plane imports
-import type { TNotification } from "@plane/types";
+// taskpilot imports
+import type { TNotification } from "@taskpilot/types";
 import {
   convertMinutesToHoursMinutesString,
   renderFormattedDate,
   sanitizeCommentForNotification,
   stripAndTruncateHTML,
-} from "@plane/utils";
+} from "@taskpilot/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 import {
@@ -20,7 +20,7 @@ import {
   renderAdditionalAction,
   renderAdditionalValue,
   shouldShowConnector,
-} from "@/plane-web/components/workspace-notifications/notification-card/content";
+} from "@/taskpilot-web/components/workspace-notifications/notification-card/content";
 
 // Types
 export type TNotificationFieldData = {
@@ -137,7 +137,7 @@ const getNotificationContentDetails = (
     return baseHandler(fieldData);
   }
 
-  // Check additional map from plane-web (EE extensions)
+  // Check additional map from taskpilot-web (EE extensions)
   const additionalHandler = ADDITIONAL_NOTIFICATION_CONTENT_MAP[field];
   if (additionalHandler) {
     return additionalHandler(fieldData);

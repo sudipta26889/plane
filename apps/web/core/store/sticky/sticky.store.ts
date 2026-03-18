@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,8 +7,8 @@
 import { orderBy, set } from "lodash-es";
 import { observable, action, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import { STICKIES_PER_PAGE } from "@plane/constants";
-import type { InstructionType, TLoader, TPaginationInfo, TSticky } from "@plane/types";
+import { STICKIES_PER_PAGE } from "@taskpilot/constants";
+import type { InstructionType, TLoader, TPaginationInfo, TSticky } from "@taskpilot/types";
 import { StickyService } from "@/services/sticky.service";
 
 export interface IStickyStore {

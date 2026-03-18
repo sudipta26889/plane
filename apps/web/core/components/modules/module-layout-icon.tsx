@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import * as React from "react";
-import { TimelineLayoutIcon, GridLayoutIcon, ListLayoutIcon } from "@plane/propel/icons";
-import type { TModuleLayoutOptions } from "@plane/types";
-import { cn } from "@plane/utils";
+import { TimelineLayoutIcon, GridLayoutIcon, ListLayoutIcon } from "@taskpilot/propel/icons";
+import type { TModuleLayoutOptions } from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 
 interface ILayoutIcon {
   className?: string;

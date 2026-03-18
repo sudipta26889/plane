@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,12 +8,12 @@ import type { FC } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { CircleDashed } from "lucide-react";
-import { ALL_ISSUES } from "@plane/constants";
-import { ChevronRightIcon } from "@plane/propel/icons";
-import type { IGroupByColumn, TIssue, TIssueServiceType, TSubIssueOperations } from "@plane/types";
-import { EIssuesStoreType } from "@plane/types";
-import { Collapsible } from "@plane/ui";
-import { cn } from "@plane/utils";
+import { ALL_ISSUES } from "@taskpilot/constants";
+import { ChevronRightIcon } from "@taskpilot/propel/icons";
+import type { IGroupByColumn, TIssue, TIssueServiceType, TSubIssueOperations } from "@taskpilot/types";
+import { EIssuesStoreType } from "@taskpilot/types";
+import { Collapsible } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 import { SubIssuesListItem } from "./list-item";
 
 interface TSubIssuesListGroupProps {

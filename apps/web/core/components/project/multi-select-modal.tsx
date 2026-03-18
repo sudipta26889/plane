@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,13 +9,13 @@ import { xor } from "lodash-es";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import { Combobox } from "@headlessui/react";
-// plane ui
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { Logo } from "@plane/propel/emoji-icon-picker";
-import { SearchIcon, CloseIcon } from "@plane/propel/icons";
-import { Checkbox, EModalPosition, EModalWidth, ModalCore } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot ui
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { SearchIcon, CloseIcon } from "@taskpilot/propel/icons";
+import { Checkbox, EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // assets
 import darkProjectAsset from "@/app/assets/empty-state/search/project-dark.webp?url";
 import lightProjectAsset from "@/app/assets/empty-state/search/project-light.webp?url";
@@ -42,7 +42,7 @@ export const ProjectMultiSelectModal = observer(function ProjectMultiSelectModal
   const moveButtonRef = useRef<HTMLButtonElement>(null);
   // theme hook
   const { resolvedTheme } = useTheme();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // store hooks
   const { getProjectById } = useProject();

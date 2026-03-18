@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,23 +10,23 @@ import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { EEstimateSystem } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { ChevronUpIcon, ChevronDownIcon } from "@plane/propel/icons";
-import type { TModulePlotType } from "@plane/types";
-import { EIssuesStoreType } from "@plane/types";
-import { CustomSelect, Spinner } from "@plane/ui";
+import { EEstimateSystem } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { ChevronUpIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import type { TModulePlotType } from "@taskpilot/types";
+import { EIssuesStoreType } from "@taskpilot/types";
+import { CustomSelect, Spinner } from "@taskpilot/ui";
 // components
 // constants
 // helpers
-import { getDate } from "@plane/utils";
+import { getDate } from "@taskpilot/utils";
 import ProgressChart from "@/components/core/sidebar/progress-chart";
 import { ModuleProgressStats } from "@/components/modules";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useModule } from "@/hooks/store/use-module";
 import { useWorkItemFilters } from "@/hooks/store/work-item-filters/use-work-item-filters";
-// plane web constants
+// taskpilot web constants
 type TModuleAnalyticsProgress = {
   workspaceSlug: string;
   projectId: string;
@@ -44,7 +44,7 @@ export const ModuleAnalyticsProgress = observer(function ModuleAnalyticsProgress
   // router
   const searchParams = useSearchParams();
   const peekModule = searchParams.get("peekModule") || undefined;
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // hooks
   const { areEstimateEnabledByProjectId, currentActiveEstimateId, estimateById } = useProjectEstimates();

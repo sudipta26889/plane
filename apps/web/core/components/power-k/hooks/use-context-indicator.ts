@@ -1,18 +1,18 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useParams } from "next/navigation";
-// plane imports
-import { getPageName } from "@plane/utils";
+// taskpilot imports
+import { getPageName } from "@taskpilot/utils";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useModule } from "@/hooks/store/use-module";
-// plane web imports
-import { useExtendedContextIndicator } from "@/plane-web/components/command-palette/power-k/hooks/use-extended-context-indicator";
-import { EPageStoreType, usePageStore } from "@/plane-web/hooks/store";
+// taskpilot web imports
+import { useExtendedContextIndicator } from "@/taskpilot-web/components/command-palette/power-k/hooks/use-extended-context-indicator";
+import { EPageStoreType, usePageStore } from "@/taskpilot-web/hooks/store";
 // local imports
 import type { TPowerKContextType } from "../core/types";
 

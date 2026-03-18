@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
-// plane imports
-import type { TIssue, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
-// Plane-web imports
-import type { TIssueRelationTypes } from "@/plane-web/types";
+// taskpilot imports
+import type { TIssue, TIssueServiceType } from "@taskpilot/types";
+import { EIssueServiceType } from "@taskpilot/types";
+// TaskPilot-web imports
+import type { TIssueRelationTypes } from "@/taskpilot-web/types";
 // local imports
 import { RelationIssueListItem } from "./issue-list-item";
 

@@ -53,9 +53,9 @@ ENV VITE_WEB_BASE_URL=$VITE_WEB_BASE_URL
 ARG VITE_WEB_BASE_PATH=""
 ENV VITE_WEB_BASE_PATH=$VITE_WEB_BASE_PATH
 
-ARG VITE_WEBSITE_URL="https://plane.so"
+ARG VITE_WEBSITE_URL=""
 ENV VITE_WEBSITE_URL=$VITE_WEBSITE_URL
-ARG VITE_SUPPORT_EMAIL="support@plane.so"
+ARG VITE_SUPPORT_EMAIL=""
 ENV VITE_SUPPORT_EMAIL=$VITE_SUPPORT_EMAIL
 
 COPY .gitignore .gitignore
@@ -78,11 +78,12 @@ RUN pnpm turbo run build --filter=admin
 FROM nginx:1.29-alpine AS production
 
 COPY apps/admin/nginx/nginx.conf /etc/nginx/nginx.conf
+RUN rm -f /etc/nginx/conf.d/default.conf
 COPY --from=installer /app/apps/admin/build/client /usr/share/nginx/html/god-mode
 
-EXPOSE 3000
+EXPOSE 4649
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:3000/ >/dev/null || exit 1
+  CMD curl -fsS http://127.0.0.1:4649/ >/dev/null || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]

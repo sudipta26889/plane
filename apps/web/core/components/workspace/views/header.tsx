@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,11 +8,11 @@ import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 
-// plane imports
-import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
-import { PlusIcon } from "@plane/propel/icons";
-import type { TStaticViewTypes } from "@plane/types";
-import { Header, EHeaderVariant } from "@plane/ui";
+// taskpilot imports
+import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
+import { PlusIcon } from "@taskpilot/propel/icons";
+import type { TStaticViewTypes } from "@taskpilot/types";
+import { Header, EHeaderVariant } from "@taskpilot/ui";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
 import { useUserPermissions } from "@/hooks/store/user";

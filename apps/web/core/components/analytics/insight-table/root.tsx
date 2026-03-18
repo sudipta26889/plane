@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { Download } from "lucide-react";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import type { AnalyticsTableDataMap, TAnalyticsTabsBase } from "@plane/types";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import type { AnalyticsTableDataMap, TAnalyticsTabsBase } from "@taskpilot/types";
 import { DataTable } from "./data-table";
 import { TableLoader } from "./loader";
 interface InsightTableProps<T extends Exclude<TAnalyticsTabsBase, "overview">> {

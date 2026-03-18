@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,16 +8,16 @@ import { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Disclosure, Transition } from "@headlessui/react";
-// plane imports
-import { useOutsideClickDetector } from "@plane/hooks";
-import { useTranslation } from "@plane/i18n";
-import { Logo } from "@plane/propel/emoji-icon-picker";
-import { IconButton } from "@plane/propel/icon-button";
-import { EditIcon, ChevronDownIcon } from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IUserProfileProjectSegregation } from "@plane/types";
-import { Loader } from "@plane/ui";
-import { cn, renderFormattedDate, getFileURL } from "@plane/utils";
+// taskpilot imports
+import { useOutsideClickDetector } from "@taskpilot/hooks";
+import { useTranslation } from "@taskpilot/i18n";
+import { Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { IconButton } from "@taskpilot/propel/icon-button";
+import { EditIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IUserProfileProjectSegregation } from "@taskpilot/types";
+import { Loader } from "@taskpilot/ui";
+import { cn, renderFormattedDate, getFileURL } from "@taskpilot/utils";
 // components
 import { CoverImage } from "@/components/common/cover-image";
 // hooks

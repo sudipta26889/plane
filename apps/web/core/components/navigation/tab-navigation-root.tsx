@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,16 +8,16 @@ import type { FC } from "react";
 import React, { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams, useLocation, Link, useNavigate } from "react-router";
-import { EUserPermissionsLevel, EUserPermissions } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { TabNavigationList, TabNavigationItem } from "@plane/propel/tab-navigation";
-import type { EUserProjectRoles } from "@plane/types";
+import { EUserPermissionsLevel, EUserPermissions } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { TabNavigationList, TabNavigationItem } from "@taskpilot/propel/tab-navigation";
+import type { EUserProjectRoles } from "@taskpilot/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-// plane web imports
-import { useNavigationItems } from "@/plane-web/components/navigations";
+// taskpilot web imports
+import { useNavigationItems } from "@/taskpilot-web/components/navigations";
 // local imports
 import { LeaveProjectModal } from "../project/leave-project-modal";
 import { PublishProjectModal } from "../project/publish-project/modal";

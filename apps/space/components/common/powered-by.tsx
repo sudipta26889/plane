@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { WEBSITE_URL } from "@plane/constants";
+import { WEBSITE_URL } from "@taskpilot/constants";
 // assets
-import { PlaneLogo } from "@plane/propel/icons";
+import { TaskPilotLogo } from "@taskpilot/propel/icons";
 
 type TPoweredBy = {
   disabled?: boolean;
@@ -25,9 +25,9 @@ export function PoweredBy(props: TPoweredBy) {
       target="_blank"
       rel="noreferrer noopener"
     >
-      <PlaneLogo className="h-3 w-auto text-primary" />
+      <TaskPilotLogo className="h-3 w-auto text-primary" />
       <div className="text-11">
-        Powered by <span className="font-semibold">Plane Publish</span>
+        Powered by <span className="font-semibold">TaskPilot Publish</span>
       </div>
     </a>
   );

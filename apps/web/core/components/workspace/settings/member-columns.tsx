@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,16 +9,16 @@ import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 
 import { Disclosure } from "@headlessui/react";
-// plane imports
-import { ROLE, EUserPermissions, EUserPermissionsLevel, MEMBER_TRACKER_ELEMENTS } from "@plane/constants";
-import { TrashIcon, SuspendedUserIcon } from "@plane/propel/icons";
-import { Pill, EPillVariant, EPillSize } from "@plane/propel/pill";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { IUser, IWorkspaceMember } from "@plane/types";
-// plane ui
-import { CustomSelect, PopoverMenu } from "@plane/ui";
+// taskpilot imports
+import { ROLE, EUserPermissions, EUserPermissionsLevel, MEMBER_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { TrashIcon, SuspendedUserIcon } from "@taskpilot/propel/icons";
+import { Pill, EPillVariant, EPillSize } from "@taskpilot/propel/pill";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { IUser, IWorkspaceMember } from "@taskpilot/types";
+// taskpilot ui
+import { CustomSelect, PopoverMenu } from "@taskpilot/ui";
 // helpers
-import { getFileURL } from "@plane/utils";
+import { getFileURL } from "@taskpilot/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";

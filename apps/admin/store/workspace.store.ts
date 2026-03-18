@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { set } from "lodash-es";
 import { action, observable, runInAction, makeObservable, computed } from "mobx";
-// plane imports
-import { InstanceWorkspaceService } from "@plane/services";
-import type { IWorkspace, TLoader, TPaginationInfo } from "@plane/types";
+// taskpilot imports
+import { InstanceWorkspaceService } from "@taskpilot/services";
+import type { IWorkspace, TLoader, TPaginationInfo } from "@taskpilot/types";
 // root store
 import type { RootStore } from "@/store/root.store";
 

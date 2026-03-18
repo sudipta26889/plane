@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
-// plane imports
-import type { IUserLite } from "@plane/types";
-// plane web imports
-import type { IProjectMemberStore } from "@/plane-web/store/member/project-member.store";
-import { ProjectMemberStore } from "@/plane-web/store/member/project-member.store";
-import type { RootStore } from "@/plane-web/store/root.store";
+// taskpilot imports
+import type { IUserLite } from "@taskpilot/types";
+// taskpilot web imports
+import type { IProjectMemberStore } from "@/taskpilot-web/store/member/project-member.store";
+import { ProjectMemberStore } from "@/taskpilot-web/store/member/project-member.store";
+import type { RootStore } from "@/taskpilot-web/store/root.store";
 // local imports
 import type { IWorkspaceMemberStore } from "./workspace/workspace-member.store";
 import { WorkspaceMemberStore } from "./workspace/workspace-member.store";

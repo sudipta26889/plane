@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { Eye, EyeOff, XCircle } from "lucide-react";
-// plane imports
-import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@plane/constants";
-import { Button } from "@plane/propel/button";
-import { AuthService } from "@plane/services";
-import { Input, Spinner, PasswordStrengthIndicator } from "@plane/ui";
-import { getPasswordStrength } from "@plane/utils";
+// taskpilot imports
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@taskpilot/constants";
+import { Button } from "@taskpilot/propel/button";
+import { AuthService } from "@taskpilot/services";
+import { Input, Spinner, PasswordStrengthIndicator } from "@taskpilot/ui";
+import { getPasswordStrength } from "@taskpilot/utils";
 // types
 import { EAuthModes, EAuthSteps } from "@/types/auth";
 

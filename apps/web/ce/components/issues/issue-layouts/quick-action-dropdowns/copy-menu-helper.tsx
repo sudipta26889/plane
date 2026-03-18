@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import type { ISvgIcons } from "@plane/propel/icons";
-import type { TContextMenuItem } from "@plane/ui";
+import type { ISvgIcons } from "@taskpilot/propel/icons";
+import type { TContextMenuItem } from "@taskpilot/ui";
 
 export interface CopyMenuHelperProps {
   baseItem: {

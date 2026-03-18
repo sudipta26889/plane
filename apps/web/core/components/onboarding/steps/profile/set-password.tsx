@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React, { useState, useCallback, useMemo } from "react";
-import { LockIcon, ChevronDownIcon } from "@plane/propel/icons";
-import { PasswordInput, PasswordStrengthIndicator } from "@plane/ui";
-import { cn } from "@plane/utils";
+import { LockIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import { PasswordInput, PasswordStrengthIndicator } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 
 interface PasswordState {
   password: string;

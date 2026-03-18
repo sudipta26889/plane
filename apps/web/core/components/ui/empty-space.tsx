@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,7 +7,7 @@
 // next
 import React from "react";
 import Link from "next/link";
-import { ChevronRightIcon } from "@plane/propel/icons";
+import { ChevronRightIcon } from "@taskpilot/propel/icons";
 
 type EmptySpaceProps = {
   title: string;

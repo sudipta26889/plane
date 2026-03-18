@@ -1,21 +1,21 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
+// taskpilot imports
 import {
   SUBSCRIPTION_REDIRECTION_URLS,
   SUBSCRIPTION_WITH_BILLING_FREQUENCY,
   TALK_TO_SALES_URL,
-} from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import type { TBillingFrequency } from "@plane/types";
-import { EProductSubscriptionEnum } from "@plane/types";
-import { getSubscriptionName } from "@plane/utils";
+} from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import type { TBillingFrequency } from "@taskpilot/types";
+import { EProductSubscriptionEnum } from "@taskpilot/types";
+import { getSubscriptionName } from "@taskpilot/utils";
 // components
 import { DiscountInfo } from "@/components/license/modal/card/discount-info";
 import type { TPlanDetail } from "@/constants/plans";
@@ -31,7 +31,7 @@ type TPlanDetailProps = {
 
 export const PlanDetail = observer(function PlanDetail(props: TPlanDetailProps) {
   const { subscriptionType, planDetail, billingFrequency, setBillingFrequency } = props;
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // subscription details
   const subscriptionName = getSubscriptionName(subscriptionType);
@@ -98,11 +98,8 @@ export const PlanDetail = observer(function PlanDetail(props: TPlanDetailProps) 
         </div>
       )}
 
-      {/* Subscription button */}
+      {/* All features available */}
       <div className="flex flex-col items-start gap-1 py-3">
-        <Button variant="primary" size="lg" onClick={handleRedirection} className="w-full">
-          {isSubscriptionActive ? `Upgrade to ${subscriptionName}` : t("common.upgrade_cta.talk_to_sales")}
-        </Button>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -47,6 +47,6 @@ const Badge = React.forwardRef(function Badge(props: BadgeProps, ref: React.Forw
   );
 });
 
-Badge.displayName = "plane-ui-badge";
+Badge.displayName = "taskpilot-ui-badge";
 
 export { Badge };

@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
-import type { IGanttBlock } from "@plane/types";
-import { Row } from "@plane/ui";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import type { IGanttBlock } from "@taskpilot/types";
+import { Row } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // components
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
 import { IssueGanttSidebarBlock } from "@/components/issues/issue-layouts/gantt/blocks";

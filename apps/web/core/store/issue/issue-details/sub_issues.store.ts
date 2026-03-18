@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,7 +7,7 @@
 import { pull, concat, uniq, set, update } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// Plane Imports
+// TaskPilot Imports
 import type {
   TIssue,
   TIssueSubIssues,
@@ -16,7 +16,7 @@ import type {
   TSubIssuesStateDistribution,
   TIssueServiceType,
   TLoader,
-} from "@plane/types";
+} from "@taskpilot/types";
 // services
 import { IssueService } from "@/services/issue";
 // store

@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState, useEffect } from "react";
 import { CloudOff, Dot } from "lucide-react";
-import { Tooltip } from "@plane/propel/tooltip";
-import { Badge } from "@plane/propel/badge";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { Badge } from "@taskpilot/propel/badge";
 
 type Props = {
   syncStatus: "syncing" | "synced" | "error";

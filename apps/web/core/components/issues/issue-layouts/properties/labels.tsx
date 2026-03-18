@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,17 +7,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
-// plane helpers
-import { useOutsideClickDetector } from "@plane/hooks";
+// taskpilot helpers
+import { useOutsideClickDetector } from "@taskpilot/hooks";
 // i18n
-import { useTranslation } from "@plane/i18n";
-import { LabelPropertyIcon } from "@plane/propel/icons";
+import { useTranslation } from "@taskpilot/i18n";
+import { LabelPropertyIcon } from "@taskpilot/propel/icons";
 // types
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IIssueLabel } from "@plane/types";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IIssueLabel } from "@taskpilot/types";
 // ui
 // hooks
-import { cn } from "@plane/utils";
+import { cn } from "@taskpilot/utils";
 import { useLabel } from "@/hooks/store/use-label";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { LabelDropdown } from "./label-dropdown";

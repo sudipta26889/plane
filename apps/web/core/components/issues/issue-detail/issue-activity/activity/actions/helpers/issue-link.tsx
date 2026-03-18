@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import { Tooltip } from "@plane/propel/tooltip";
-import { generateWorkItemLink } from "@plane/utils";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import { generateWorkItemLink } from "@taskpilot/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { usePlatformOS } from "@/hooks/use-platform-os";

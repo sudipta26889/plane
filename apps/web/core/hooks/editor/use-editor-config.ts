@@ -1,18 +1,18 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useCallback } from "react";
-// plane imports
-import type { TFileHandler } from "@plane/editor";
-import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@plane/utils";
+// taskpilot imports
+import type { TFileHandler } from "@taskpilot/editor";
+import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@taskpilot/utils";
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
-// plane web hooks
-import { useExtendedEditorConfig } from "@/plane-web/hooks/editor/use-extended-editor-config";
-import { useFileSize } from "@/plane-web/hooks/use-file-size";
+// taskpilot web hooks
+import { useExtendedEditorConfig } from "@/taskpilot-web/hooks/editor/use-extended-editor-config";
+import { useFileSize } from "@/taskpilot-web/hooks/use-file-size";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();

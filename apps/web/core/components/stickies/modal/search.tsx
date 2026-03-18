@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,14 +8,14 @@ import { useCallback, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane hooks
-import { useOutsideClickDetector } from "@plane/hooks";
+// taskpilot hooks
+import { useOutsideClickDetector } from "@taskpilot/hooks";
 // helpers
-import { useTranslation } from "@plane/i18n";
-import { SearchIcon, CloseIcon } from "@plane/propel/icons";
-import { cn } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+import { SearchIcon, CloseIcon } from "@taskpilot/propel/icons";
+import { cn } from "@taskpilot/utils";
 import { useSticky } from "@/hooks/use-stickies";
-import { IconButton } from "@plane/propel/icon-button";
+import { IconButton } from "@taskpilot/propel/icon-button";
 
 export const StickySearch = observer(function StickySearch() {
   // router

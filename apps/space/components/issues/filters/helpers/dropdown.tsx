@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,7 +9,7 @@ import type { Placement } from "@popperjs/core";
 import { usePopper } from "react-popper";
 import { Popover, Transition } from "@headlessui/react";
 // ui
-import { Button } from "@plane/propel/button";
+import { Button } from "@taskpilot/propel/button";
 
 type Props = {
   children: React.ReactNode;

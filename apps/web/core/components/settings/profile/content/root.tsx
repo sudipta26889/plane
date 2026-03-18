@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { Suspense } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import { ScrollArea } from "@plane/propel/scrollarea";
-import type { TProfileSettingsTabs } from "@plane/types";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { ScrollArea } from "@taskpilot/propel/scrollarea";
+import type { TProfileSettingsTabs } from "@taskpilot/types";
+import { cn } from "@taskpilot/utils";
 // local imports
 import { PROFILE_SETTINGS_PAGES_MAP } from "./pages";
 

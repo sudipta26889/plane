@@ -1,19 +1,19 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useCallback } from "react";
-// plane types
-import type { TSearchEntities } from "@plane/types";
+// taskpilot types
+import type { TSearchEntities } from "@taskpilot/types";
 // helpers
-import { getBase64Image, getEditorAssetSrc } from "@plane/utils";
-import type { TCustomComponentsMetaData } from "@plane/utils";
+import { getBase64Image, getEditorAssetSrc } from "@taskpilot/utils";
+import type { TCustomComponentsMetaData } from "@taskpilot/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
-// plane web hooks
-import { useAdditionalEditorMention } from "@/plane-web/hooks/use-additional-editor-mention";
+// taskpilot web hooks
+import { useAdditionalEditorMention } from "@/taskpilot-web/hooks/use-additional-editor-mention";
 
 type TArgs = {
   projectId?: string;

@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane types
-import { useTranslation } from "@plane/i18n";
+// taskpilot types
+import { useTranslation } from "@taskpilot/i18n";
 // hooks
-import type { IUser } from "@plane/types";
+import type { IUser } from "@taskpilot/types";
 import { useCurrentTime } from "@/hooks/use-current-time";
 // types
 

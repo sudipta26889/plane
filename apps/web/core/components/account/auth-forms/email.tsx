@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,12 +9,12 @@ import { useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // icons
 import { CircleAlert, XCircle } from "lucide-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import type { IEmailCheckData } from "@plane/types";
-import { Input, Spinner } from "@plane/ui";
-import { cn, checkEmailValidity } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import type { IEmailCheckData } from "@taskpilot/types";
+import { Input, Spinner } from "@taskpilot/ui";
+import { cn, checkEmailValidity } from "@taskpilot/utils";
 // helpers
 type TAuthEmailForm = {
   defaultEmail: string;
@@ -26,7 +26,7 @@ export const AuthEmailForm = observer(function AuthEmailForm(props: TAuthEmailFo
   // states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState(defaultEmail);
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   const emailError = useMemo(
     () => (email && !checkEmailValidity(email) ? { email: "auth.common.email.errors.invalid" } : undefined),

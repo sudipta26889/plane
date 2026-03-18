@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,13 +10,13 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { attachInstruction, extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { observer } from "mobx-react";
-// plane helpers
-import { useOutsideClickDetector } from "@plane/hooks";
+// taskpilot helpers
+import { useOutsideClickDetector } from "@taskpilot/hooks";
 // types
-import type { IIssueDisplayProperties, TIssue, TIssueMap } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import type { IIssueDisplayProperties, TIssue, TIssueMap } from "@taskpilot/types";
+import { EIssueServiceType } from "@taskpilot/types";
 // components
-import { DropIndicator } from "@plane/ui";
+import { DropIndicator } from "@taskpilot/ui";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
 // hooks

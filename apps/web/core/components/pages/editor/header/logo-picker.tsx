@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// plane imports
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@plane/propel/emoji-icon-picker";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { cn } from "@taskpilot/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

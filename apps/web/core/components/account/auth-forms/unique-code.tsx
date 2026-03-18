@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useEffect, useState } from "react";
 import { CircleCheck, XCircle } from "lucide-react";
-import { API_BASE_URL } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { Input, Spinner } from "@plane/ui";
+import { API_BASE_URL } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { Input, Spinner } from "@taskpilot/ui";
 // constants
 // helpers
 import { EAuthModes } from "@/helpers/authentication.helper";
@@ -51,7 +51,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // timer
   const { timer: resendTimerCode, setTimer: setResendCodeTimer } = useTimer(0);
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
 
   const handleFormChange = (key: keyof TUniqueCodeFormValues, value: string) =>

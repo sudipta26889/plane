@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { BarChart } from "@plane/propel/charts/bar-chart";
-import { EmptyStateCompact } from "@plane/propel/empty-state";
-import type { IUserProfileData } from "@plane/types";
-import { Loader, Card } from "@plane/ui";
-import { capitalizeFirstLetter } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { BarChart } from "@taskpilot/propel/charts/bar-chart";
+import { EmptyStateCompact } from "@taskpilot/propel/empty-state";
+import type { IUserProfileData } from "@taskpilot/types";
+import { Loader, Card } from "@taskpilot/ui";
+import { capitalizeFirstLetter } from "@taskpilot/utils";
 
 type Props = {
   userProfile: IUserProfileData | undefined;

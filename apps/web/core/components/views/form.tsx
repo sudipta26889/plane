@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,30 +7,30 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// plane imports
-import { ETabIndices, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@plane/propel/emoji-icon-picker";
-import { ViewsIcon } from "@plane/propel/icons";
+// taskpilot imports
+import { ETabIndices, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { ViewsIcon } from "@taskpilot/propel/icons";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
   IProjectView,
   EIssueLayoutTypes,
   IIssueFilters,
-} from "@plane/types";
-import { EViewAccess, EIssuesStoreType } from "@plane/types";
-import { Input, TextArea } from "@plane/ui";
-import { getComputedDisplayFilters, getComputedDisplayProperties, getTabIndex } from "@plane/utils";
+} from "@taskpilot/types";
+import { EViewAccess, EIssuesStoreType } from "@taskpilot/types";
+import { Input, TextArea } from "@taskpilot/ui";
+import { getComputedDisplayFilters, getComputedDisplayProperties, getTabIndex } from "@taskpilot/utils";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web imports
-import { AccessController } from "@/plane-web/components/views/access-controller";
+// taskpilot web imports
+import { AccessController } from "@/taskpilot-web/components/views/access-controller";
 // local imports
 import { LayoutDropDown } from "../dropdowns/layout";
 import { ProjectLevelWorkItemFiltersHOC } from "../work-item-filters/filters-hoc/project-level";

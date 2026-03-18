@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,25 +7,25 @@
 import { isEmpty } from "lodash-es";
 import { autorun, makeObservable, observable } from "mobx";
 // types
-import type { ICycle, IIssueLabel, IModule, IProject, IState, IUserLite, TIssueServiceType } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
-// plane web store
-import type { IProjectEpics, IProjectEpicsFilter } from "@/plane-web/store/issue/epic";
-import { ProjectEpics, ProjectEpicsFilter } from "@/plane-web/store/issue/epic";
-import type { IIssueDetail } from "@/plane-web/store/issue/issue-details/root.store";
-import { IssueDetail } from "@/plane-web/store/issue/issue-details/root.store";
-import type { ITeamIssuesFilter, ITeamIssues } from "@/plane-web/store/issue/team";
-import { TeamIssues, TeamIssuesFilter } from "@/plane-web/store/issue/team";
-import type { ITeamProjectWorkItemsFilter } from "@/plane-web/store/issue/team-project/filter.store";
-import { TeamProjectWorkItemsFilter } from "@/plane-web/store/issue/team-project/filter.store";
-import type { ITeamProjectWorkItems } from "@/plane-web/store/issue/team-project/issue.store";
-import { TeamProjectWorkItems } from "@/plane-web/store/issue/team-project/issue.store";
-import type { ITeamViewIssues, ITeamViewIssuesFilter } from "@/plane-web/store/issue/team-views";
-import { TeamViewIssues, TeamViewIssuesFilter } from "@/plane-web/store/issue/team-views";
+import type { ICycle, IIssueLabel, IModule, IProject, IState, IUserLite, TIssueServiceType } from "@taskpilot/types";
+import { EIssueServiceType } from "@taskpilot/types";
+// taskpilot web store
+import type { IProjectEpics, IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
+import { ProjectEpics, ProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
+import type { IIssueDetail } from "@/taskpilot-web/store/issue/issue-details/root.store";
+import { IssueDetail } from "@/taskpilot-web/store/issue/issue-details/root.store";
+import type { ITeamIssuesFilter, ITeamIssues } from "@/taskpilot-web/store/issue/team";
+import { TeamIssues, TeamIssuesFilter } from "@/taskpilot-web/store/issue/team";
+import type { ITeamProjectWorkItemsFilter } from "@/taskpilot-web/store/issue/team-project/filter.store";
+import { TeamProjectWorkItemsFilter } from "@/taskpilot-web/store/issue/team-project/filter.store";
+import type { ITeamProjectWorkItems } from "@/taskpilot-web/store/issue/team-project/issue.store";
+import { TeamProjectWorkItems } from "@/taskpilot-web/store/issue/team-project/issue.store";
+import type { ITeamViewIssues, ITeamViewIssuesFilter } from "@/taskpilot-web/store/issue/team-views";
+import { TeamViewIssues, TeamViewIssuesFilter } from "@/taskpilot-web/store/issue/team-views";
 // root store
-import type { IWorkspaceIssues } from "@/plane-web/store/issue/workspace/issue.store";
-import { WorkspaceIssues } from "@/plane-web/store/issue/workspace/issue.store";
-import type { RootStore } from "@/plane-web/store/root.store";
+import type { IWorkspaceIssues } from "@/taskpilot-web/store/issue/workspace/issue.store";
+import { WorkspaceIssues } from "@/taskpilot-web/store/issue/workspace/issue.store";
+import type { RootStore } from "@/taskpilot-web/store/root.store";
 import type { IWorkspaceMembership } from "@/store/member/workspace/workspace-member.store";
 // issues data store
 import type { IArchivedIssuesFilter, IArchivedIssues } from "./archived";

@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import * as React from "react";
-import { ChevronRightIcon } from "@plane/propel/icons";
-import { Tooltip } from "@plane/propel/tooltip";
+import { ChevronRightIcon } from "@taskpilot/propel/icons";
+import { Tooltip } from "@taskpilot/propel/tooltip";
 import { cn } from "../utils";
 
 type BreadcrumbsProps = {

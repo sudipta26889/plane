@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,20 +9,20 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // lucide icons
 import { Minimize2, Maximize2, Circle } from "lucide-react";
-import { PlusIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { TIssue, ISearchIssueResponse, TIssueKanbanFilters, TIssueGroupByOptions } from "@plane/types";
+import { PlusIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { TIssue, ISearchIssueResponse, TIssueKanbanFilters, TIssueGroupByOptions } from "@taskpilot/types";
 // ui
-import { CustomMenu } from "@plane/ui";
+import { CustomMenu } from "@taskpilot/ui";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // constants
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
-import { CreateUpdateEpicModal } from "@/plane-web/components/epics/epic-modal";
+import { CreateUpdateEpicModal } from "@/taskpilot-web/components/epics/epic-modal";
 // types
-// Plane-web
-import { WorkFlowGroupTree } from "@/plane-web/components/workflow";
+// TaskPilot-web
+import { WorkFlowGroupTree } from "@/taskpilot-web/components/workflow";
 
 interface IHeaderGroupByCard {
   sub_group_by: TIssueGroupByOptions | undefined;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,9 +7,9 @@
 import { FloatingOverlay } from "@floating-ui/react";
 import type { SuggestionKeyDownProps, SuggestionProps } from "@tiptap/suggestion";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-// plane imports
-import { useOutsideClickDetector } from "@plane/hooks";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { useOutsideClickDetector } from "@taskpilot/hooks";
+import { cn } from "@taskpilot/utils";
 
 export type EmojiItem = {
   name: string;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -27,6 +27,6 @@ const Tag = React.forwardRef(function Tag(props: TagProps, ref: React.ForwardedR
   );
 });
 
-Tag.displayName = "plane-ui-container";
+Tag.displayName = "taskpilot-ui-container";
 
 export { Tag, ETagVariant, ETagSize };

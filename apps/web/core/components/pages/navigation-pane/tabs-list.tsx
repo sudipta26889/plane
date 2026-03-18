@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { Tab } from "@headlessui/react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-// plane web components
-import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/plane-web/components/pages/navigation-pane";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+// taskpilot web components
+import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/taskpilot-web/components/pages/navigation-pane";
 
 export function PageNavigationPaneTabsList() {
   // translation

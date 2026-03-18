@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,14 +7,14 @@
 import { set, groupBy } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// plane imports
-import { STATE_GROUPS } from "@plane/constants";
-import type { IIntakeState, IState } from "@plane/types";
+// taskpilot imports
+import { STATE_GROUPS } from "@taskpilot/constants";
+import type { IIntakeState, IState } from "@taskpilot/types";
 // helpers
-import { sortStates } from "@plane/utils";
-// plane web
+import { sortStates } from "@taskpilot/utils";
+// taskpilot web
 import { ProjectStateService } from "@/services/project/project-state.service";
-import type { RootStore } from "@/plane-web/store/root.store";
+import type { RootStore } from "@/taskpilot-web/store/root.store";
 
 export interface IStateStore {
   //Loaders

@@ -1,20 +1,20 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { API_BASE_URL } from "@plane/constants";
+// taskpilot imports
+import { API_BASE_URL } from "@taskpilot/constants";
 // api service
-import type { TPublicModule } from "@plane/types";
+import type { TPublicModule } from "@taskpilot/types";
 import { APIService } from "../api.service";
 
 /**
- * Service class for managing modules within plane sites application.
+ * Service class for managing modules within taskpilot sites application.
  * Extends APIService to handle HTTP requests to the module-related endpoints.
  * @extends {APIService}
- * @remarks This service is only available for plane sites
+ * @remarks This service is only available for taskpilot sites
  */
 export class SitesModuleService extends APIService {
   constructor(BASE_URL?: string) {

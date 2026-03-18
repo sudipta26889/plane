@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,13 +7,13 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Loader } from "lucide-react";
-import { CloseIcon } from "@plane/propel/icons";
-// plane imports
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IState, TStateOperationsCallbacks } from "@plane/types";
-import { AlertModalCore } from "@plane/ui";
-import { cn } from "@plane/utils";
+import { CloseIcon } from "@taskpilot/propel/icons";
+// taskpilot imports
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IState, TStateOperationsCallbacks } from "@taskpilot/types";
+import { AlertModalCore } from "@taskpilot/ui";
+import { cn } from "@taskpilot/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 

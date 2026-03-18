@@ -1,10 +1,10 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-import type { TFilterGroupNode, TFilterProperty } from "@plane/types";
+import type { TFilterGroupNode, TFilterProperty } from "@taskpilot/types";
 import { processGroupNode } from "../../types/shared";
 import type { TTreeTransformFn, TTreeTransformResult } from "./core";
 import { transformGroupWithChildren } from "./core";

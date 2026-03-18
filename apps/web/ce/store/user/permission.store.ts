@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { computedFn } from "mobx-utils";
-import type { EUserPermissions } from "@plane/constants";
-import type { RootStore } from "@/plane-web/store/root.store";
+import type { EUserPermissions } from "@taskpilot/constants";
+import type { RootStore } from "@/taskpilot-web/store/root.store";
 import { BaseUserPermissionStore } from "@/store/user/base-permissions.store";
 import type { IBaseUserPermissionStore } from "@/store/user/base-permissions.store";
 

@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React, { useMemo, useState } from "react";
 import { Cell, PieChart as CorePieChart, Label, Legend, Pie, ResponsiveContainer, Tooltip } from "recharts";
-// plane imports
-import type { TPieChartProps } from "@plane/types";
+// taskpilot imports
+import type { TPieChartProps } from "@taskpilot/types";
 // local components
 import { getLegendProps } from "../components/legend";
 import { CustomActiveShape } from "./active-shape";

@@ -1,5 +1,5 @@
 {
-  "name": "@plane/utils",
+  "name": "@taskpilot/utils",
   "version": "1.2.0",
   "private": true,
   "description": "Helper functions shared across multiple apps internally",
@@ -26,8 +26,8 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@plane/constants": "workspace:*",
-    "@plane/types": "workspace:*",
+    "@taskpilot/constants": "workspace:*",
+    "@taskpilot/types": "workspace:*",
     "chroma-js": "^3.2.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -47,7 +47,7 @@
     "uuid": "catalog:"
   },
   "devDependencies": {
-    "@plane/typescript-config": "workspace:*",
+    "@taskpilot/typescript-config": "workspace:*",
     "@types/chroma-js": "^3.1.2",
     "@types/hast": "^3.0.4",
     "@types/lodash-es": "catalog:",

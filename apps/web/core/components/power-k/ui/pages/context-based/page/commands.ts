@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,16 +7,16 @@
 import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ArchiveIcon, ArchiveRestoreIcon, LockKeyhole, LockKeyholeOpen, Star, StarOff } from "lucide-react";
-import { useTranslation } from "@plane/i18n";
-// plane imports
-import { LinkIcon, GlobeIcon, LockIcon } from "@plane/propel/icons";
-import { setToast, TOAST_TYPE } from "@plane/propel/toast";
-import { EPageAccess } from "@plane/types";
-import { copyTextToClipboard } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+// taskpilot imports
+import { LinkIcon, GlobeIcon, LockIcon } from "@taskpilot/propel/icons";
+import { setToast, TOAST_TYPE } from "@taskpilot/propel/toast";
+import { EPageAccess } from "@taskpilot/types";
+import { copyTextToClipboard } from "@taskpilot/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
-// plane web imports
-import { EPageStoreType, usePageStore } from "@/plane-web/hooks/store";
+// taskpilot web imports
+import { EPageStoreType, usePageStore } from "@/taskpilot-web/hooks/store";
 
 export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
   // navigation

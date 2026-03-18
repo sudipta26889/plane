@@ -110,3 +110,5 @@ build/
 .react-router/
 temp/
 scripts/
+secrets/
+docs/superpowers/

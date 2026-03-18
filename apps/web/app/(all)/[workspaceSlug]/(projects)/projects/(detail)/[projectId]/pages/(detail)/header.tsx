@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane imports
-import { PageIcon } from "@plane/propel/icons";
-import type { ICustomSearchSelectOption } from "@plane/types";
-import { Breadcrumbs, Header, BreadcrumbNavigationSearchDropdown } from "@plane/ui";
-import { getPageName } from "@plane/utils";
+// taskpilot imports
+import { PageIcon } from "@taskpilot/propel/icons";
+import type { ICustomSearchSelectOption } from "@taskpilot/types";
+import { Breadcrumbs, Header, BreadcrumbNavigationSearchDropdown } from "@taskpilot/ui";
+import { getPageName } from "@taskpilot/utils";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { PageAccessIcon } from "@/components/common/page-access-icon";
@@ -20,10 +20,10 @@ import { PageSyncingBadge } from "@/components/pages/header/syncing-badge";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
-// plane web imports
-import { CommonProjectBreadcrumbs } from "@/plane-web/components/breadcrumbs/common";
-import { PageDetailsHeaderExtraActions } from "@/plane-web/components/pages";
-import { EPageStoreType, usePage, usePageStore } from "@/plane-web/hooks/store";
+// taskpilot web imports
+import { CommonProjectBreadcrumbs } from "@/taskpilot-web/components/breadcrumbs/common";
+import { PageDetailsHeaderExtraActions } from "@/taskpilot-web/components/pages";
+import { EPageStoreType, usePage, usePageStore } from "@/taskpilot-web/hooks/store";
 
 export interface IPagesHeaderProps {
   showButton?: boolean;

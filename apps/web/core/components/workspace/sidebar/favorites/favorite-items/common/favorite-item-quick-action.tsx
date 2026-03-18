@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontal, Star } from "lucide-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import type { IFavorite } from "@plane/types";
-import { CustomMenu } from "@plane/ui";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import type { IFavorite } from "@taskpilot/types";
+import { CustomMenu } from "@taskpilot/ui";
 // helpers
-import { cn } from "@plane/utils";
+import { cn } from "@taskpilot/utils";
 
 type Props = {
   ref: React.MutableRefObject<HTMLDivElement | null>;

@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { ScrollArea } from "@plane/propel/scrollarea";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { ScrollArea } from "@taskpilot/propel/scrollarea";
+import { cn } from "@taskpilot/utils";
 // components
 import { AppHeader } from "@/components/core/app-header";
 

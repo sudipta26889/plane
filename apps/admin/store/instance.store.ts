@@ -1,15 +1,15 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { set } from "lodash-es";
 import { observable, action, computed, makeObservable, runInAction } from "mobx";
-// plane internal packages
-import type { TInstanceStatus } from "@plane/constants";
-import { EInstanceStatus } from "@plane/constants";
-import { InstanceService } from "@plane/services";
+// taskpilot internal packages
+import type { TInstanceStatus } from "@taskpilot/constants";
+import { EInstanceStatus } from "@taskpilot/constants";
+import { InstanceService } from "@taskpilot/services";
 import type {
   IInstance,
   IInstanceAdmin,
@@ -17,7 +17,7 @@ import type {
   IFormattedInstanceConfiguration,
   IInstanceInfo,
   IInstanceConfig,
-} from "@plane/types";
+} from "@taskpilot/types";
 // root store
 import type { RootStore } from "@/store/root.store";
 

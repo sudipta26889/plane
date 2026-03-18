@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,14 +7,14 @@
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { useTranslation } from "@plane/i18n";
-// plane types
-import { PageIcon, ProjectIcon, WorkItemsIcon } from "@plane/propel/icons";
-import type { TActivityEntityData, THomeWidgetProps, TRecentActivityFilterKeys } from "@plane/types";
-// plane ui
+import { useTranslation } from "@taskpilot/i18n";
+// taskpilot types
+import { PageIcon, ProjectIcon, WorkItemsIcon } from "@taskpilot/propel/icons";
+import type { TActivityEntityData, THomeWidgetProps, TRecentActivityFilterKeys } from "@taskpilot/types";
+// taskpilot ui
 // components
 import { ContentOverflowWrapper } from "@/components/core/content-overflow-HOC";
-// plane web services
+// taskpilot web services
 import { WorkspaceService } from "@/services/workspace.service";
 import { RecentsEmptyState } from "../empty-states";
 import { EWidgetKeys, WidgetLoader } from "../loaders";

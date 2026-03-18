@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,11 +9,11 @@ import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { MessageSquare, MoreVertical } from "lucide-react";
 import { Menu, Transition } from "@headlessui/react";
-// plane imports
-import type { EditorRefApi } from "@plane/editor";
-import { CheckIcon, CloseIcon } from "@plane/propel/icons";
-import type { TIssuePublicComment } from "@plane/types";
-import { getFileURL } from "@plane/utils";
+// taskpilot imports
+import type { EditorRefApi } from "@taskpilot/editor";
+import { CheckIcon, CloseIcon } from "@taskpilot/propel/icons";
+import type { TIssuePublicComment } from "@taskpilot/types";
+import { getFileURL } from "@taskpilot/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text-editor";
 import { CommentReactions } from "@/components/issues/peek-overview/comment/comment-reactions";

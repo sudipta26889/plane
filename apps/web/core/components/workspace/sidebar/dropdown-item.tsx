@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,14 +9,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Settings, UserPlus } from "lucide-react";
 import { Menu } from "@headlessui/react";
-// plane imports
-import { EUserPermissions } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { CheckIcon } from "@plane/propel/icons";
-import type { IWorkspace } from "@plane/types";
-import { cn, getFileURL, getUserRole } from "@plane/utils";
-// plane web imports
-import { SubscriptionPill } from "@/plane-web/components/common/subscription/subscription-pill";
+// taskpilot imports
+import { EUserPermissions } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { CheckIcon } from "@taskpilot/propel/icons";
+import type { IWorkspace } from "@taskpilot/types";
+import { cn, getFileURL, getUserRole } from "@taskpilot/utils";
+// taskpilot web imports
+import { SubscriptionPill } from "@/taskpilot-web/components/common/subscription/subscription-pill";
 
 type TProps = {
   workspace: IWorkspace;

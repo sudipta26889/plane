@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane types
-import type { TSearchEntities } from "@plane/types";
+// taskpilot types
+import type { TSearchEntities } from "@taskpilot/types";
 
 export enum EMentionComponentAttributeNames {
   ID = "id",

@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
+// taskpilot imports
 import type {
   TBuildFilterExpressionParams,
   TFilterConditionForBuild,
   TFilterValue,
   TWorkItemFilterExpression,
   TWorkItemFilterProperty,
-} from "@plane/types";
+} from "@taskpilot/types";
 // local imports
 import { workItemFiltersAdapter } from "../store/work-item-filters/adapter";
 import { buildTempFilterExpressionFromConditions } from "./rich-filter.helper";

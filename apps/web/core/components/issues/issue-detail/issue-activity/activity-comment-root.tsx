@@ -1,21 +1,21 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
-import type { E_SORT_ORDER, TActivityFilters, EActivityFilterType } from "@plane/constants";
-import { BASE_ACTIVITY_FILTER_TYPES, filterActivityOnSelectedFilters } from "@plane/constants";
-import type { TCommentsOperations } from "@plane/types";
+// taskpilot imports
+import type { E_SORT_ORDER, TActivityFilters, EActivityFilterType } from "@taskpilot/constants";
+import { BASE_ACTIVITY_FILTER_TYPES, filterActivityOnSelectedFilters } from "@taskpilot/constants";
+import type { TCommentsOperations } from "@taskpilot/types";
 // components
 import { CommentCard } from "@/components/comments/card/root";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// plane web components
-import { IssueAdditionalPropertiesActivity } from "@/plane-web/components/issues/issue-details/issue-properties-activity";
-import { IssueActivityWorklog } from "@/plane-web/components/issues/worklog/activity/root";
+// taskpilot web components
+import { IssueAdditionalPropertiesActivity } from "@/taskpilot-web/components/issues/issue-details/issue-properties-activity";
+import { IssueActivityWorklog } from "@/taskpilot-web/components/issues/worklog/activity/root";
 // local imports
 import { IssueActivityItem } from "./activity/activity-list";
 import { IssueActivityLoader } from "./loader";

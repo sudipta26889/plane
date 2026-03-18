@@ -10,7 +10,7 @@ RUN pnpm install
 
 ENV VITE_ADMIN_BASE_PATH="/god-mode"
 
-EXPOSE 3000
+EXPOSE 4649
 
 VOLUME [ "/app/node_modules", "/app/admin/node_modules" ]
 

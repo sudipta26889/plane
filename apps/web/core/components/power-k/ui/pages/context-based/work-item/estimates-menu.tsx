@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
 import { Triangle } from "lucide-react";
-// plane types
-import { useTranslation } from "@plane/i18n";
-import { EEstimateSystem } from "@plane/types";
-import type { TIssue } from "@plane/types";
-import { Spinner } from "@plane/ui";
-import { convertMinutesToHoursMinutesString } from "@plane/utils";
+// taskpilot types
+import { useTranslation } from "@taskpilot/i18n";
+import { EEstimateSystem } from "@taskpilot/types";
+import type { TIssue } from "@taskpilot/types";
+import { Spinner } from "@taskpilot/ui";
+import { convertMinutesToHoursMinutesString } from "@taskpilot/utils";
 // hooks
 import { useEstimate, useProjectEstimates } from "@/hooks/store/estimates";
 // local imports

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,14 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { CircleUserRound } from "lucide-react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@plane/propel/button";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@plane/propel/toast";
-import { EFileAssetType } from "@plane/types";
-import type { IUser, TUserProfile } from "@plane/types";
-import { Input } from "@plane/ui";
-import { getFileURL } from "@plane/utils";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import { Button } from "@taskpilot/propel/button";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@taskpilot/propel/toast";
+import { EFileAssetType } from "@taskpilot/types";
+import type { IUser, TUserProfile } from "@taskpilot/types";
+import { Input } from "@taskpilot/ui";
+import { getFileURL } from "@taskpilot/utils";
 // components
 import { DeactivateAccountModal } from "@/components/account/deactivate-account-modal";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
@@ -29,7 +29,7 @@ import { handleCoverImageChange } from "@/helpers/cover-image.helper";
 import { useInstance } from "@/hooks/store/use-instance";
 import { useUser, useUserProfile } from "@/hooks/store/user";
 // utils
-import { validatePersonName, validateDisplayName } from "@plane/utils";
+import { validatePersonName, validateDisplayName } from "@taskpilot/utils";
 
 type TUserProfileForm = {
   avatar_url: string;

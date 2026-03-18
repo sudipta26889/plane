@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { Image, BrainCog, Cog, Mail } from "lucide-react";
-// plane imports
-import { LockIcon, WorkspaceIcon } from "@plane/propel/icons";
+// taskpilot imports
+import { LockIcon, WorkspaceIcon } from "@taskpilot/propel/icons";
 // types
 import type { TSidebarMenuItem } from "./types";
 
@@ -45,7 +45,7 @@ export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem>
   },
   image: {
     Icon: Image,
-    name: "Images in Plane",
+    name: "Images in TaskPilot",
     description: "Allow third-party image libraries.",
     href: `/image/`,
   },

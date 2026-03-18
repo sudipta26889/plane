@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,11 +7,11 @@
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// plane imports
-import { EUserPermissions, EUserPermissionsLevel, SIDEBAR_TRACKER_ELEMENTS } from "@plane/constants";
-import { useTranslation } from "@plane/i18n";
-import { AddWorkItemIcon } from "@plane/propel/icons";
-import type { TIssue } from "@plane/types";
+// taskpilot imports
+import { EUserPermissions, EUserPermissionsLevel, SIDEBAR_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { useTranslation } from "@taskpilot/i18n";
+import { AddWorkItemIcon } from "@taskpilot/propel/icons";
+import type { TIssue } from "@taskpilot/types";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 import { SidebarAddButton } from "@/components/sidebar/add-button";

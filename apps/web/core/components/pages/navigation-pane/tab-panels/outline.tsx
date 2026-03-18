@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { ScrollArea } from "@plane/propel/scrollarea";
-// plane web imports
-import { PageNavigationPaneOutlineTabEmptyState } from "@/plane-web/components/pages/navigation-pane/tab-panels/empty-states/outline";
+// taskpilot imports
+import { ScrollArea } from "@taskpilot/propel/scrollarea";
+// taskpilot web imports
+import { PageNavigationPaneOutlineTabEmptyState } from "@/taskpilot-web/components/pages/navigation-pane/tab-panels/empty-states/outline";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

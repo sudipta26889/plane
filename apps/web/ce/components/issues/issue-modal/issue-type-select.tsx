@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { Control } from "react-hook-form";
-// plane imports
-import type { EditorRefApi } from "@plane/editor";
+// taskpilot imports
+import type { EditorRefApi } from "@taskpilot/editor";
 // types
-import type { TBulkIssueProperties, TIssue } from "@plane/types";
+import type { TBulkIssueProperties, TIssue } from "@taskpilot/types";
 
 export type TIssueFields = TIssue & TBulkIssueProperties;
 

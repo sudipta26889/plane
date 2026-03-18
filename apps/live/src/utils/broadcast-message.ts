@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { Hocuspocus } from "@hocuspocus/server";
-import type { BroadcastedEvent } from "@plane/editor";
-import { logger } from "@plane/logger";
+import type { BroadcastedEvent } from "@taskpilot/editor";
+import { logger } from "@taskpilot/logger";
 import { Redis } from "@/extensions/redis";
 import { AppError } from "@/lib/errors";
 

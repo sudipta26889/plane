@@ -4,7 +4,7 @@ set -e
 
 DIST_DIR=${DIST_DIR:-./dist}
 CPU_ARCH=$(uname -m)
-IMAGE_NAME=${IMAGE_NAME:-makeplane/plane-aio-community}
+IMAGE_NAME=${IMAGE_NAME:-taskpilot/taskpilot-aio-community}
 
 
 # loop though all flags and set the variables
@@ -94,19 +94,19 @@ update_env_file(){
 }
 
 build_dist_files(){
-    cp ./variables.env $DIST_DIR/plane.env
+    cp ./variables.env $DIST_DIR/taskpilot.env
     cp ../../../apps/proxy/Caddyfile.aio.ce $DIST_DIR/Caddyfile
 
-    echo "" >> $DIST_DIR/plane.env
-    echo "" >> $DIST_DIR/plane.env
+    echo "" >> $DIST_DIR/taskpilot.env
+    echo "" >> $DIST_DIR/taskpilot.env
 
-    # update the plane.env file with the APP_RELEASE_VERSION
-    update_env_file $DIST_DIR/plane.env "APP_RELEASE_VERSION" "$APP_RELEASE_VERSION"
-    update_env_file $DIST_DIR/plane.env "APP_RELEASE" "$APP_RELEASE_VERSION"
-    update_env_file $DIST_DIR/plane.env "APP_VERSION" "$APP_RELEASE_VERSION"
+    # update the taskpilot.env file with the APP_RELEASE_VERSION
+    update_env_file $DIST_DIR/taskpilot.env "APP_RELEASE_VERSION" "$APP_RELEASE_VERSION"
+    update_env_file $DIST_DIR/taskpilot.env "APP_RELEASE" "$APP_RELEASE_VERSION"
+    update_env_file $DIST_DIR/taskpilot.env "APP_VERSION" "$APP_RELEASE_VERSION"
     
-    update_env_file $DIST_DIR/plane.env "API_BASE_URL" "http://localhost:3004"
-    update_env_file $DIST_DIR/plane.env "SITE_ADDRESS" ":80"
+    update_env_file $DIST_DIR/taskpilot.env "API_BASE_URL" "http://localhost:3004"
+    update_env_file $DIST_DIR/taskpilot.env "SITE_ADDRESS" ":80"
 
 
     # print docker build command
@@ -116,7 +116,7 @@ build_dist_files(){
     echo ""
     echo "docker build -t $IMAGE_NAME \\"
     echo "  -f $(pwd)/Dockerfile \\"
-    echo "  --build-arg PLANE_VERSION=$APP_RELEASE_VERSION \\"
+    echo "  --build-arg TASKPILOT_VERSION=$APP_RELEASE_VERSION \\"
     echo "  $(pwd)"
     echo ""
     echo "------------------------------------------------"

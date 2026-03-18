@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Editor } from "@tiptap/react";
-// plane imports
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { cn } from "@taskpilot/utils";
 // components
 import { DocumentContentLoader, EditorContainer, EditorContentWrapper } from "@/components/editors";
 import { BlockMenu, EditorBubbleMenu } from "@/components/menus";

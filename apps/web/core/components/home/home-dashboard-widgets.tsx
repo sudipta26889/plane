@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-// plane imports
-import { useTranslation } from "@plane/i18n";
-import type { THomeWidgetKeys, THomeWidgetProps } from "@plane/types";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
+import type { THomeWidgetKeys, THomeWidgetProps } from "@taskpilot/types";
 // assets
 import darkWidgetsAsset from "@/app/assets/empty-state/dashboard/widgets-dark.webp?url";
 import lightWidgetsAsset from "@/app/assets/empty-state/dashboard/widgets-light.webp?url";
@@ -18,8 +18,8 @@ import { SimpleEmptyState } from "@/components/empty-state/simple-empty-state-ro
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 import { useProject } from "@/hooks/store/use-project";
-// plane web components
-import { HomePageHeader } from "@/plane-web/components/home/header";
+// taskpilot web components
+import { HomePageHeader } from "@/taskpilot-web/components/home/header";
 // local imports
 import { StickiesWidget } from "../stickies/widget";
 import { HomeLoader, NoProjectsEmptyState, RecentActivityWidget } from "./widgets";
@@ -48,10 +48,10 @@ export const HOME_WIDGETS_LIST: {
     fullWidth: false,
     title: "stickies.title",
   },
-  new_at_plane: {
+  new_at_taskpilot: {
     component: null,
     fullWidth: false,
-    title: "home.new_at_plane.title",
+    title: "home.new_at_taskpilot.title",
   },
   quick_tutorial: {
     component: null,
@@ -71,7 +71,7 @@ export const DashboardWidgets = observer(function DashboardWidgets() {
   const { toggleWidgetSettings, widgetsMap, showWidgetSettings, orderedWidgets, isAnyWidgetEnabled, loading } =
     useHome();
   const { loader } = useProject();
-  // plane hooks
+  // taskpilot hooks
   const { t } = useTranslation();
   // derived values
   const noWidgetsResolvedPath = resolvedTheme === "light" ? lightWidgetsAsset : darkWidgetsAsset;

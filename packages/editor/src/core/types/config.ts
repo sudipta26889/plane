@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import type { TWebhookConnectionQueryParams } from "@plane/types";
-import type { TExtendedFileHandler } from "@/plane-editor/types/config";
+// taskpilot imports
+import type { TWebhookConnectionQueryParams } from "@taskpilot/types";
+import type { TExtendedFileHandler } from "@/taskpilot-editor/types/config";
 
 export type TFileHandler = {
   assetsUploadStatus: Record<string, number>; // blockId => progress percentage

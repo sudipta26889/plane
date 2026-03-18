@@ -1,18 +1,18 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import React, { useState } from "react";
-// plane constants
-import type { EIssueCommentAccessSpecifier } from "@plane/constants";
-// plane imports
-import { LiteTextEditorWithRef } from "@plane/editor";
-import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@plane/editor";
-import { useTranslation } from "@plane/i18n";
-import type { MakeOptional } from "@plane/types";
-import { cn, isCommentEmpty } from "@plane/utils";
+// taskpilot constants
+import type { EIssueCommentAccessSpecifier } from "@taskpilot/constants";
+// taskpilot imports
+import { LiteTextEditorWithRef } from "@taskpilot/editor";
+import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@taskpilot/editor";
+import { useTranslation } from "@taskpilot/i18n";
+import type { MakeOptional } from "@taskpilot/types";
+import { cn, isCommentEmpty } from "@taskpilot/utils";
 // components
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 import { IssueCommentToolbar } from "@/components/editor/lite-text/toolbar";
@@ -20,9 +20,9 @@ import { IssueCommentToolbar } from "@/components/editor/lite-text/toolbar";
 import { useEditorConfig, useEditorMention } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// plane web hooks
-import { useEditorFlagging } from "@/plane-web/hooks/use-editor-flagging";
-// plane web service
+// taskpilot web hooks
+import { useEditorFlagging } from "@/taskpilot-web/hooks/use-editor-flagging";
+// taskpilot web service
 import { WorkspaceService } from "@/services/workspace.service";
 import { LiteToolbar } from "./lite-toolbar";
 const workspaceService = new WorkspaceService();

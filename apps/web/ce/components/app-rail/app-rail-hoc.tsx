@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,7 +8,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { PlaneNewIcon } from "@plane/propel/icons";
+import { TaskPilotNewIcon } from "@taskpilot/propel/icons";
 import type { AppSidebarItemData } from "@/components/sidebar/sidebar-item";
 import { useWorkspacePaths } from "@/hooks/use-workspace-paths";
 
@@ -24,7 +24,7 @@ export function withDockItems<P extends WithDockItemsProps>(WrappedComponent: Re
     const dockItems: (AppSidebarItemData & { shouldRender: boolean })[] = [
       {
         label: "Projects",
-        icon: <PlaneNewIcon className="size-5" />,
+        icon: <TaskPilotNewIcon className="size-5" />,
         href: `/${workspaceSlug}/`,
         isActive: isProjectsPath && !isNotificationsPath,
         shouldRender: true,

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -9,17 +9,17 @@ import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
-import { SPREADSHEET_SELECT_GROUP } from "@plane/constants";
-// plane helpers
-import { useOutsideClickDetector } from "@plane/hooks";
-import { ChevronRightIcon } from "@plane/propel/icons";
+import { SPREADSHEET_SELECT_GROUP } from "@taskpilot/constants";
+// taskpilot helpers
+import { useOutsideClickDetector } from "@taskpilot/hooks";
+import { ChevronRightIcon } from "@taskpilot/propel/icons";
 // types
-import { Tooltip } from "@plane/propel/tooltip";
-import type { IIssueDisplayProperties, TIssue } from "@plane/types";
-import { EIssueServiceType } from "@plane/types";
+import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { IIssueDisplayProperties, TIssue } from "@taskpilot/types";
+import { EIssueServiceType } from "@taskpilot/types";
 // ui
-import { ControlLink, Row } from "@plane/ui";
-import { cn, generateWorkItemLink } from "@plane/utils";
+import { ControlLink, Row } from "@taskpilot/ui";
+import { cn, generateWorkItemLink } from "@taskpilot/utils";
 // components
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
@@ -31,8 +31,8 @@ import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
+// taskpilot web components
+import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 // local components
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { isIssueNew } from "../utils";

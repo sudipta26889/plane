@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,10 +7,10 @@
 import { useCallback, useEffect } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// plane imports
-import { ENotificationLoader, ENotificationQueryParamType } from "@plane/constants";
-import { EmptyStateCompact } from "@plane/propel/empty-state";
-import { cn } from "@plane/utils";
+// taskpilot imports
+import { ENotificationLoader, ENotificationQueryParamType } from "@taskpilot/constants";
+import { EmptyStateCompact } from "@taskpilot/propel/empty-state";
+import { cn } from "@taskpilot/utils";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 // hooks
@@ -18,8 +18,8 @@ import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceIssueProperties } from "@/hooks/use-workspace-issue-properties";
-// plane web imports
-import { useNotificationPreview } from "@/plane-web/hooks/use-notification-preview";
+// taskpilot web imports
+import { useNotificationPreview } from "@/taskpilot-web/hooks/use-notification-preview";
 // local imports
 import { InboxContentRoot } from "../inbox/content";
 

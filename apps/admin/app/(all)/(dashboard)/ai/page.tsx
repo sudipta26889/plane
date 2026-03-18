@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { Loader } from "@plane/ui";
+import { Loader } from "@taskpilot/ui";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 // hooks
@@ -26,7 +26,7 @@ const InstanceAIPage = observer(function InstanceAIPage(_props: Route.ComponentP
     <PageWrapper
       header={{
         title: "AI features for all your workspaces",
-        description: "Configure your AI API credentials so Plane AI features are turned on for all your workspaces.",
+        description: "Configure your AI API credentials so TaskPilot AI features are turned on for all your workspaces.",
       }}
     >
       {formattedConfig ? (

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,21 +8,21 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 // constants
-import { EPageAccess } from "@plane/constants";
-// plane types
-import { Button } from "@plane/propel/button";
-import { PageIcon } from "@plane/propel/icons";
-import { TOAST_TYPE, setToast } from "@plane/propel/toast";
-import type { TPage } from "@plane/types";
-// plane ui
-import { Breadcrumbs, Header } from "@plane/ui";
+import { EPageAccess } from "@taskpilot/constants";
+// taskpilot types
+import { Button } from "@taskpilot/propel/button";
+import { PageIcon } from "@taskpilot/propel/icons";
+import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
+import type { TPage } from "@taskpilot/types";
+// taskpilot ui
+import { Breadcrumbs, Header } from "@taskpilot/ui";
 // helpers
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// plane web imports
-import { CommonProjectBreadcrumbs } from "@/plane-web/components/breadcrumbs/common";
-import { EPageStoreType, usePageStore } from "@/plane-web/hooks/store";
+// taskpilot web imports
+import { CommonProjectBreadcrumbs } from "@/taskpilot-web/components/breadcrumbs/common";
+import { EPageStoreType, usePageStore } from "@/taskpilot-web/hooks/store";
 
 export const PagesListHeader = observer(function PagesListHeader() {
   // states

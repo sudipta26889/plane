@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { useState } from "react";
-// plane imports
-import { ROLE } from "@plane/constants";
-import { Button } from "@plane/propel/button";
-import type { IWorkspaceMemberInvitation } from "@plane/types";
-import { Checkbox, Spinner } from "@plane/ui";
-import { truncateText } from "@plane/utils";
+// taskpilot imports
+import { ROLE } from "@taskpilot/constants";
+import { Button } from "@taskpilot/propel/button";
+import type { IWorkspaceMemberInvitation } from "@taskpilot/types";
+import { Checkbox, Spinner } from "@taskpilot/ui";
+import { truncateText } from "@taskpilot/utils";
 // constants
 import { WorkspaceLogo } from "@/components/workspace/logo";
 // hooks

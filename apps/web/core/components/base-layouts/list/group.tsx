@@ -1,13 +1,13 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@plane/i18n";
-import type { IBaseLayoutsListItem, IBaseLayoutsListGroupProps } from "@plane/types";
-import { cn } from "@plane/ui";
+import { useTranslation } from "@taskpilot/i18n";
+import type { IBaseLayoutsListItem, IBaseLayoutsListGroupProps } from "@taskpilot/types";
+import { cn } from "@taskpilot/ui";
 import { useGroupDropTarget } from "../hooks/use-group-drop-target";
 import { GroupHeader } from "./group-header";
 import { BaseListItem } from "./item";

@@ -1,11 +1,11 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
-// plane imports
-import { EStartOfTheWeek } from "@plane/types";
+// taskpilot imports
+import { EStartOfTheWeek } from "@taskpilot/types";
 
 export const PROFILE_VIEWER_TAB = [
   {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -7,12 +7,12 @@
 import type { Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { EditorState, Transaction } from "@tiptap/pm/state";
-// plane imports
-import { CORE_EXTENSIONS } from "@plane/utils";
+// taskpilot imports
+import { CORE_EXTENSIONS } from "@taskpilot/utils";
 // helpers
 import { CORE_ASSETS_META_DATA_RECORD } from "@/helpers/assets";
-// plane editor imports
-import { NODE_FILE_MAP } from "@/plane-editor/constants/utility";
+// taskpilot editor imports
+import { NODE_FILE_MAP } from "@/taskpilot-editor/constants/utility";
 // types
 import type { TFileHandler } from "@/types";
 // local imports

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -8,8 +8,8 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { MessageSquare } from "lucide-react";
-import type { IFormattedInstanceConfiguration } from "@plane/types";
-import { ToggleSwitch } from "@plane/ui";
+import type { IFormattedInstanceConfiguration } from "@taskpilot/types";
+import { ToggleSwitch } from "@taskpilot/ui";
 // hooks
 import { useInstance } from "@/hooks/store";
 

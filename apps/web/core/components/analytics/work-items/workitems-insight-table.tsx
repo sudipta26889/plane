@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -10,19 +10,19 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { UserRound } from "lucide-react";
-import { useTranslation } from "@plane/i18n";
-import { Logo } from "@plane/propel/emoji-icon-picker";
-import { ProjectIcon } from "@plane/propel/icons";
-// plane package imports
-import type { AnalyticsTableDataMap, WorkItemInsightColumns } from "@plane/types";
-// plane web components
-import { Avatar } from "@plane/ui";
-import { getFileURL } from "@plane/utils";
+import { useTranslation } from "@taskpilot/i18n";
+import { Logo } from "@taskpilot/propel/emoji-icon-picker";
+import { ProjectIcon } from "@taskpilot/propel/icons";
+// taskpilot package imports
+import type { AnalyticsTableDataMap, WorkItemInsightColumns } from "@taskpilot/types";
+// taskpilot web components
+import { Avatar } from "@taskpilot/ui";
+import { getFileURL } from "@taskpilot/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 import { useProject } from "@/hooks/store/use-project";
 import { AnalyticsService } from "@/services/analytics.service";
-// plane web components
+// taskpilot web components
 import { exportCSV } from "../export";
 import { InsightTable } from "../insight-table";
 

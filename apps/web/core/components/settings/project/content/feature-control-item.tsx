@@ -1,14 +1,14 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
 
 import { observer } from "mobx-react";
-// plane imports
-import { setPromiseToast } from "@plane/propel/toast";
-import type { IProject } from "@plane/types";
-import { ToggleSwitch } from "@plane/ui";
+// taskpilot imports
+import { setPromiseToast } from "@taskpilot/propel/toast";
+import type { IProject } from "@taskpilot/types";
+import { ToggleSwitch } from "@taskpilot/ui";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // hooks

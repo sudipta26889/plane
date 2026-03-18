@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023-present Plane Software, Inc. and contributors
+ * Copyright (c) 2023-present TaskPilot Software, Inc. and contributors
  * SPDX-License-Identifier: AGPL-3.0-only
  * See the LICENSE file for details.
  */
@@ -11,14 +11,14 @@ import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { Combobox } from "@headlessui/react";
-// plane imports
-import { useTranslation } from "@plane/i18n";
+// taskpilot imports
+import { useTranslation } from "@taskpilot/i18n";
 // ui
-import type { DateRange, Matcher } from "@plane/propel/calendar";
-import { Calendar } from "@plane/propel/calendar";
-import { CloseIcon, DueDatePropertyIcon } from "@plane/propel/icons";
-import { ComboDropDown } from "@plane/ui";
-import { cn, renderFormattedDate } from "@plane/utils";
+import type { DateRange, Matcher } from "@taskpilot/propel/calendar";
+import { Calendar } from "@taskpilot/propel/calendar";
+import { CloseIcon, DueDatePropertyIcon } from "@taskpilot/propel/icons";
+import { ComboDropDown } from "@taskpilot/ui";
+import { cn, renderFormattedDate } from "@taskpilot/utils";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
