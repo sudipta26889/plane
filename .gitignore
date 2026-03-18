@@ -111,4 +111,5 @@ build/
 temp/
 scripts/
 secrets/
-docs/superpowers/
+docs/superpowers/.idx
+.husky
