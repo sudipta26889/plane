@@ -147,6 +147,21 @@ services:
     depends_on:
       - taskpilot-mq
 
+  # ---------- MCP Server ----------
+
+  mcp:
+    container_name: taskpilot-mcp
+    build:
+      context: ./apps/mcp
+      dockerfile: Dockerfile
+    ports:
+      - "4650:4650"
+    env_file:
+      - .env
+    depends_on:
+      - api
+    restart: always
+
   # ---------- Infrastructure (local) ----------
 
   taskpilot-mq:
