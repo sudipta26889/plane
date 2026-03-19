@@ -15,6 +15,7 @@ class OAuthAccessToken(BaseModel):
     user_id = Column(UUID(as_uuid=True), nullable=False)
     client_id = Column(String(255), nullable=False)
     scope = Column(String(512), default="taskpilot:read taskpilot:write")
+    workspace_slug = Column(String(255), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     revoked_at = Column(DateTime(timezone=True), nullable=True)
 

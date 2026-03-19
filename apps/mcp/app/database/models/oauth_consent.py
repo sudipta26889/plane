@@ -12,6 +12,7 @@ class OAuthConsent(BaseModel):
     user_id = Column(UUID(as_uuid=True), nullable=False)
     client_id = Column(String(255), nullable=False)
     scope = Column(String(512), nullable=False)
+    workspace_slug = Column(String(255), nullable=True)
     granted_at = Column(DateTime(timezone=True), nullable=False)
 
     __table_args__ = (

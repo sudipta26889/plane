@@ -113,3 +113,4 @@ scripts/
 secrets/
 docs/superpowers/.idx
 .husky
+.superpowers/

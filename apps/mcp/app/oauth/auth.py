@@ -82,4 +82,5 @@ async def get_current_user(
     return MCPAuthContext(
         user_id=str(at.user_id),
         scopes=at.scope.split() if at.scope else [],
+        workspace_slug=at.workspace_slug,
     )

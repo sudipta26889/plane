@@ -32,7 +32,11 @@ app = FastAPI(title="TaskPilot MCP Server", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        settings.frontend_url,
+        "http://localhost:3000",
+        "http://localhost:4650",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

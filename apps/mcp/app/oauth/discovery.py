@@ -38,6 +38,7 @@ async def authorization_server_metadata():
             "client_secret_post",
             "client_secret_basic",
         ],
+        "registration_endpoint": f"{base}/oauth/register",
         "code_challenge_methods_supported": ["S256"],
         "scopes_supported": ["taskpilot:read", "taskpilot:write"],
     }

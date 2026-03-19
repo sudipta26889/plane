@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     # Frontend (for OAuth consent redirect)
     frontend_url: str = "https://taskpilot.sudiptadhara.in"
 
+    # Dynamic client registration (RFC 7591)
+    mcp_dynamic_registration: bool = True
+
     class Config:
         env_file = ".env"
         extra = "ignore"

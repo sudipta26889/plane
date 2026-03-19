@@ -1,10 +1,12 @@
-"""OAuth 2.1 authorization, token, and revocation endpoints."""
+"""OAuth 2.1 authorization, token, registration, consent, and revocation endpoints."""
 
+import base64
 import json
 import logging
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-
+import httpx
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, Form, HTTPException, Query
 from fastapi.responses import RedirectResponse
@@ -14,7 +16,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database.connection import get_db
-from app.database.models import OAuthAccessToken, OAuthClient, OAuthRefreshToken
+from app.database.models import (
+    OAuthAccessToken,
+    OAuthClient,
+    OAuthConsent,
+    OAuthRefreshToken,
+)
 from app.oauth.security import (
     generate_access_token,
     generate_auth_code,
@@ -38,7 +45,9 @@ async def get_redis() -> aioredis.Redis:
     return _redis
 
 
-# --- Authorize ---
+# ---------------------------------------------------------------------------
+# Authorize
+# ---------------------------------------------------------------------------
 
 
 @router.get("/authorize")
@@ -52,7 +61,7 @@ async def authorize(
     state: Optional[str] = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Authorization endpoint — redirects to consent or issues code."""
+    """Authorization endpoint — redirects to consent page or auto-approves."""
     if response_type != "code":
         raise HTTPException(400, "Only response_type=code is supported")
     if code_challenge_method != "S256":
@@ -60,20 +69,219 @@ async def authorize(
     if not validate_redirect_uri(redirect_uri):
         raise HTTPException(400, "Invalid redirect_uri: HTTPS required")
 
+    # Look up the client
     result = await db.execute(
         select(OAuthClient).where(
             OAuthClient.client_id == client_id, OAuthClient.is_active == True
         )
     )
     client = result.scalar_one_or_none()
-    if not client:
+
+    # Dynamic client registration: auto-register unknown clients
+    if not client and settings.mcp_dynamic_registration:
+        client = OAuthClient(
+            client_id=client_id,
+            client_name=f"auto-registered-{client_id[:16]}",
+            redirect_uris=[redirect_uri],
+            grant_types=["authorization_code"],
+            response_types=["code"],
+            token_endpoint_auth_method="none",
+            scope="taskpilot:read taskpilot:write",
+            is_active=True,
+        )
+        db.add(client)
+        await db.commit()
+        await db.refresh(client)
+        logger.info("Dynamic registration: auto-registered client %s", client_id)
+    elif not client:
         raise HTTPException(400, "Unknown client_id")
+
     if redirect_uri not in (client.redirect_uris or []):
         raise HTTPException(400, "redirect_uri not registered for this client")
 
-    if not client.owner_id:
-        raise HTTPException(400, "Client has no owner — cannot auto-approve")
+    # Check for existing consent — if found, auto-approve
+    if client.owner_id:
+        consent_result = await db.execute(
+            select(OAuthConsent).where(
+                OAuthConsent.user_id == client.owner_id,
+                OAuthConsent.client_id == client_id,
+            )
+        )
+        existing_consent = consent_result.scalar_one_or_none()
+        if existing_consent:
+            code = generate_auth_code()
+            r = await get_redis()
+            await r.setex(
+                f"oauth:code:{code}",
+                settings.mcp_auth_code_ttl,
+                json.dumps(
+                    {
+                        "client_id": client_id,
+                        "user_id": str(client.owner_id),
+                        "redirect_uri": redirect_uri,
+                        "scope": scope,
+                        "code_challenge": code_challenge,
+                        "code_challenge_method": code_challenge_method,
+                        "workspace_slug": existing_consent.workspace_slug,
+                    }
+                ),
+            )
+            params = f"code={code}"
+            if state:
+                params += f"&state={state}"
+            return RedirectResponse(
+                f"{redirect_uri}?{params}", status_code=302
+            )
 
+    # No existing consent — redirect to frontend consent page
+    oauth_params = {
+        "response_type": response_type,
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "code_challenge": code_challenge,
+        "code_challenge_method": code_challenge_method,
+        "scope": scope,
+        "state": state or "",
+        "client_name": client.client_name or client_id,
+    }
+    oauth_state = base64.urlsafe_b64encode(
+        json.dumps(oauth_params).encode()
+    ).decode()
+
+    consent_url = (
+        f"{settings.frontend_url}/oauth/consent?oauth_state={oauth_state}"
+    )
+    return RedirectResponse(consent_url, status_code=302)
+
+
+# ---------------------------------------------------------------------------
+# Dynamic Client Registration (RFC 7591)
+# ---------------------------------------------------------------------------
+
+
+class ClientRegistrationRequest(BaseModel):
+    client_name: str
+    redirect_uris: list[str]
+    grant_types: list[str] = ["authorization_code"]
+    response_types: list[str] = ["code"]
+    token_endpoint_auth_method: str = "none"
+
+
+class ClientRegistrationResponse(BaseModel):
+    client_id: str
+    client_name: str
+    redirect_uris: list[str]
+    grant_types: list[str]
+    response_types: list[str]
+    token_endpoint_auth_method: str
+
+
+@router.post("/register")
+async def register_client(
+    body: ClientRegistrationRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """RFC 7591 dynamic client registration."""
+    if not settings.mcp_dynamic_registration:
+        raise HTTPException(403, "Dynamic client registration is disabled")
+
+    client_id = f"mcp_{uuid.uuid4().hex[:24]}"
+
+    client = OAuthClient(
+        client_id=client_id,
+        client_name=body.client_name,
+        redirect_uris=body.redirect_uris,
+        grant_types=body.grant_types,
+        response_types=body.response_types,
+        token_endpoint_auth_method=body.token_endpoint_auth_method,
+        scope="taskpilot:read taskpilot:write",
+        is_active=True,
+    )
+    db.add(client)
+    await db.commit()
+    await db.refresh(client)
+
+    return ClientRegistrationResponse(
+        client_id=client.client_id,
+        client_name=client.client_name,
+        redirect_uris=client.redirect_uris or [],
+        grant_types=client.grant_types or [],
+        response_types=client.response_types or [],
+        token_endpoint_auth_method=client.token_endpoint_auth_method or "none",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Consent Approval (called by the frontend consent page)
+# ---------------------------------------------------------------------------
+
+
+class ApproveRequest(BaseModel):
+    oauth_state: str
+    workspace_slug: str
+    scopes: list[str]
+    user_token: str
+
+
+class ApproveResponse(BaseModel):
+    redirect_uri: str
+    code: str
+    state: str
+
+
+@router.post("/approve")
+async def approve(
+    body: ApproveRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Consent approval endpoint — validates user, generates auth code."""
+    # Validate user_token against TaskPilot API
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{settings.taskpilot_api_url}/api/users/me/",
+                cookies={"sessionid": body.user_token},
+                headers={"Authorization": f"Bearer {body.user_token}"},
+                timeout=10.0,
+            )
+    except httpx.RequestError as exc:
+        logger.error("Failed to validate user token: %s", exc)
+        raise HTTPException(502, "Failed to validate user with TaskPilot API")
+
+    if resp.status_code != 200:
+        raise HTTPException(401, "Invalid user token — authentication failed")
+
+    user_data = resp.json()
+    user_id = str(user_data.get("id", ""))
+    if not user_id:
+        raise HTTPException(401, "Could not determine user identity")
+
+    # Decode oauth_state
+    try:
+        oauth_params = json.loads(
+            base64.urlsafe_b64decode(body.oauth_state).decode()
+        )
+    except Exception:
+        raise HTTPException(400, "Invalid oauth_state")
+
+    client_id = oauth_params.get("client_id", "")
+    redirect_uri = oauth_params.get("redirect_uri", "")
+    code_challenge = oauth_params.get("code_challenge", "")
+    code_challenge_method = oauth_params.get("code_challenge_method", "S256")
+    original_state = oauth_params.get("state", "")
+    scope = " ".join(body.scopes) if body.scopes else oauth_params.get("scope", "")
+
+    # Verify client exists
+    result = await db.execute(
+        select(OAuthClient).where(
+            OAuthClient.client_id == client_id, OAuthClient.is_active == True
+        )
+    )
+    oauth_client = result.scalar_one_or_none()
+    if not oauth_client:
+        raise HTTPException(400, "Unknown client_id in oauth_state")
+
+    # Generate auth code and store in Redis
     code = generate_auth_code()
     r = await get_redis()
     await r.setex(
@@ -82,22 +290,50 @@ async def authorize(
         json.dumps(
             {
                 "client_id": client_id,
-                "user_id": str(client.owner_id),
+                "user_id": user_id,
                 "redirect_uri": redirect_uri,
                 "scope": scope,
                 "code_challenge": code_challenge,
                 "code_challenge_method": code_challenge_method,
+                "workspace_slug": body.workspace_slug,
             }
         ),
     )
 
-    params = f"code={code}"
-    if state:
-        params += f"&state={state}"
-    return RedirectResponse(f"{redirect_uri}?{params}", status_code=302)
+    # Record consent in DB (upsert)
+    now = datetime.now(timezone.utc)
+    consent_result = await db.execute(
+        select(OAuthConsent).where(
+            OAuthConsent.user_id == user_id,
+            OAuthConsent.client_id == client_id,
+        )
+    )
+    existing_consent = consent_result.scalar_one_or_none()
+    if existing_consent:
+        existing_consent.scope = scope
+        existing_consent.workspace_slug = body.workspace_slug
+        existing_consent.granted_at = now
+    else:
+        consent = OAuthConsent(
+            user_id=user_id,
+            client_id=client_id,
+            scope=scope,
+            workspace_slug=body.workspace_slug,
+            granted_at=now,
+        )
+        db.add(consent)
+    await db.commit()
+
+    return ApproveResponse(
+        redirect_uri=redirect_uri,
+        code=code,
+        state=original_state,
+    )
 
 
-# --- Token ---
+# ---------------------------------------------------------------------------
+# Token
+# ---------------------------------------------------------------------------
 
 
 class TokenResponse(BaseModel):
@@ -121,7 +357,9 @@ async def token(
     db: AsyncSession = Depends(get_db),
 ):
     if grant_type == "authorization_code":
-        return await _handle_auth_code(code, redirect_uri, client_id, code_verifier, db)
+        return await _handle_auth_code(
+            code, redirect_uri, client_id, code_verifier, db
+        )
     elif grant_type == "refresh_token":
         return await _handle_refresh(refresh_token, client_id, db)
     elif grant_type == "client_credentials":
@@ -151,8 +389,11 @@ async def _handle_auth_code(code, redirect_uri, client_id, code_verifier, db):
     ):
         raise HTTPException(400, "PKCE verification failed")
 
+    workspace_slug = code_data.get("workspace_slug")
+
     return await _create_token_pair(
-        code_data["user_id"], client_id, code_data["scope"], db
+        code_data["user_id"], client_id, code_data["scope"], db,
+        workspace_slug=workspace_slug,
     )
 
 
@@ -176,13 +417,18 @@ async def _handle_refresh(raw_refresh_token, client_id, db):
         select(OAuthAccessToken).where(OAuthAccessToken.id == rt.access_token_id)
     )
     old_access = old_at_result.scalar_one_or_none()
+    workspace_slug = None
     if old_access:
         old_access.revoked_at = datetime.now(timezone.utc)
+        workspace_slug = old_access.workspace_slug
 
     await db.commit()
 
     scope = old_access.scope if old_access else "taskpilot:read taskpilot:write"
-    return await _create_token_pair(str(rt.user_id), rt.client_id, scope, db)
+    return await _create_token_pair(
+        str(rt.user_id), rt.client_id, scope, db,
+        workspace_slug=workspace_slug,
+    )
 
 
 async def _handle_client_credentials(client_id, client_secret, scope, db):
@@ -225,7 +471,11 @@ async def _handle_client_credentials(client_id, client_secret, scope, db):
 
 
 async def _create_token_pair(
-    user_id: str, client_id: str, scope: str, db: AsyncSession
+    user_id: str,
+    client_id: str,
+    scope: str,
+    db: AsyncSession,
+    workspace_slug: Optional[str] = None,
 ) -> TokenResponse:
     raw_at, at_hash = generate_access_token()
     raw_rt, rt_hash = generate_refresh_token()
@@ -236,6 +486,7 @@ async def _create_token_pair(
         user_id=user_id,
         client_id=client_id,
         scope=scope,
+        workspace_slug=workspace_slug,
         expires_at=now + timedelta(seconds=settings.mcp_access_token_ttl),
     )
     db.add(access_token)
@@ -259,7 +510,9 @@ async def _create_token_pair(
     )
 
 
-# --- Revoke ---
+# ---------------------------------------------------------------------------
+# Revoke
+# ---------------------------------------------------------------------------
 
 
 @router.post("/revoke")
