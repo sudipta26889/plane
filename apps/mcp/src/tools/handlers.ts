@@ -8,7 +8,7 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label"]);
 
 /** Resolve state UUID to name using a states lookup map */
 function resolveStateName(stateId: string | undefined, statesMap: Map<string, string>): string {
@@ -243,6 +243,56 @@ const TOOLS = [
       required: ["identifier", "user_id"],
     },
   },
+  {
+    name: "list_labels",
+    description:
+      "List available labels for a workspace or project. Use this to find label IDs before applying them.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: {
+          type: "string",
+          description: "Project name or identifier to filter labels (optional)",
+        },
+      },
+    },
+  },
+  {
+    name: "add_label",
+    description: "Add a label to a task for categorization.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: {
+          type: "string",
+          description: "Task identifier like FOR-AI-42",
+        },
+        label: {
+          type: "string",
+          description: "Label name or ID. If name is given, it will be matched against existing labels.",
+        },
+      },
+      required: ["identifier", "label"],
+    },
+  },
+  {
+    name: "remove_label",
+    description: "Remove a label from a task.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: {
+          type: "string",
+          description: "Task identifier like FOR-AI-42",
+        },
+        label: {
+          type: "string",
+          description: "Label name or ID to remove.",
+        },
+      },
+      required: ["identifier", "label"],
+    },
+  },
 ];
 
 // --- Handler Implementations ---
@@ -464,6 +514,86 @@ async function handleUnassignTask(
   return { identifier: args.identifier, user_id: args.user_id, status: "unassigned" };
 }
 
+async function handleListLabels(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  // Labels are project-scoped in TaskPilot v1 API.
+  // If no project given, aggregate labels across all projects.
+  const projects = await client.listProjects();
+  let targetProjects = projects;
+
+  if (args.project) {
+    const match = projects.find(
+      (p: any) =>
+        p.name?.toLowerCase() === args.project.toLowerCase() ||
+        p.identifier?.toLowerCase() === args.project.toLowerCase(),
+    );
+    if (match) targetProjects = [match];
+  }
+
+  const allLabels: any[] = [];
+  for (const project of targetProjects) {
+    const labels = await client.listLabels(String(project.id));
+    for (const l of labels) {
+      allLabels.push({
+        id: l.id,
+        name: l.name,
+        color: l.color || "",
+        description: l.description || "",
+        project: project.name,
+      });
+    }
+  }
+
+  return { labels: allLabels, count: allLabels.length };
+}
+
+async function resolveLabelId(
+  label: string,
+  projectId: string,
+  client: TaskPilotClient,
+): Promise<string> {
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(label)) {
+    return label;
+  }
+  const labels = await client.listLabels(projectId);
+  const match = labels.find(
+    (l: any) => l.name?.toLowerCase() === label.toLowerCase(),
+  );
+  if (!match) {
+    throw new Error(
+      `Label '${label}' not found. Available: ${labels.map((l: any) => l.name).join(", ")}`,
+    );
+  }
+  return String(match.id);
+}
+
+async function handleAddLabel(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  const issue = await client.getIssueByIdentifier(args.identifier);
+  const projectId = String(issue.project);
+  const labelId = await resolveLabelId(args.label, projectId, client);
+  await client.addLabel(projectId, String(issue.id), labelId);
+  return { identifier: args.identifier, label_id: labelId, status: "added" };
+}
+
+async function handleRemoveLabel(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  const issue = await client.getIssueByIdentifier(args.identifier);
+  const projectId = String(issue.project);
+  const labelId = await resolveLabelId(args.label, projectId, client);
+  await client.removeLabel(projectId, String(issue.id), labelId);
+  return { identifier: args.identifier, label_id: labelId, status: "removed" };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -479,4 +609,7 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   list_members: handleListMembers,
   assign_task: handleAssignTask,
   unassign_task: handleUnassignTask,
+  list_labels: handleListLabels,
+  add_label: handleAddLabel,
+  remove_label: handleRemoveLabel,
 };

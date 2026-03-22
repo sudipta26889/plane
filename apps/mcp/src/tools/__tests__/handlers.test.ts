@@ -32,3 +32,29 @@ describe("unassign_task handler", () => {
     expect(unassignTask!.inputSchema.required).toContain("user_id");
   });
 });
+
+describe("label tools", () => {
+  it("should register list_labels tool", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    expect(tools.find((t: any) => t.name === "list_labels")).toBeDefined();
+  });
+
+  it("should register add_label tool with required fields", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const tool = tools.find((t: any) => t.name === "add_label");
+    expect(tool).toBeDefined();
+    expect(tool!.inputSchema.required).toContain("identifier");
+    expect(tool!.inputSchema.required).toContain("label");
+  });
+
+  it("should register remove_label tool with required fields", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const tool = tools.find((t: any) => t.name === "remove_label");
+    expect(tool).toBeDefined();
+    expect(tool!.inputSchema.required).toContain("identifier");
+    expect(tool!.inputSchema.required).toContain("label");
+  });
+});

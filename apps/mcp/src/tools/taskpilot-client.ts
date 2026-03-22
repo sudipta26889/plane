@@ -186,4 +186,32 @@ export class TaskPilotClient {
       assignees: currentAssignees.filter((id: string) => id !== userId),
     });
   }
+
+  // --- Labels ---
+  async listLabels(projectId: string): Promise<any[]> {
+    const data = await this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/labels/`,
+    );
+    return Array.isArray(data) ? data : data.results || data;
+  }
+
+  async addLabel(projectId: string, issueId: string, labelId: string): Promise<any> {
+    const issue = await this.getIssue(projectId, issueId);
+    const currentLabels: string[] = issue.labels || [];
+    if (currentLabels.includes(labelId)) {
+      return issue;
+    }
+    return this.updateIssue(projectId, issueId, {
+      labels: [...currentLabels, labelId],
+    });
+  }
+
+  async removeLabel(projectId: string, issueId: string, labelId: string): Promise<any> {
+    const issue = await this.getIssue(projectId, issueId);
+    const currentLabels: string[] = issue.labels || [];
+    return this.updateIssue(projectId, issueId, {
+      labels: currentLabels.filter((id: string) => id !== labelId),
+    });
+  }
 }
