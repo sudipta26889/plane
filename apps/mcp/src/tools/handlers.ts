@@ -37,6 +37,24 @@ export function getToolDefinitions() {
   return TOOLS;
 }
 
+/**
+ * Maps TaskPilot's 6 state groups to the 3-state model used by
+ * Claude Code's TodoWrite and other AI agent task systems.
+ */
+export function mapStateGroupToSimpleStatus(
+  stateGroup: string,
+): "pending" | "in_progress" | "completed" {
+  switch (stateGroup) {
+    case "started":
+      return "in_progress";
+    case "completed":
+    case "cancelled":
+      return "completed";
+    default:
+      return "pending";
+  }
+}
+
 export async function executeToolCall(
   name: string,
   args: Record<string, any>,
@@ -291,6 +309,25 @@ const TOOLS = [
         },
       },
       required: ["identifier", "label"],
+    },
+  },
+  {
+    name: "get_task_summary",
+    description:
+      "Get a simplified task summary with 3-state status (pending/in_progress/completed). " +
+      "Compatible with Claude Code TodoWrite pattern. Returns task counts by status and recent tasks.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: {
+          type: "string",
+          description: "Project name or identifier (optional, defaults to all projects)",
+        },
+        limit: {
+          type: "number",
+          description: "Max tasks to return per status (default 10)",
+        },
+      },
     },
   },
 ];
@@ -594,6 +631,65 @@ async function handleRemoveLabel(
   return { identifier: args.identifier, label_id: labelId, status: "removed" };
 }
 
+async function handleGetTaskSummary(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  const projects = await client.listProjects();
+  let targetProjects = projects;
+
+  if (args.project) {
+    const match = projects.find(
+      (p: any) =>
+        p.name?.toLowerCase() === args.project.toLowerCase() ||
+        p.identifier?.toLowerCase() === args.project.toLowerCase(),
+    );
+    if (match) targetProjects = [match];
+  }
+
+  const limit = args.limit || 10;
+  const summary: Record<string, any[]> = {
+    pending: [],
+    in_progress: [],
+    completed: [],
+  };
+  const counts = { pending: 0, in_progress: 0, completed: 0 };
+
+  for (const project of targetProjects) {
+    const projectId = String(project.id);
+    const states = await client.listStates(projectId);
+
+    const stateMap = new Map<string, string>();
+    for (const s of states) {
+      stateMap.set(String(s.id), s.group || "backlog");
+    }
+
+    const issues = await client.listIssues(projectId, { per_page: "100" });
+    for (const issue of issues) {
+      const stateGroup = stateMap.get(String(issue.state)) || "backlog";
+      const simpleStatus = mapStateGroupToSimpleStatus(stateGroup);
+      counts[simpleStatus]++;
+
+      if (summary[simpleStatus].length < limit) {
+        const stateName = states.find(
+          (s: any) => String(s.id) === String(issue.state),
+        )?.name;
+        summary[simpleStatus].push({
+          identifier: `${project.identifier}-${issue.sequence_id}`,
+          title: issue.name,
+          status: simpleStatus,
+          state: stateName || "",
+          priority: issue.priority || "none",
+          project: project.name,
+        });
+      }
+    }
+  }
+
+  return { counts, tasks: summary };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -612,4 +708,5 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   list_labels: handleListLabels,
   add_label: handleAddLabel,
   remove_label: handleRemoveLabel,
+  get_task_summary: handleGetTaskSummary,
 };

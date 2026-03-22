@@ -58,3 +58,25 @@ describe("label tools", () => {
     expect(tool!.inputSchema.required).toContain("label");
   });
 });
+
+describe("get_task_summary handler", () => {
+  it("should be registered in TOOLS array", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const tool = tools.find((t: any) => t.name === "get_task_summary");
+    expect(tool).toBeDefined();
+    expect(tool!.inputSchema.properties).toHaveProperty("project");
+  });
+});
+
+describe("mapStateGroupToSimpleStatus", () => {
+  it("should map state groups to 3-state model", async () => {
+    const { mapStateGroupToSimpleStatus } = await import("../handlers.js");
+    expect(mapStateGroupToSimpleStatus("backlog")).toBe("pending");
+    expect(mapStateGroupToSimpleStatus("unstarted")).toBe("pending");
+    expect(mapStateGroupToSimpleStatus("triage")).toBe("pending");
+    expect(mapStateGroupToSimpleStatus("started")).toBe("in_progress");
+    expect(mapStateGroupToSimpleStatus("completed")).toBe("completed");
+    expect(mapStateGroupToSimpleStatus("cancelled")).toBe("completed");
+  });
+});
