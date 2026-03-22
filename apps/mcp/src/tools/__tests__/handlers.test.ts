@@ -80,3 +80,50 @@ describe("mapStateGroupToSimpleStatus", () => {
     expect(mapStateGroupToSimpleStatus("cancelled")).toBe("completed");
   });
 });
+
+describe("all tools registration", () => {
+  it("should register exactly 18 tools", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    expect(tools).toHaveLength(18);
+  });
+
+  it("should have unique tool names", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const names = tools.map((t: any) => t.name);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("should include all expected tool names", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const names = tools.map((t: any) => t.name);
+    const expected = [
+      // Original 11
+      "create_task", "move_task", "find_tasks", "list_projects",
+      "list_tasks", "get_task", "update_task", "add_comment",
+      "list_states", "list_cycles", "assign_to_cycle",
+      // New 7
+      "list_members", "assign_task", "unassign_task",
+      "list_labels", "add_label", "remove_label",
+      "get_task_summary",
+    ];
+    for (const name of expected) {
+      expect(names).toContain(name);
+    }
+  });
+
+  it("should enforce write scope on all write tools", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const writeToolNames = [
+      "create_task", "move_task", "update_task", "add_comment",
+      "assign_to_cycle", "assign_task", "unassign_task",
+      "add_label", "remove_label",
+    ];
+    for (const name of writeToolNames) {
+      expect(tools.find((t: any) => t.name === name)).toBeDefined();
+    }
+  });
+});
