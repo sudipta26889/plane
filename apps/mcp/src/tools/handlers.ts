@@ -8,7 +8,7 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task"]);
 
 /** Resolve state UUID to name using a states lookup map */
 function resolveStateName(stateId: string | undefined, statesMap: Map<string, string>): string {
@@ -204,6 +204,43 @@ const TOOLS = [
           description: "Project name or identifier to filter members (optional)",
         },
       },
+    },
+  },
+  {
+    name: "assign_task",
+    description:
+      "Assign a user to a task. Use list_members first to find user IDs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: {
+          type: "string",
+          description: "Task identifier like FOR-AI-42",
+        },
+        user_id: {
+          type: "string",
+          description: "User ID (UUID) from list_members",
+        },
+      },
+      required: ["identifier", "user_id"],
+    },
+  },
+  {
+    name: "unassign_task",
+    description: "Remove a user assignment from a task.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: {
+          type: "string",
+          description: "Task identifier like FOR-AI-42",
+        },
+        user_id: {
+          type: "string",
+          description: "User ID (UUID) to remove",
+        },
+      },
+      required: ["identifier", "user_id"],
     },
   },
 ];
@@ -405,6 +442,28 @@ async function handleListMembers(
   };
 }
 
+async function handleAssignTask(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  const issue = await client.getIssueByIdentifier(args.identifier);
+  const projectId = String(issue.project);
+  await client.addAssignee(projectId, String(issue.id), args.user_id);
+  return { identifier: args.identifier, user_id: args.user_id, status: "assigned" };
+}
+
+async function handleUnassignTask(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  const issue = await client.getIssueByIdentifier(args.identifier);
+  const projectId = String(issue.project);
+  await client.removeAssignee(projectId, String(issue.id), args.user_id);
+  return { identifier: args.identifier, user_id: args.user_id, status: "unassigned" };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -418,4 +477,6 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   list_cycles: handleListCycles,
   assign_to_cycle: handleAssignToCycle,
   list_members: handleListMembers,
+  assign_task: handleAssignTask,
+  unassign_task: handleUnassignTask,
 };

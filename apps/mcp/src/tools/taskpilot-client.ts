@@ -166,4 +166,24 @@ export class TaskPilotClient {
     }
     return Array.isArray(data) ? data : data.results || data;
   }
+
+  // --- Assignees ---
+  async addAssignee(projectId: string, issueId: string, userId: string): Promise<any> {
+    const issue = await this.getIssue(projectId, issueId);
+    const currentAssignees: string[] = issue.assignees || [];
+    if (currentAssignees.includes(userId)) {
+      return issue; // already assigned
+    }
+    return this.updateIssue(projectId, issueId, {
+      assignees: [...currentAssignees, userId],
+    });
+  }
+
+  async removeAssignee(projectId: string, issueId: string, userId: string): Promise<any> {
+    const issue = await this.getIssue(projectId, issueId);
+    const currentAssignees: string[] = issue.assignees || [];
+    return this.updateIssue(projectId, issueId, {
+      assignees: currentAssignees.filter((id: string) => id !== userId),
+    });
+  }
 }
