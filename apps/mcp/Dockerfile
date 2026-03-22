@@ -1,12 +1,15 @@
-FROM python:3.12-slim
+FROM node:20-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY package.json package-lock.json* ./
+RUN npm ci --production=false
 
-COPY app/ app/
+COPY tsconfig.json ./
+COPY src/ src/
+
+RUN npx tsc
 
 EXPOSE 4650
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "4650"]
+CMD ["node", "dist/index.js"]

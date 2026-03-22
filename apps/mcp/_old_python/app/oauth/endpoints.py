@@ -160,11 +160,12 @@ async def authorize(
 
 
 class ClientRegistrationRequest(BaseModel):
-    client_name: str
-    redirect_uris: list[str]
+    client_name: Optional[str] = None
+    redirect_uris: list[str] = []
     grant_types: list[str] = ["authorization_code"]
     response_types: list[str] = ["code"]
     token_endpoint_auth_method: str = "none"
+    scope: Optional[str] = None
 
 
 class ClientRegistrationResponse(BaseModel):
@@ -182,33 +183,74 @@ async def register_client(
     db: AsyncSession = Depends(get_db),
 ):
     """RFC 7591 dynamic client registration."""
+    import time
+    from urllib.parse import urlparse
+
     if not settings.mcp_dynamic_registration:
         raise HTTPException(403, "Dynamic client registration is disabled")
 
-    client_id = f"mcp_{uuid.uuid4().hex[:24]}"
+    import secrets as _secrets
+    from sqlalchemy import cast
+    from sqlalchemy.dialects.postgresql import JSONB
+
+    # Check if client with same redirect_uris already exists (idempotent registration)
+    existing = None
+    if body.redirect_uris:
+        result = await db.execute(
+            select(OAuthClient).where(OAuthClient.is_active == True)
+        )
+        all_clients = result.scalars().all()
+        for c in all_clients:
+            if c.redirect_uris == body.redirect_uris:
+                existing = c
+                break
+
+    # Generate client_id only for new registrations
+    client_id = f"mcp_{_secrets.token_urlsafe(16)}"
+    if existing:
+        # Return existing registration
+        response_data = {
+            "client_id": existing.client_id,
+            "client_id_issued_at": int(existing.created_at.timestamp()) if existing.created_at else int(time.time()),
+            "redirect_uris": existing.redirect_uris or [],
+            "grant_types": existing.grant_types or ["authorization_code", "refresh_token"],
+            "response_types": existing.response_types or ["code"],
+            "token_endpoint_auth_method": existing.token_endpoint_auth_method or "none",
+        }
+        if existing.client_name:
+            response_data["client_name"] = existing.client_name
+        return response_data
+
+    grant_types = body.grant_types or ["authorization_code", "refresh_token"]
+    response_types = body.response_types or ["code"]
+    auth_method = body.token_endpoint_auth_method or "none"
 
     client = OAuthClient(
         client_id=client_id,
         client_name=body.client_name,
         redirect_uris=body.redirect_uris,
-        grant_types=body.grant_types,
-        response_types=body.response_types,
-        token_endpoint_auth_method=body.token_endpoint_auth_method,
+        grant_types=grant_types,
+        response_types=response_types,
+        token_endpoint_auth_method=auth_method,
         scope="taskpilot:read taskpilot:write",
         is_active=True,
     )
     db.add(client)
     await db.commit()
-    await db.refresh(client)
 
-    return ClientRegistrationResponse(
-        client_id=client.client_id,
-        client_name=client.client_name,
-        redirect_uris=client.redirect_uris or [],
-        grant_types=client.grant_types or [],
-        response_types=client.response_types or [],
-        token_endpoint_auth_method=client.token_endpoint_auth_method or "none",
-    )
+    # Build response — exclude None values (mcp-remote expects string, not null)
+    response_data = {
+        "client_id": client_id,
+        "client_id_issued_at": int(time.time()),
+        "redirect_uris": body.redirect_uris or [],
+        "grant_types": grant_types,
+        "response_types": response_types,
+        "token_endpoint_auth_method": auth_method,
+    }
+    if body.client_name is not None:
+        response_data["client_name"] = body.client_name
+
+    return response_data
 
 
 # ---------------------------------------------------------------------------
@@ -220,7 +262,7 @@ class ApproveRequest(BaseModel):
     oauth_state: str
     workspace_slug: str
     scopes: list[str]
-    user_token: str
+    user_token: Optional[str] = ""
 
 
 class ApproveResponse(BaseModel):

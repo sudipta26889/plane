@@ -11,7 +11,7 @@ class OAuthClient(BaseModel):
 
     client_id = Column(String(255), unique=True, index=True, nullable=False)
     client_secret_hash = Column(String(255), nullable=True)
-    client_name = Column(String(255), nullable=False)
+    client_name = Column(String(255), nullable=True, default="unknown")
     redirect_uris = Column(JSON, default=list)
     grant_types = Column(JSON, default=lambda: ["authorization_code"])
     response_types = Column(JSON, default=lambda: ["code"])
