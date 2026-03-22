@@ -192,6 +192,20 @@ const TOOLS = [
       required: ["identifier", "cycle_id"],
     },
   },
+  {
+    name: "list_members",
+    description:
+      "List workspace or project members. Use this to find user IDs for assigning tasks.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: {
+          type: "string",
+          description: "Project name or identifier to filter members (optional)",
+        },
+      },
+    },
+  },
 ];
 
 // --- Handler Implementations ---
@@ -364,6 +378,33 @@ async function handleAssignToCycle(args: any, client: TaskPilotClient, _workspac
   return { identifier: args.identifier, cycle_id: args.cycle_id, status: "assigned" };
 }
 
+async function handleListMembers(
+  args: any,
+  client: TaskPilotClient,
+  _workspace: string,
+): Promise<any> {
+  let projectId: string | undefined;
+  if (args.project) {
+    const projects = await client.listProjects();
+    const match = projects.find(
+      (p: any) =>
+        p.name?.toLowerCase() === args.project.toLowerCase() ||
+        p.identifier?.toLowerCase() === args.project.toLowerCase(),
+    );
+    if (match) projectId = String(match.id);
+  }
+  const members = await client.listMembers(projectId);
+  return {
+    members: members.map((m: any) => ({
+      id: m.member?.id || m.id,
+      display_name: m.member?.display_name || m.display_name || "",
+      email: m.member?.email || m.email || "",
+      role: m.role_label || m.role || "",
+    })),
+    count: members.length,
+  };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -376,4 +417,5 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   list_states: handleListStates,
   list_cycles: handleListCycles,
   assign_to_cycle: handleAssignToCycle,
+  list_members: handleListMembers,
 };

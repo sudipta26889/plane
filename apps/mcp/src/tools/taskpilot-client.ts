@@ -149,4 +149,21 @@ export class TaskPilotClient {
       { comment_html: `<p>${comment}</p>` },
     );
   }
+
+  // --- Members ---
+  async listMembers(projectId?: string): Promise<any[]> {
+    let data;
+    if (projectId) {
+      data = await this.request(
+        "GET",
+        `/api/v1/workspaces/${this.workspace}/projects/${projectId}/members/`,
+      );
+    } else {
+      data = await this.request(
+        "GET",
+        `/api/v1/workspaces/${this.workspace}/members/`,
+      );
+    }
+    return Array.isArray(data) ? data : data.results || data;
+  }
 }
