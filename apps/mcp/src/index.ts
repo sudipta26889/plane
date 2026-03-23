@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
 import { initDatabase } from "./db.js";
+import { pollHitlDecisions, retryWebhooks, cleanupOldData } from "./a2a/background.js";
 
 // Routes
 import discoveryRouter from "./routes/discovery.js";
@@ -76,6 +77,11 @@ async function main() {
     console.log(`[mcp] TaskPilot MCP Server listening on port ${config.port}`);
     console.log(`[mcp] Base URL: ${config.baseUrl}`);
     console.log(`[mcp] Frontend: ${config.frontendUrl}`);
+
+    // A2A background tasks
+    setInterval(async () => { await pollHitlDecisions(); await retryWebhooks(); }, 30000);
+    setInterval(cleanupOldData, 24 * 60 * 60 * 1000);
+    console.log("[a2a] Background tasks started");
   });
 }
 
