@@ -1,0 +1,45 @@
+import { describe, it, expect } from "vitest";
+import { buildAgentCard, buildLlmsTxt } from "../agent-card.js";
+
+describe("Agent Card", () => {
+  it("builds valid agent card JSON", () => {
+    const card = buildAgentCard("https://mcp.taskpilot.sudiptadhara.in");
+    expect(card.name).toBe("TaskPilot");
+    expect(card.protocol).toBe("a2a");
+    expect(card.protocolVersion).toBe("0.3");
+    expect(card.url).toBe("https://mcp.taskpilot.sudiptadhara.in/a2a");
+    expect(card.skills.length).toBe(18);
+    expect(card.capabilities.streaming).toBe(true);
+    expect(card.capabilities.webhooks).toBe(true);
+    expect(card.capabilities.humanInTheLoop).toBe(true);
+    expect(card.authentication.type).toBe("oauth2");
+  });
+
+  it("includes all skills with names and descriptions", () => {
+    const card = buildAgentCard("https://example.com");
+    for (const skill of card.skills) {
+      expect(skill.name).toBeDefined();
+      expect(typeof skill.name).toBe("string");
+      expect(skill.description).toBeDefined();
+      expect(typeof skill.description).toBe("string");
+    }
+  });
+
+  it("includes requiresApproval for conditional skills", () => {
+    const card = buildAgentCard("https://example.com");
+    const moveSkill = card.skills.find((s: any) => s.name === "task.move");
+    expect(moveSkill).toBeDefined();
+    expect(moveSkill.requiresApproval).toBe("conditional");
+  });
+
+  it("builds llms.txt with auth and skills documentation", () => {
+    const txt = buildLlmsTxt("https://mcp.taskpilot.sudiptadhara.in");
+    expect(txt).toContain("TaskPilot A2A Protocol");
+    expect(txt).toContain("task.create");
+    expect(txt).toContain("message.send");
+    expect(txt).toContain("oauth2");
+    expect(txt).toContain("/authorize");
+    expect(txt).toContain("/token");
+    expect(typeof txt).toBe("string");
+  });
+});
