@@ -11,6 +11,7 @@ import tokenRouter from "./routes/token.js";
 import revokeRouter from "./routes/revoke.js";
 import approveRouter from "./routes/approve.js";
 import mcpRouter from "./routes/mcp.js";
+import a2aRouter from "./routes/a2a.js";
 
 const app = express();
 
@@ -52,6 +53,9 @@ app.use(approveRouter);
 
 // MCP protocol endpoint (POST /mcp-server)
 app.use(mcpRouter);
+
+// A2A protocol endpoints
+app.use(a2aRouter);
 
 // Root endpoint
 app.get("/", (_req, res) => {
