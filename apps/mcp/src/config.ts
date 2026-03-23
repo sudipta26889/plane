@@ -28,4 +28,14 @@ export const config = {
   accessTokenTtl: parseInt(process.env.MCP_ACCESS_TOKEN_TTL || "3600", 10),
   refreshTokenTtl: parseInt(process.env.MCP_REFRESH_TOKEN_TTL || "2592000", 10),
   authCodeTtl: parseInt(process.env.MCP_AUTH_CODE_TTL || "600", 10),
+
+  // DharaHIL (Human-in-the-Loop)
+  dharahilBaseUrl: process.env.DHARAHIL_BASE_URL || "",
+  dharahilApiKey: process.env.DHARAHIL_API_KEY || "",
+  dharahilTenantId: process.env.DHARAHIL_TENANT_ID || "",
+  dharahilAppId: process.env.DHARAHIL_APP_ID || "",
+  dharahilEnabled: process.env.DHARAHIL_ENABLED === "true",
+
+  // A2A max wait for MCP HITL (ms)
+  mcpHitlTimeoutMs: parseInt(process.env.MCP_HITL_TIMEOUT_MS || "60000", 10),
 };

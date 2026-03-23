@@ -9,6 +9,107 @@ export const db = new Pool({
   idleTimeoutMillis: 30000,
 });
 
+async function initA2aDatabase(client: any): Promise<void> {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS a2a_tasks (
+      id SERIAL PRIMARY KEY,
+      task_id VARCHAR(255) UNIQUE NOT NULL,
+      context_id VARCHAR(255) NOT NULL,
+      client_id VARCHAR(255) NOT NULL,
+      user_id VARCHAR(255) NOT NULL,
+      workspace_slug VARCHAR(255) NOT NULL,
+      skill VARCHAR(100) NOT NULL,
+      input JSONB NOT NULL,
+      state VARCHAR(50) NOT NULL DEFAULT 'submitted',
+      state_reason TEXT,
+      result JSONB,
+      error JSONB,
+      requires_approval BOOLEAN DEFAULT false,
+      idempotency_key VARCHAR(255),
+      retry_count INT DEFAULT 0,
+      max_retries INT DEFAULT 3,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW(),
+      completed_at TIMESTAMPTZ
+    );
+
+    CREATE TABLE IF NOT EXISTS a2a_task_history (
+      id SERIAL PRIMARY KEY,
+      task_id VARCHAR(255) NOT NULL,
+      from_state VARCHAR(50),
+      to_state VARCHAR(50) NOT NULL,
+      reason TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS a2a_approvals (
+      id SERIAL PRIMARY KEY,
+      task_id VARCHAR(255) UNIQUE NOT NULL,
+      skill VARCHAR(100) NOT NULL,
+      request_data JSONB NOT NULL,
+      status VARCHAR(50) DEFAULT 'pending',
+      dharahil_request_id VARCHAR(255),
+      dharahil_channel VARCHAR(50),
+      responded_by VARCHAR(255),
+      expires_at TIMESTAMPTZ NOT NULL,
+      responded_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS a2a_webhook_configs (
+      id SERIAL PRIMARY KEY,
+      client_id VARCHAR(255) NOT NULL,
+      url TEXT NOT NULL,
+      secret VARCHAR(255) NOT NULL,
+      events JSONB DEFAULT '[]',
+      active BOOLEAN DEFAULT true,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(client_id, url)
+    );
+
+    CREATE TABLE IF NOT EXISTS a2a_webhook_deliveries (
+      id SERIAL PRIMARY KEY,
+      webhook_config_id INT NOT NULL,
+      task_id VARCHAR(255) NOT NULL,
+      event VARCHAR(100) NOT NULL,
+      payload JSONB NOT NULL,
+      status VARCHAR(50) DEFAULT 'pending',
+      attempts INT DEFAULT 0,
+      last_attempt_at TIMESTAMPTZ,
+      next_retry_at TIMESTAMPTZ,
+      response_status INT,
+      response_body TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS a2a_audit_logs (
+      id SERIAL PRIMARY KEY,
+      user_id VARCHAR(255),
+      client_id VARCHAR(255),
+      ip_address VARCHAR(45),
+      operation VARCHAR(100) NOT NULL,
+      task_id VARCHAR(255),
+      skill VARCHAR(100),
+      success BOOLEAN NOT NULL,
+      error_code VARCHAR(50),
+      error_message TEXT,
+      metadata JSONB,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_a2a_tasks_task_id ON a2a_tasks(task_id);
+    CREATE INDEX IF NOT EXISTS idx_a2a_tasks_context_id ON a2a_tasks(context_id);
+    CREATE INDEX IF NOT EXISTS idx_a2a_tasks_client_state ON a2a_tasks(client_id, state);
+    CREATE INDEX IF NOT EXISTS idx_a2a_tasks_idempotency ON a2a_tasks(idempotency_key);
+    CREATE INDEX IF NOT EXISTS idx_a2a_task_history_task_id ON a2a_task_history(task_id);
+    CREATE INDEX IF NOT EXISTS idx_a2a_approvals_task_id ON a2a_approvals(task_id);
+    CREATE INDEX IF NOT EXISTS idx_a2a_approvals_status ON a2a_approvals(status);
+    CREATE INDEX IF NOT EXISTS idx_a2a_audit_logs_created ON a2a_audit_logs(created_at);
+    CREATE INDEX IF NOT EXISTS idx_a2a_webhook_deliveries_status ON a2a_webhook_deliveries(status, next_retry_at);
+  `);
+  console.log("[db] A2A schema initialized");
+}
+
 export async function initDatabase(): Promise<void> {
   const client = await db.connect();
   try {
@@ -69,6 +170,7 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_mcp_access_tokens_refresh ON mcp_access_tokens(refresh_token);
     `);
     console.log("[db] Schema initialized");
+    await initA2aDatabase(client);
   } finally {
     client.release();
   }
