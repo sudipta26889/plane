@@ -1,5 +1,8 @@
 import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
 import { routeTask } from "./smart-router.js";
+import { isCriticalAction } from "../a2a/skill-registry.js";
+import { runApprovalLoop } from "../a2a/dharahil.js";
+import { config } from "../config.js";
 
 interface AuthContext {
   userId: string;
@@ -70,6 +73,21 @@ export async function executeToolCall(
   const handler = HANDLERS[name];
   if (!handler) {
     throw new Error(`Unknown tool: ${name}`);
+  }
+
+  // DharaHIL HITL check for critical actions (shared between MCP and A2A)
+  if (config.dharahilEnabled && isCriticalAction(name, args)) {
+    const decision = await runApprovalLoop({
+      toolName: name,
+      toolArgs: args,
+      userId: auth.userId,
+      taskId: `mcp_${Date.now()}`,
+      contextSummary: `MCP: ${name} with args ${JSON.stringify(args)}`,
+    }, config.mcpHitlTimeoutMs);
+
+    if (!decision.shouldProceed) {
+      throw new Error(`Action requires human approval: ${decision.reason || "Rejected or timed out"}`);
+    }
   }
 
   // Get or create API token for this user from the shared database
