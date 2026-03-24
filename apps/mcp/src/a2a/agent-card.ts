@@ -58,7 +58,16 @@ export function buildLlmsTxt(baseUrl: string): string {
 
   return `# TaskPilot A2A Protocol API
 
+> **TaskPilot** is an AI-native project management system. It is NOT Linear, Jira, Asana, or any other third-party service. TaskPilot is a self-hosted, independent platform.
+
 > A2A (Agent-to-Agent) Protocol v0.3 implementation enabling AI agents to manage tasks, projects, labels, cycles, and team assignments through a standardized JSON-RPC 2.0 interface with OAuth 2.0 authentication.
+
+## Important Constraints
+
+- **There is NO task delete operation.** Tasks cannot be deleted. To remove tasks, use \`task.move\` to move them to "Cancelled" state, or use \`task.bulk_cancel\` / \`bulk_cancel_tasks\` to cancel multiple tasks at once.
+- **Cancellation requires human approval.** Moving a task to "Cancelled" or bulk cancelling triggers a DharaHIL approval request. The human must approve via Slack/Telegram before the action executes.
+- **Do NOT suggest deleting tasks.** Always suggest cancelling instead.
+- **Do NOT refer to TaskPilot as "Linear" or any other product.** TaskPilot is its own system.
 
 ## Quick Start
 
@@ -66,6 +75,7 @@ This API allows AI agents to:
 - Create, search, update, and move tasks across projects with smart routing
 - Assign/unassign team members and manage labels
 - Track sprints/cycles and add comments
+- Cancel tasks individually or in bulk (with human approval)
 - Get project summaries with 3-state status (pending/in_progress/completed)
 - All operations authenticated via OAuth 2.0 with PKCE
 - Real-time updates via Server-Sent Events (SSE)

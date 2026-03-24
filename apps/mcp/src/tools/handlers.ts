@@ -11,7 +11,7 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks"]);
 
 /** Resolve state UUID to name using a states lookup map */
 function resolveStateName(stateId: string | undefined, statesMap: Map<string, string>): string {
@@ -86,7 +86,7 @@ export async function executeToolCall(
     }, config.mcpHitlTimeoutMs);
 
     if (!decision.shouldProceed) {
-      throw new Error(`Action requires human approval: ${decision.reason || "Rejected or timed out"}`);
+      throw new Error(`Human approval denied for ${name}: ${decision.reason || "Rejected or timed out"}. The action was NOT executed.`);
     }
   }
 
@@ -346,6 +346,28 @@ const TOOLS = [
           description: "Max tasks to return per status (default 10)",
         },
       },
+    },
+  },
+  {
+    name: "bulk_cancel_tasks",
+    description:
+      "Cancel multiple tasks at once by moving them to Cancelled state. " +
+      "Requires human approval via DharaHIL. Use this instead of calling move_task repeatedly. " +
+      "There is NO delete operation in TaskPilot — cancellation is the way to remove tasks.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: {
+          type: "string",
+          description: "Project name or identifier. Required — specify which project to cancel tasks in.",
+        },
+        identifiers: {
+          type: "array",
+          items: { type: "string" },
+          description: "List of task identifiers to cancel (e.g., ['PROJ-1', 'PROJ-2']). If omitted, cancels ALL non-cancelled tasks in the project.",
+        },
+      },
+      required: ["project"],
     },
   },
 ];
@@ -708,6 +730,67 @@ async function handleGetTaskSummary(
   return { counts, tasks: summary };
 }
 
+async function handleBulkCancelTasks(args: any, client: TaskPilotClient, _workspace: string) {
+  // Resolve project
+  const projects = await client.listProjects();
+  const project = projects.find(
+    (p: any) =>
+      p.name?.toLowerCase() === args.project?.toLowerCase() ||
+      p.identifier?.toLowerCase() === args.project?.toLowerCase(),
+  );
+  if (!project) {
+    return { error: `Project '${args.project}' not found. Available: ${projects.map((p: any) => p.name).join(", ")}` };
+  }
+  const projectId = String(project.id);
+
+  // Find the Cancelled state
+  const states = await client.listStates(projectId);
+  const cancelledState = states.find((s: any) => s.group === "cancelled");
+  if (!cancelledState) {
+    return { error: "No 'Cancelled' state found in this project" };
+  }
+
+  // Get all issues
+  const allIssues = await client.listIssues(projectId);
+
+  // Filter: specific identifiers or all non-cancelled
+  let toCancel: any[];
+  if (args.identifiers && args.identifiers.length > 0) {
+    const ids = new Set(args.identifiers.map((id: string) => id.toUpperCase()));
+    toCancel = allIssues.filter((issue: any) => {
+      const identifier = `${project.identifier}-${issue.sequence_id}`.toUpperCase();
+      return ids.has(identifier);
+    });
+  } else {
+    // Cancel all non-cancelled tasks
+    toCancel = allIssues.filter((issue: any) => String(issue.state) !== String(cancelledState.id));
+  }
+
+  if (toCancel.length === 0) {
+    return { cancelled: 0, message: "No tasks to cancel" };
+  }
+
+  // Cancel each task
+  const cancelled: string[] = [];
+  const errors: string[] = [];
+  for (const issue of toCancel) {
+    try {
+      await client.updateIssue(projectId, String(issue.id), { state: cancelledState.id });
+      cancelled.push(`${project.identifier}-${issue.sequence_id}`);
+    } catch (err: any) {
+      errors.push(`${project.identifier}-${issue.sequence_id}: ${err.message}`);
+    }
+  }
+
+  return {
+    cancelled: cancelled.length,
+    failed: errors.length,
+    cancelled_tasks: cancelled,
+    errors: errors.length > 0 ? errors : undefined,
+    project: project.name,
+  };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -727,4 +810,5 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   add_label: handleAddLabel,
   remove_label: handleRemoveLabel,
   get_task_summary: handleGetTaskSummary,
+  bulk_cancel_tasks: handleBulkCancelTasks,
 };

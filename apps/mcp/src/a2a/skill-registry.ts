@@ -25,6 +25,7 @@ const SKILL_REGISTRY: Record<string, SkillDefinition> = {
   "project.list_labels":  { name: "project.list_labels",  mcpTool: "list_labels",      scope: "taskpilot:read",  approval: false, description: "List available labels" },
   "project.list_cycles":  { name: "project.list_cycles",  mcpTool: "list_cycles",      scope: "taskpilot:read",  approval: false, description: "List sprints/cycles" },
   "project.list_tasks":   { name: "project.list_tasks",   mcpTool: "list_tasks",       scope: "taskpilot:read",  approval: false, description: "List tasks with filters" },
+  "task.bulk_cancel":     { name: "task.bulk_cancel",     mcpTool: "bulk_cancel_tasks", scope: "taskpilot:write", approval: true,  description: "Cancel multiple tasks at once (requires human approval). No delete exists — use this instead." },
 };
 
 export function getSkillDefinition(skillName: string): SkillDefinition | undefined {
@@ -38,6 +39,9 @@ export function getAllSkills(): SkillDefinition[] {
 export function isCriticalAction(mcpTool: string, args: Record<string, any>): boolean {
   if (mcpTool === "move_task" && typeof args.state === "string") {
     return args.state.toLowerCase() === "cancelled";
+  }
+  if (mcpTool === "bulk_cancel_tasks") {
+    return true;
   }
   return false;
 }
