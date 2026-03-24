@@ -41,7 +41,7 @@ export class AIService extends APIService {
   ): Promise<{
     response: string;
   }> {
-    return this.post(`/api/workspaces/${workspaceSlug}/rephrase-grammar/`, data)
+    return this.post(`/api/workspaces/${workspaceSlug}/rephrase-grammar/`, { ...data, prompt: data.text_input })
       .then((res) => res?.data)
       .catch((error) => {
         throw error?.response?.data;
