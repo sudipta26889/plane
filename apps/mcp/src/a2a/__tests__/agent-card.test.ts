@@ -29,17 +29,31 @@ describe("Agent Card", () => {
     const card = buildAgentCard("https://example.com");
     const moveSkill = card.skills.find((s: any) => s.name === "task.move");
     expect(moveSkill).toBeDefined();
-    expect(moveSkill.requiresApproval).toBe("conditional");
+    expect(moveSkill!.requiresApproval).toBe("conditional");
   });
 
-  it("builds llms.txt with auth and skills documentation", () => {
+  it("builds llms.txt with comprehensive documentation", () => {
     const txt = buildLlmsTxt("https://mcp.taskpilot.sudiptadhara.in");
     expect(txt).toContain("TaskPilot A2A Protocol");
     expect(txt).toContain("task.create");
     expect(txt).toContain("message.send");
-    expect(txt).toContain("oauth2");
+    expect(txt).toContain("OAuth 2.0");
     expect(txt).toContain("/authorize");
     expect(txt).toContain("/token");
+    // Verify comprehensive sections present (matching Inbox format)
+    expect(txt).toContain("## Quick Start");
+    expect(txt).toContain("## Task States");
+    expect(txt).toContain("## Rate Limits");
+    expect(txt).toContain("## Real-Time Updates (SSE)");
+    expect(txt).toContain("## Webhook Notifications");
+    expect(txt).toContain("## Human-in-the-Loop Approvals");
+    expect(txt).toContain("## Response Format");
+    expect(txt).toContain("## Security Features");
+    expect(txt).toContain("## Production Endpoints");
+    expect(txt).toContain("## Quick Integration Checklist");
+    expect(txt).toContain("## Compliance & Audit");
+    expect(txt).toContain("HMAC-SHA256");
+    expect(txt).toContain("DharaHIL");
     expect(typeof txt).toBe("string");
   });
 });
