@@ -86,7 +86,10 @@ export async function executeToolCall(
     }, config.mcpHitlTimeoutMs);
 
     if (!decision.shouldProceed) {
-      throw new Error(`Human approval denied for ${name}: ${decision.reason || "Rejected or timed out"}. The action was NOT executed.`);
+      if (decision.reason?.includes("expired")) {
+        throw new Error(`Waiting for human approval on Telegram/Slack. The action has NOT been executed yet. Please try again in a minute — the human may still approve.`);
+      }
+      throw new Error(`Human approval denied for ${name}: ${decision.reason || "Rejected"}. The action was NOT executed.`);
     }
   }
 
