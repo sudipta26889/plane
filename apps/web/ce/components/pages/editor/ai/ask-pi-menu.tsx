@@ -14,6 +14,11 @@ import { RichTextEditor } from "@/components/editor/rich-text";
 // helpers
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
+// services
+import { AIService } from "@/services/ai.service";
+import { AI_EDITOR_TASKS } from "@/constants/ai";
+
+const aiService = new AIService();
 
 type Props = {
   handleInsertText: (insertOnNextLine: boolean) => void;
@@ -24,13 +29,33 @@ type Props = {
 };
 
 export function AskPiMenu(props: Props) {
-  const { handleInsertText, handleRegenerate, isRegenerating, response, workspaceSlug } = props;
+  const { handleInsertText, handleRegenerate, isRegenerating, response: externalResponse, workspaceSlug } = props;
   // states
   const [query, setQuery] = useState("");
+  const [localResponse, setLocalResponse] = useState<string | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(false);
   // store hooks
   const { getWorkspaceBySlug } = useWorkspace();
   // derived values
   const workspaceId = getWorkspaceBySlug(workspaceSlug)?.id ?? "";
+  const response = externalResponse || localResponse;
+
+  const handleSubmit = async () => {
+    if (!query.trim() || isLoading) return;
+    setIsLoading(true);
+    setLocalResponse(undefined);
+    try {
+      const res = await aiService.performEditorTask(workspaceSlug, {
+        task: AI_EDITOR_TASKS.ASK_ANYTHING,
+        text_input: query,
+      });
+      setLocalResponse(res.response);
+    } catch (err) {
+      setLocalResponse("Failed to get AI response. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -93,8 +118,10 @@ export function AskPiMenu(props: Props) {
               </Tooltip>
             </div>
           </div>
-        ) : (
+        ) : isLoading ? (
           <p className="text-13 text-secondary">AI is answering...</p>
+        ) : (
+          <p className="text-13 text-secondary">Ask Pi anything about the selected text.</p>
         )}
       </div>
       <div className="px-4 py-3">
@@ -107,11 +134,17 @@ export function AskPiMenu(props: Props) {
             className="w-full border-none bg-transparent text-13 outline-none placeholder:text-placeholder"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); handleSubmit(); } }}
             placeholder="Tell AI what to do..."
           />
-          <span className="grid size-4 flex-shrink-0 place-items-center">
-            <CircleArrowUp className="size-4 text-secondary" />
-          </span>
+          <button
+            type="button"
+            className="grid size-4 flex-shrink-0 place-items-center outline-none"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSubmit(); }}
+            disabled={isLoading || !query.trim()}
+          >
+            <CircleArrowUp className={cn("size-4 text-secondary", { "opacity-50": isLoading || !query.trim() })} />
+          </button>
         </div>
       </div>
     </>
