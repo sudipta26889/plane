@@ -12,19 +12,25 @@ describe("DharaHIL Client", () => {
     });
     expect(req.tool_name).toBe("move_task");
     expect(req.tool_args.identifier).toBe("PROJ-42");
-    expect(req.context.agent_id).toBe("taskpilot-mcp");
-    expect(req.context.run_id).toBe("user-1");
-    expect(req.context.step_id).toBe("task-1");
-    expect(req.context.risk_level).toBe("MEDIUM");
-    expect(req.context.tags).toContain("cancel");
-    expect(req.context.tags).toContain("taskpilot");
-    expect(req.context.idempotency_key).toContain("task_move_PROJ-42");
+    expect(req.agent_id).toBe("taskpilot-mcp");
+    expect(req.run_id).toBe("user-1");
+    expect(req.step_id).toBe("task-1");
+    expect(req.risk_level).toBe("HIGH");
+    expect(req.tags).toContain("cancel");
+    expect(req.tags).toContain("taskpilot");
+    expect(req.idempotency_key).toContain("task_move_PROJ-42");
+    expect(req.tool_args_redacted).toEqual(req.tool_args);
+    expect(req.environment).toBe("production");
+    expect(req.metadata).toBeDefined();
+    expect(req.webhook).toBeDefined();
+    expect(req.webhook.url).toBe("");
   });
 
   it("interprets APPROVED decision", () => {
     const result = interpretDecision({ action: "APPROVED" });
     expect(result.shouldProceed).toBe(true);
     expect(result.shouldReject).toBe(false);
+    expect(result.shouldRevise).toBe(false);
   });
 
   it("interprets ALLOW decision", () => {
@@ -41,6 +47,7 @@ describe("DharaHIL Client", () => {
     const result = interpretDecision({ action: "REJECTED", reason: "No" });
     expect(result.shouldProceed).toBe(false);
     expect(result.shouldReject).toBe(true);
+    expect(result.shouldRevise).toBe(false);
     expect(result.reason).toBe("No");
   });
 
@@ -57,10 +64,18 @@ describe("DharaHIL Client", () => {
     expect(result.reason).toContain("expired");
   });
 
-  it("interprets REVISE_REQUESTED as rejection for task operations", () => {
-    const result = interpretDecision({ action: "REVISE_REQUESTED" });
+  it("interprets REVISE_REQUESTED as revision with instructions", () => {
+    const result = interpretDecision({ action: "REVISE_REQUESTED", revise_input: "Move to Done instead" });
     expect(result.shouldProceed).toBe(false);
-    expect(result.shouldReject).toBe(true);
+    expect(result.shouldReject).toBe(false);
+    expect(result.shouldRevise).toBe(true);
+    expect(result.reviseInput).toBe("Move to Done instead");
+  });
+
+  it("interprets REVISE_REQUESTED with reason fallback", () => {
+    const result = interpretDecision({ action: "REVISE_REQUESTED", reason: "Change the state" });
+    expect(result.shouldRevise).toBe(true);
+    expect(result.reviseInput).toBe("Change the state");
   });
 
   it("interprets ERROR as rejection (fail-closed)", () => {

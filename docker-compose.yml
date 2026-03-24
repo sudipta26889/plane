@@ -147,7 +147,9 @@ services:
     depends_on:
       - taskpilot-mq
 
-  # ---------- MCP Server ----------
+  # ---------- MCP + A2A Server ----------
+  # Serves both MCP (POST /mcp-server) and A2A (POST /a2a) protocols
+  # Requires: DATABASE_URL, REDIS_URL, DHARAHIL_* env vars
 
   mcp:
     container_name: taskpilot-mcp

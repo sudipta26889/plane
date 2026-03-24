@@ -1,6 +1,6 @@
 import { config } from "../config.js";
 import { db } from "../db.js";
-import { interpretDecision } from "./dharahil.js";
+import { interpretDecision, applyRevisionInstructions, buildApprovalRequest, submitApproval } from "./dharahil.js";
 import { transitionState, executeA2aTask } from "./task-executor.js";
 import { deliverWebhook } from "./webhooks.js";
 import { logAuditEvent } from "./audit-log.js";
@@ -42,9 +42,7 @@ export async function pollHitlDecisions() {
       try {
         const response = await fetch(`${config.dharahilBaseUrl}/v1/requests/${task.dharahil_request_id}`, {
           headers: {
-            Authorization: `Bearer ${config.dharahilApiKey}`,
-            "X-Tenant-Id": config.dharahilTenantId,
-            "X-App-Id": config.dharahilAppId,
+            "X-DHARA-API-KEY": config.dharahilApiKey,
           },
         });
 
@@ -52,7 +50,7 @@ export async function pollHitlDecisions() {
         const data = await response.json() as any;
         if (data.status === "PENDING") continue;
 
-        const decision = interpretDecision({ action: data.action || data.status, reason: data.reason });
+        const decision = interpretDecision({ action: data.action || data.status, reason: data.reason || data.last_decision_note, revise_input: data.last_decision_revise_input || data.revise_input });
 
         if (decision.shouldProceed) {
           // Approved — transition back to submitted, then execute
@@ -67,6 +65,47 @@ export async function pollHitlDecisions() {
           await executeA2aTask(task.task_id, task.skill, input, auth);
 
           await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.approved", taskId: task.task_id, skill: task.skill, success: true });
+        } else if (decision.shouldRevise) {
+          // Revised — use LLM to interpret instructions, modify args, re-execute
+          console.log(`[a2a] REVISE requested for ${task.task_id}: "${decision.reviseInput}"`);
+
+          try {
+            const originalInput = typeof task.input === "string" ? JSON.parse(task.input) : task.input;
+            const { getSkillDefinition } = await import("./skill-registry.js");
+            const skillDef = getSkillDefinition(task.skill);
+            const mcpTool = skillDef?.mcpTool || task.skill;
+
+            // LLM interprets the human's revision instructions
+            const revisedArgs = await applyRevisionInstructions(mcpTool, originalInput, decision.reviseInput);
+            console.log(`[a2a] Revised args for ${task.task_id}:`, JSON.stringify(revisedArgs));
+
+            // Update the task input with revised args
+            await db.query(
+              `UPDATE a2a_tasks SET input = $2, updated_at = NOW() WHERE task_id = $1`,
+              [task.task_id, JSON.stringify(revisedArgs)]
+            );
+
+            await db.query(
+              `UPDATE a2a_approvals SET status = 'revised', responded_at = NOW() WHERE task_id = $1`,
+              [task.task_id]
+            );
+
+            // Transition to submitted, then execute with revised args
+            await transitionState(task.task_id, "submitted", `Revised by human: ${decision.reviseInput}`);
+
+            const auth = { userId: task.user_id, workspaceSlug: task.workspace_slug, clientId: task.client_id, scopes: ["taskpilot:read", "taskpilot:write"] };
+            await executeA2aTask(task.task_id, task.skill, revisedArgs, auth);
+
+            await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: true, metadata: { revise_input: decision.reviseInput, revised_args: JSON.stringify(revisedArgs) } });
+          } catch (err: any) {
+            console.error(`[a2a] REVISE failed for ${task.task_id}:`, err);
+            await db.query(
+              `UPDATE a2a_approvals SET status = 'rejected', responded_at = NOW() WHERE task_id = $1`,
+              [task.task_id]
+            );
+            await transitionState(task.task_id, "rejected", `Revision failed: ${err.message}`);
+            await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: false, errorMessage: err.message });
+          }
         } else {
           // Rejected
           await db.query(

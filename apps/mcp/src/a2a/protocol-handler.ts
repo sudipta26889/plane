@@ -135,9 +135,9 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
 
       // Save approval record
       await db.query(
-        `INSERT INTO a2a_approvals (task_id, request_id, expires_at, status)
-         VALUES ($1, $2, $3, 'pending')`,
-        [taskId, requestId, expiresAt],
+        `INSERT INTO a2a_approvals (task_id, skill, request_data, dharahil_request_id, expires_at, status)
+         VALUES ($1, $2, $3, $4, $5, 'pending')`,
+        [taskId, skill, JSON.stringify(taskInput), requestId, expiresAt],
       );
     } catch (err: any) {
       console.error("[a2a] Failed to submit approval:", err);

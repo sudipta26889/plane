@@ -31,4 +31,4 @@ python manage.py create_bucket
 # Clear Cache before starting to remove stale values
 python manage.py clear_cache
 
-python manage.py runserver 0.0.0.0:4647 --settings=taskpilot.settings.local
+python manage.py runserver 0.0.0.0:4647 --settings=taskpilot.settings.production

@@ -157,6 +157,24 @@ services:
     depends_on:
       - api
 
+  # MCP + A2A Server
+  # Serves both MCP (POST /mcp-server) and A2A (POST /a2a) protocols
+  # Requires: DATABASE_URL, REDIS_URL, DHARAHIL_* env vars
+  mcp:
+    container_name: taskpilot-mcp-dev
+    build:
+      context: ./apps/mcp
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - dev_env
+    ports:
+      - "4650:4650"
+    env_file:
+      - .env
+    depends_on:
+      - api
+
   taskpilot-mq:
     container_name: taskpilot-mq-dev
     image: rabbitmq:3.13.6-management-alpine
