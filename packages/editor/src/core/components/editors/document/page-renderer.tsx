@@ -10,6 +10,7 @@ import type { Editor } from "@tiptap/react";
 import { cn } from "@taskpilot/utils";
 // components
 import { DocumentContentLoader, EditorContainer, EditorContentWrapper } from "@/components/editors";
+import { AIFeaturesMenu } from "@/components/menus/ai-menu";
 import { BlockMenu, EditorBubbleMenu } from "@/components/menus";
 // types
 import type { TCollabValue } from "@/contexts";
@@ -43,6 +44,7 @@ type Props = {
 
 export function PageRenderer(props: Props) {
   const {
+    aiHandler,
     bubbleMenuEnabled,
     disabledExtensions,
     displayConfig,
@@ -112,6 +114,9 @@ export function PageRenderer(props: Props) {
                   flaggedExtensions={flaggedExtensions}
                   disabledExtensions={disabledExtensions}
                 />
+                {aiHandler?.menu && !disabledExtensions?.includes("ai") && (
+                  <AIFeaturesMenu menu={aiHandler.menu} />
+                )}
               </div>
             )}
           </EditorContainer>
