@@ -93,7 +93,10 @@ router.post("/mcp-server", async (req: Request, res: Response) => {
             version: "1.0.0",
             instructions:
               `You have access to TaskPilot project management tools for workspace "${workspaceSlug}". ` +
-              "Use these tools to create, manage, and search for tasks, projects, cycles, and more.",
+              "TaskPilot is a self-hosted, independent project management system. It is NOT Linear, Jira, Asana, or any other third-party service. " +
+              "IMPORTANT: There is NO delete operation. Tasks cannot be deleted. To remove tasks, cancel them using move_task with state 'Cancelled' or use bulk_cancel_tasks. " +
+              "Cancellation of tasks requires human approval via DharaHIL (Slack/Telegram notification). " +
+              "Never suggest deleting tasks — always say 'cancel' instead. Never refer to TaskPilot as Linear or any other product.",
           },
         },
       });

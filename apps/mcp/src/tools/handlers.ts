@@ -117,7 +117,7 @@ const TOOLS = [
   },
   {
     name: "move_task",
-    description: "Move a task to a different state (e.g., In Progress, Done).",
+    description: "Move a task to a different state (e.g., In Progress, Done, Cancelled). Moving to Cancelled requires human approval. There is NO delete — use Cancelled state instead.",
     inputSchema: {
       type: "object",
       properties: {
