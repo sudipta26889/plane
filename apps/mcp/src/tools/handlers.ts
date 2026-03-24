@@ -83,7 +83,7 @@ export async function executeToolCall(
       userId: auth.userId,
       taskId: `mcp_${Date.now()}`,
       contextSummary: `MCP: ${name} with args ${JSON.stringify(args)}`,
-    }, config.mcpHitlTimeoutMs);
+    });
 
     if (!decision.shouldProceed) {
       if (decision.reason?.includes("expired")) {

@@ -220,7 +220,6 @@ export async function pollForDecision(
 
 export async function runApprovalLoop(
   input: ApprovalRequestInput,
-  timeoutMs?: number,
 ): Promise<DecisionResult> {
   if (!config.dharahilEnabled) {
     return { shouldProceed: true, shouldReject: false, shouldRevise: false, reviseInput: "", reason: "DharaHIL disabled" };
@@ -230,16 +229,8 @@ export async function runApprovalLoop(
     const request = buildApprovalRequest(input);
     const { requestId, expiresAt } = await submitApproval(request);
 
-    // Apply local timeout cap if specified
-    let effectiveExpiresAt = expiresAt;
-    if (timeoutMs) {
-      const localExpiry = new Date(Date.now() + timeoutMs).toISOString();
-      if (new Date(localExpiry) < new Date(expiresAt)) {
-        effectiveExpiresAt = localExpiry;
-      }
-    }
-
-    return await pollForDecision(requestId, effectiveExpiresAt);
+    // Use the gateway's expires_at as-is — the gateway controls TTL, not us
+    return await pollForDecision(requestId, expiresAt);
   } catch (err: any) {
     console.error("[dharahil] Approval loop error:", err);
     return { shouldProceed: false, shouldReject: true, shouldRevise: false, reviseInput: "", reason: `Gateway error: ${err.message}` };

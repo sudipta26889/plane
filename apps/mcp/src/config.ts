@@ -35,7 +35,4 @@ export const config = {
   dharahilTenantId: process.env.DHARAHIL_TENANT_ID || "",
   dharahilAppId: process.env.DHARAHIL_APP_ID || "",
   dharahilEnabled: process.env.DHARAHIL_ENABLED === "true",
-
-  // A2A max wait for MCP HITL (ms)
-  mcpHitlTimeoutMs: parseInt(process.env.MCP_HITL_TIMEOUT_MS || "60000", 10),
 };
