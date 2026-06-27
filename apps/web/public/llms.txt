@@ -1,0 +1,572 @@
+# TaskPilot
+
+> **TaskPilot** is an AI-native, self-hosted project management platform for tasks, projects, sprints, and team collaboration. It is **not** Linear, Jira, Asana, or any other third-party service — TaskPilot is its own independent system. This file is the single point of integration reference for both the **REST API** and the **MCP/A2A** servers.
+
+This document is written for LLMs and integrators. Everything needed to programmatically read or modify TaskPilot data is here.
+
+---
+
+## Deployment URLs (this instance)
+
+| Surface | URL | Purpose |
+|---|---|---|
+| Web app | `https://taskpilot.sudiptadhara.in` | End-user UI |
+| REST API | `https://taskpilot-api.sudiptadhara.in` | HTTP/JSON API (programmatic) |
+| MCP / A2A server | `https://taskpilot-mcp.sudiptadhara.in` | MCP protocol + A2A protocol for AI agents |
+| Live (collab/realtime) | `https://taskpilot-live.sudiptadhara.in` | WebSocket / live collaboration |
+| Admin | `https://taskpilot-admin.sudiptadhara.in` | Administrative console (internal) |
+
+REST API root: `https://taskpilot-api.sudiptadhara.in/api/v1/`
+MCP endpoint: `POST https://taskpilot-mcp.sudiptadhara.in/mcp-server`
+A2A endpoint: `POST https://taskpilot-mcp.sudiptadhara.in/a2a`
+
+---
+
+## Choosing a transport
+
+| If you are... | Use |
+|---|---|
+| An AI agent / LLM client that already speaks MCP (Claude, Cursor, etc.) | **MCP** — just point the client at the MCP URL. Tools are discovered automatically. |
+| An AI agent that uses the A2A protocol (JSON-RPC 2.0) | **A2A** |
+| A backend service, script, or non-AI integration | **REST API** with an API key |
+| Building a new AI integration from scratch | **MCP** (lower friction, OAuth + tool discovery built in) |
+
+You can mix freely — the MCP/A2A servers internally call the same REST API, so semantics are identical.
+
+---
+
+## Critical constraints (applies to ALL transports)
+
+These rules are enforced server-side and must be respected by any integration:
+
+1. **There is NO delete operation for tasks.** Tasks cannot be deleted. To remove a task, **move it to the `Cancelled` state** (via `move_task` in MCP, `task.move` in A2A, or `PATCH` work-item with state UUID in REST).
+2. **Cancellation requires human approval.** Moving any task to `Cancelled` (single or bulk) triggers a DharaHIL approval request delivered out-of-band (Slack/Telegram). The action does **not** execute until a human approves.
+3. **Do not suggest deleting tasks.** Always suggest cancelling.
+4. **Do not refer to TaskPilot as Linear, Jira, or any other product.** TaskPilot is its own system.
+5. **HTML in descriptions is sanitized.** Anything submitted as `description_html` is run through an XSS filter; malformed/dangerous HTML is rejected.
+6. **All timestamps are UTC, ISO 8601.**
+
+---
+
+## Core data model
+
+```
+Workspace (identified by `slug`, e.g. "acme")
+ └── Project (UUID, also has human identifier like "WEB")
+      ├── State (UUID; workflow stages — e.g. Backlog, In Progress, Done, Cancelled)
+      │     group ∈ { backlog, unstarted, started, completed, cancelled, triage }
+      ├── Label (UUID; tags with color)
+      ├── Cycle (UUID; sprint/iteration)
+      ├── Module (UUID; feature/epic grouping)
+      ├── Member (project-scoped user, with role)
+      └── Work Item (a.k.a. "Issue" / "Task")
+            - UUID `id` AND human identifier `{PROJECT-IDENTIFIER}-{sequence_id}` (e.g. "WEB-42")
+            - has: name, description, state, priority, assignees[], labels[], parent, cycle, module, dates
+```
+
+Priority enum (used everywhere): `urgent`, `high`, `medium`, `low`, `none`.
+
+---
+
+# Part 1 — REST API
+
+Base URL: `https://taskpilot-api.sudiptadhara.in/api/v1/`
+
+## Authentication
+
+- **Header:** `X-Api-Key: <your-api-key>`
+- API keys are issued per-user from the workspace settings UI. They carry the issuing user's permissions.
+- A key is valid only if `is_active=true` and (`expired_at` is null OR in the future).
+- Last-used timestamp is updated on every request.
+- A second class of credential — **service tokens** — exists for higher-throughput server-to-server use and carries a higher rate limit. Issued by an administrator.
+
+## Rate limiting
+
+| Credential | Limit | Headers returned |
+|---|---|---|
+| API key (default) | 60 req/min per key (override via `API_KEY_RATE_LIMIT` env) | `X-RateLimit-Remaining`, `X-RateLimit-Reset` |
+| Service token | 300 req/min per key | same |
+
+On limit breach: `HTTP 429` with `X-RateLimit-Reset` indicating the Unix timestamp at which the window resets.
+
+## Common path parameters
+
+| Token | Meaning |
+|---|---|
+| `<str:slug>` | Workspace slug |
+| `<uuid:project_id>` | Project UUID |
+| `<uuid:pk>` / `<uuid:id>` / `<uuid:issue_id>` | Resource UUID |
+| `<str:project_identifier>-<str:issue_identifier>` | Human task identifier (e.g. `WEB-42`) |
+
+## Common query parameters (list endpoints)
+
+| Param | Use |
+|---|---|
+| `expand` | Comma-separated related fields to include inline (e.g. `expand=assignees,labels,cycle`) |
+| `fields` | Comma-separated sparse fieldset to return |
+| `order_by` | Field to sort by (prefix `-` for descending) |
+| `cursor`, `per_page` | Cursor-based pagination |
+
+## Error responses
+
+| Status | Meaning |
+|---|---|
+| 400 | Validation error / malformed request |
+| 401 | Missing / invalid API key |
+| 403 | Authenticated but insufficient permission |
+| 404 | Resource not found |
+| 429 | Rate limit exceeded — honor `X-RateLimit-Reset` |
+| 500 | Server error |
+
+---
+
+## REST endpoint reference
+
+### Users
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/users/me/` | Current authenticated user profile |
+
+### Projects
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/workspaces/<slug>/projects/` | List projects in workspace |
+| POST | `/workspaces/<slug>/projects/` | Create project |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/` | Get project |
+| PATCH | `/workspaces/<slug>/projects/<uuid:project_id>/` | Update project |
+| DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/` | Delete project |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/archive/` | Archive project |
+| DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/archive/` | Unarchive project |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/summary/` | Project statistics |
+
+### Work Items (Tasks / Issues)
+
+Two URL roots are active and behave identically: the canonical `work-items/` and the legacy `issues/`. Prefer `work-items/`.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/workspaces/<slug>/work-items/search/` | Search work items across all projects in workspace |
+| GET | `/workspaces/<slug>/work-items/<project_identifier>-<issue_identifier>/` | Lookup by human identifier (e.g. `WEB-42`) |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/work-items/` | List work items in a project |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/work-items/` | **Create a work item** (see payload below) |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/work-items/<uuid:pk>/` | Get work item |
+| PATCH | `/workspaces/<slug>/projects/<uuid:project_id>/work-items/<uuid:pk>/` | Update work item |
+| DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/work-items/<uuid:pk>/` | Delete work item (admin-only; prefer state=Cancelled) |
+
+#### Create work item — payload
+
+`POST /workspaces/<slug>/projects/<uuid:project_id>/work-items/`
+
+**Required:**
+- `name` (string, ≤255) — task title
+
+**Optional:**
+- `description_html` (string) — HTML body, auto-sanitized
+- `description_json` (object) — rich JSON description
+- `state` (UUID) — must belong to the project; defaults to project's default state
+- `priority` (`urgent` | `high` | `medium` | `low` | `none`, default `none`)
+- `start_date` (date, ISO 8601)
+- `target_date` (date, ISO 8601; must be ≥ `start_date`)
+- `assignees` ([UUID]) — must be active project members with role ≥ 15
+- `labels` ([UUID]) — must belong to the project
+- `parent` (UUID) — parent work item, same workspace/project
+- `estimate_point` (UUID) — must belong to the project's estimate set
+- `point` (int 0–12) — legacy story-point field
+- `type_id` (UUID) — issue type; defaults to project default
+- `external_source` (string), `external_id` (string) — for integration sync
+
+**Server fills on create:** `id`, `sequence_id` (project-scoped auto-increment → forms the human identifier), `created_by`, `updated_by`, `created_at`, `updated_at`, `sort_order`.
+
+#### Work-item sub-resources
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET/POST | `/.../work-items/<uuid:issue_id>/links/` | External reference URLs |
+| GET/PATCH/DELETE | `/.../work-items/<uuid:issue_id>/links/<uuid:pk>/` | Single link |
+| GET/POST | `/.../work-items/<uuid:issue_id>/comments/` | Comments |
+| GET/PATCH/DELETE | `/.../work-items/<uuid:issue_id>/comments/<uuid:pk>/` | Single comment |
+| GET | `/.../work-items/<uuid:issue_id>/activities/` | Change audit trail |
+| GET | `/.../work-items/<uuid:issue_id>/activities/<uuid:pk>/` | Single activity record |
+| GET/POST | `/.../work-items/<uuid:issue_id>/attachments/` | File attachments |
+| GET/PATCH/DELETE | `/.../work-items/<uuid:issue_id>/attachments/<uuid:pk>/` | Single attachment |
+
+### Labels
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/labels/` | List / create |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/labels/<uuid:pk>/` | Single label |
+
+Payload: `name` (req), `color` (hex), `description`, `parent` (UUID for hierarchy), `sort_order`, `external_source`, `external_id`.
+
+### States (workflow stages)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/states/` | List / create |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/states/<uuid:state_id>/` | Single state |
+
+State `group` controls semantics: `backlog`, `unstarted`, `started`, `completed`, `cancelled`, `triage`. The `Cancelled` state is the "delete substitute" — moving a task there is the only supported removal.
+
+### Cycles (sprints)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/cycles/` | List / create |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/cycles/<uuid:pk>/` | Single cycle |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/cycles/<uuid:cycle_id>/archive/` | Archive |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/archived-cycles/` | List archived |
+| DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/archived-cycles/<uuid:cycle_id>/unarchive/` | Unarchive |
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/cycles/<uuid:cycle_id>/cycle-issues/` | Work items in cycle |
+| GET / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/cycles/<uuid:cycle_id>/cycle-issues/<uuid:issue_id>/` | Single association |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/cycles/<uuid:cycle_id>/transfer-issues/` | Bulk move to another cycle |
+
+### Modules (features / epics)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/modules/` | List / create |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/modules/<uuid:pk>/` | Single module |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/modules/<uuid:pk>/archive/` | Archive |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/archived-modules/` | List archived |
+| DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/archived-modules/<uuid:pk>/unarchive/` | Unarchive |
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/modules/<uuid:module_id>/module-issues/` | Work items in module |
+| DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/modules/<uuid:module_id>/module-issues/<uuid:issue_id>/` | Remove from module |
+
+### Intake (triage queue)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/intake-issues/` | List / create intake item |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/intake-issues/<uuid:issue_id>/` | Single intake item |
+
+### Members
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/workspaces/<slug>/members/` | Workspace members |
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/members/` | List / add project member |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/members/<uuid:pk>/` | Single project member |
+
+Equivalent paths under `.../project-members/` are also active.
+
+### Invitations
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/invitations/` | List / send |
+| GET / PATCH / DELETE | `/workspaces/<slug>/invitations/<uuid:pk>/` | Single invitation |
+
+### Assets (file storage)
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/assets/user-assets/` | Upload user asset (presigned-URL flow) |
+| PATCH / DELETE | `/assets/user-assets/<uuid:asset_id>/` | Update / delete user asset |
+| POST | `/assets/user-assets/server/` | Server-side user asset |
+| PATCH / DELETE | `/assets/user-assets/<uuid:asset_id>/server/` | Server-side user asset |
+| POST | `/workspaces/<slug>/assets/` | Upload workspace asset |
+| GET / PATCH | `/workspaces/<slug>/assets/<uuid:asset_id>/` | Get / update workspace asset |
+
+### Stickies (personal notes)
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/stickies/` | List / create (supports `?query=...` search) |
+| GET / PATCH / DELETE | `/workspaces/<slug>/stickies/<uuid:pk>/` | Single sticky |
+
+---
+
+## REST recipes
+
+### Create a task
+
+```bash
+# 1. Discover the project (one-time)
+curl -H "X-Api-Key: $KEY" \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/projects/
+
+# 2. Create the task
+curl -X POST -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{
+    "name": "Fix login redirect",
+    "description_html": "<p>Users hit a 500 after SSO callback.</p>",
+    "priority": "high",
+    "target_date": "2026-07-10"
+  }' \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/projects/<project_id>/work-items/
+```
+
+Response includes `id` (UUID), `sequence_id` (e.g. `42`), and the project's `identifier`. The human identifier is `{project.identifier}-{sequence_id}` (e.g. `WEB-42`).
+
+### Move a task to "In Progress"
+
+```bash
+# 1. Get the state UUID for "In Progress" in the target project
+curl -H "X-Api-Key: $KEY" \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/projects/<project_id>/states/
+
+# 2. PATCH the task
+curl -X PATCH -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{"state": "<state-uuid>"}' \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/projects/<project_id>/work-items/<work-item-uuid>/
+```
+
+### Cancel a task (the substitute for "delete")
+
+Same as above, but use the UUID of the state whose `group` is `cancelled`. Note: AI-driven cancellations go through DharaHIL human approval; direct REST PATCH does **not** (use carefully).
+
+### Look up a task by human identifier
+
+```bash
+curl -H "X-Api-Key: $KEY" \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/work-items/WEB-42/
+```
+
+### Add a comment
+
+```bash
+curl -X POST -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{"comment_html": "<p>Investigating now.</p>"}' \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/projects/<project_id>/work-items/<work-item-uuid>/comments/
+```
+
+---
+
+# Part 2 — MCP Server
+
+The MCP server is for AI-agent integrations. It exposes the same task operations as REST, but with OAuth-based auth and tool discovery built in.
+
+## Connection
+
+| Field | Value |
+|---|---|
+| MCP endpoint | `POST https://taskpilot-mcp.sudiptadhara.in/mcp-server` |
+| Protocol | MCP (JSON-RPC over HTTP) |
+| Health check | `GET https://taskpilot-mcp.sudiptadhara.in/` → `{name, version, status}` |
+
+## OAuth 2.1 (PKCE required)
+
+Discovery: `GET https://taskpilot-mcp.sudiptadhara.in/.well-known/oauth-authorization-server`
+
+| Endpoint | URL |
+|---|---|
+| Authorization | `https://taskpilot-mcp.sudiptadhara.in/mcp-server/authorize` |
+| Token | `https://taskpilot-mcp.sudiptadhara.in/mcp-server/token` |
+| Dynamic client registration | `https://taskpilot-mcp.sudiptadhara.in/mcp-server/register` |
+| Revocation | `https://taskpilot-mcp.sudiptadhara.in/mcp-server/revoke` |
+
+| Property | Value |
+|---|---|
+| Grant types | `authorization_code`, `refresh_token` |
+| PKCE | **Required** (`S256` or `plain`) |
+| Token type | `Bearer` |
+| Auth methods | `none` (public clients), `client_secret_post` |
+| Scopes | `taskpilot:read`, `taskpilot:write`, `taskpilot:manage`, `taskpilot:delete` |
+
+**Compatibility note:** every OAuth endpoint is also mounted at `/X` (without the `/mcp-server` prefix) for Claude.ai compatibility — either path works.
+
+### Flow summary
+
+1. (Once) `POST /mcp-server/register` with client metadata → receive `client_id` (and `client_secret` if confidential).
+2. Generate PKCE `code_verifier` + `code_challenge`.
+3. Redirect user to `/mcp-server/authorize?response_type=code&client_id=...&redirect_uri=...&scope=taskpilot:read+taskpilot:write&code_challenge=...&code_challenge_method=S256`.
+4. User consents in TaskPilot UI; you receive `code` at your redirect URI.
+5. `POST /mcp-server/token` with `grant_type=authorization_code`, `code`, `code_verifier`, `client_id`, `redirect_uri` → receive `access_token` and `refresh_token`.
+6. Use `Authorization: Bearer <access_token>` on `POST /mcp-server`.
+
+## Scope policy
+
+- All tools require `taskpilot:read`.
+- These tools additionally require `taskpilot:write`: `create_task`, `move_task`, `update_task`, `add_comment`, `assign_to_cycle`, `assign_task`, `unassign_task`, `add_label`, `remove_label`, `bulk_cancel_tasks`.
+
+## MCP tools (complete list)
+
+Every tool below is exposed by `tools/list` on the MCP endpoint. Schemas are JSON Schema fragments — only the meaningful shape is shown here.
+
+### Task operations
+
+#### `create_task` — write
+Create a task; routes to the right project automatically (or use `project_hint`).
+- `title` (string, **required**)
+- `description` (string)
+- `priority` (`urgent` | `high` | `medium` | `low` | `none`)
+- `project_hint` (string) — project name or identifier
+
+#### `move_task` — write
+Change a task's state. Moving to `Cancelled` requires human approval (DharaHIL). **There is no delete; use Cancelled.**
+- `identifier` (string, **required**) — e.g. `WEB-42`
+- `state` (string, **required**) — target state name (e.g. `In Progress`, `Done`)
+
+#### `update_task` — write
+- `identifier` (string, **required**)
+- `title`, `description` (strings)
+- `priority` (enum as above)
+- `start_date`, `target_date` (string, `YYYY-MM-DD`)
+
+#### `get_task` — read
+- `identifier` (string, **required**) — e.g. `WEB-42`
+
+#### `find_tasks` — read
+Full-text search across the workspace.
+- `query` (string, **required**)
+- `state`, `priority`, `project_hint` (filters)
+
+#### `list_tasks` — read
+- `project`, `state`, `priority` (filters)
+- `limit` (int, default 20)
+
+#### `get_task_summary` — read
+3-state summary (pending / in_progress / completed) compatible with Claude Code's TodoWrite shape.
+- `project` (optional)
+- `limit` (int, default 10) — per status
+
+#### `bulk_cancel_tasks` — write
+Cancel many tasks at once. **Requires human approval.** Use this instead of looping `move_task`.
+- `project` (string, **required**)
+- `identifiers` (array of strings) — omit to cancel ALL non-cancelled tasks in the project
+
+### Assignment
+
+#### `list_members` — read
+- `project` (optional) — scope to a project; otherwise workspace
+
+#### `assign_task` — write
+- `identifier` (string, **required**)
+- `user_id` (UUID, **required**) — get from `list_members`
+
+#### `unassign_task` — write
+- `identifier`, `user_id` (both **required**)
+
+### Labels
+
+#### `list_labels` — read
+- `project` (optional)
+
+#### `add_label` — write
+- `identifier` (**required**)
+- `label` (**required**) — name or UUID; name is fuzzy-matched
+
+#### `remove_label` — write
+- `identifier`, `label` (both **required**)
+
+### Comments & sprints
+
+#### `add_comment` — write
+- `identifier`, `comment` (both **required**)
+
+#### `list_cycles` — read
+- `project` (string, **required**)
+
+#### `assign_to_cycle` — write
+- `identifier` (**required**)
+- `cycle_id` (UUID, **required**)
+
+### Project discovery
+
+#### `list_projects` — read
+No parameters.
+
+#### `list_states` — read
+- `project` (optional)
+
+---
+
+# Part 3 — A2A Protocol
+
+For agents using the A2A (Agent-to-Agent) spec instead of MCP.
+
+| Field | Value |
+|---|---|
+| Endpoint | `POST https://taskpilot-mcp.sudiptadhara.in/a2a` |
+| Protocol | JSON-RPC 2.0 |
+| Streaming | `GET https://taskpilot-mcp.sudiptadhara.in/a2a/stream?taskId=<id>` (SSE) |
+| Agent card | `GET https://taskpilot-mcp.sudiptadhara.in/.well-known/agent-card.json` |
+| Standalone llms.txt | `https://taskpilot-mcp.sudiptadhara.in/a2a/llms.txt` |
+
+Auth: same OAuth flow as MCP above.
+
+## JSON-RPC methods
+
+| Method | Params | Auth |
+|---|---|---|
+| `initialize` | — | none (handshake) |
+| `message.send` | `contextId`, `skill`, `input` | scope per skill |
+| `task.get` | `taskId` | read |
+| `task.list` | `contextId` | read |
+| `task.cancel` | `taskId` | write |
+| `context.get` | `contextId` | read |
+
+## A2A skills (invoked via `message.send`)
+
+Skills map 1:1 onto the MCP tools above — same semantics, dotted naming:
+
+| Skill | Scope | MCP equivalent |
+|---|---|---|
+| `task.create` | write | `create_task` |
+| `task.update` | write | `update_task` |
+| `task.find` | read | `find_tasks` |
+| `task.get` | read | `get_task` |
+| `task.move` | write | `move_task` (approval for Cancelled) |
+| `task.summarize` | read | `get_task_summary` |
+| `task.assign` | write | `assign_task` |
+| `task.unassign` | write | `unassign_task` |
+| `task.bulk_cancel` | write | `bulk_cancel_tasks` (approval) |
+| `label.add` | write | `add_label` |
+| `label.remove` | write | `remove_label` |
+| `comment.add` | write | `add_comment` |
+| `cycle.assign` | write | `assign_to_cycle` |
+| `project.list` | read | `list_projects` |
+| `project.list_states` | read | `list_states` |
+| `project.list_members` | read | `list_members` |
+| `project.list_labels` | read | `list_labels` |
+| `project.list_cycles` | read | `list_cycles` |
+
+---
+
+## DharaHIL (human-in-the-loop)
+
+Some actions are gated by human approval, delivered out-of-band (Slack/Telegram):
+
+- `move_task` / `task.move` → `Cancelled` state
+- `bulk_cancel_tasks` / `task.bulk_cancel`
+
+When triggered, the tool returns a pending approval reference. The action does not complete until the human approves. Webhooks (configured server-side) notify on resolution.
+
+Direct REST `PATCH` to set state=Cancelled does **not** invoke DharaHIL — it is a privileged path intended for system/admin use. AI integrations should always go through MCP/A2A so the approval flow runs.
+
+---
+
+## Frequently asked
+
+**Q: How do I find the project UUID I need for REST?**
+`GET /api/v1/workspaces/<slug>/projects/` returns `id` and `identifier` for each.
+
+**Q: How do I find a state UUID?**
+`GET /api/v1/workspaces/<slug>/projects/<project_id>/states/` — each state has `id`, `name`, `group`.
+
+**Q: How do I delete a task?**
+You don't. Move it to a state whose `group` is `cancelled`. For AI integrations, that triggers DharaHIL approval.
+
+**Q: Can I use MCP without OAuth (e.g. with a static token)?**
+No — the MCP server requires OAuth 2.1 with PKCE. For static-credential automation, use the REST API with `X-Api-Key`.
+
+**Q: Are MCP and REST in sync?**
+Yes. The MCP server is a thin layer over the same backend; data and permissions are identical.
+
+**Q: Where do I get an API key?**
+Log into the web app at `https://taskpilot.sudiptadhara.in`, open workspace settings → API tokens.
+
+**Q: What does `expand` accept on list endpoints?**
+Any relation on the resource. Common: `assignees`, `labels`, `cycle`, `module`, `state`, `created_by`.
+
+---
+
+## Support / further reading
+
+- Product docs: https://docs.taskpilot.app/
+- Developer docs: https://developers.taskpilot.app/
+- Source: https://github.com/taskpilot/TaskPilot
+- License: AGPL-3.0
