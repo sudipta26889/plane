@@ -447,7 +447,7 @@ Cancel many tasks at once. **Requires human approval.** Use this instead of loop
 
 #### `add_label` — write
 - `identifier` (**required**)
-- `label` (**required**) — name or UUID; name is fuzzy-matched
+- `label` (**required**) — name or UUID; name match is exact and case-insensitive (no fuzzy/substring matching, no auto-create)
 
 #### `remove_label` — write
 - `identifier`, `label` (both **required**)
