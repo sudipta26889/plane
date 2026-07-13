@@ -235,6 +235,123 @@ State `group` controls semantics: `backlog`, `unstarted`, `started`, `completed`
 | GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/modules/<uuid:module_id>/module-issues/` | Work items in module |
 | DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/modules/<uuid:module_id>/module-issues/<uuid:issue_id>/` | Remove from module |
 
+### Pages (project wiki / docs)
+
+Rich-text pages scoped to a project. Same `X-Api-Key` auth. `access` field controls visibility (`0` = public within project, `1` = private).
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET / POST | `/workspaces/<slug>/projects/<uuid:project_id>/pages/` | List / **create** |
+| GET / PATCH / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/` | Single page |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/pages-summary/` | Page list summary |
+| POST / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/archive/` | Archive / unarchive |
+| POST / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/lock/` | Lock / unlock |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/access/` | Toggle public/private |
+| GET / PATCH | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/description/` | Read / update description only |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/` | Version history |
+| GET | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/<uuid:pk>/` | Single version |
+| POST | `/workspaces/<slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/duplicate/` | Duplicate page |
+| POST / DELETE | `/workspaces/<slug>/projects/<uuid:project_id>/favorite-pages/<uuid:page_id>/` | (Un)favorite for current user |
+
+#### Create page — payload
+
+`POST /workspaces/<slug>/projects/<uuid:project_id>/pages/`
+
+**Required:**
+- `name` (string, ≤255) — page title
+
+**Optional:**
+- `description_html` (string) — HTML body, auto-sanitized
+- `description_json` (object) — rich JSON body
+- `access` (int, `0`=public, `1`=private; default `0`)
+- `color` (hex string)
+- `parent` (UUID) — parent page for nesting
+- `labels` ([UUID]) — must belong to the project
+- `logo_props` (object), `view_props` (object) — UI metadata
+- `external_source`, `external_id` (strings) — for integration sync (fields exist on the model, but note: unlike work-items, page create does **not** currently 409 on duplicate `(external_source, external_id)`; enforce dedup client-side if you need it)
+
+**Server fills:** `id`, `workspace`, `owned_by`, `created_at`, `updated_at`, `created_by`, `updated_by`.
+
+### Call Notes (voice-agent intake)
+
+Body-only endpoints for automation clients that cannot template dynamic values into the URL path (e.g. Dograh voice agent). One work-item per (project, phone); every call appends a dated HTML block to the same work-item's `description_html`. Dedup key is `external_source="dograh_call"` + `external_id=<last 10 digits of phone>`.
+
+Currently wired to workspace `for-ai` with a hard-coded category → project map:
+
+| category | project |
+|---|---|
+| `home_automation` | GrihaTEK MySmartNest |
+| `export` | SSS Global Apex / RevatiCraft |
+| `event` | RitualRhythms |
+
+#### `POST /workspaces/<slug>/call-notes/upsert/` — create or append
+
+**Body**
+```json
+{
+  "phone": "9830012345",                  // required, any format; last 10 digits used as key
+  "category": "home_automation",           // required: home_automation | export | event
+  "details_html": "<p><b>Purpose:</b> ...</p>",  // required, auto-sanitized
+  "caller_name": "Ramesh"                  // optional
+}
+```
+
+**Behavior**
+- Finds or creates a work-item in the mapped project with `external_source="dograh_call"`, `external_id=<norm>`.
+- Prepends a new block (`<hr/>` + timestamp header + sanitized `details_html`) to `description_html`. Timestamp is `Asia/Kolkata`.
+- On create, work-item name is `Caller {phone} — {caller_name}` (or just `Caller {phone}` if no name).
+
+**Response `200`**
+```json
+{ "action": "created" | "appended", "id": "<uuid>", "identifier": "GRIHATEKMY-3", "call_count": 2 }
+```
+
+**Errors**: `400` for missing `phone`/`category`/`details_html`, unknown `category`, phone with fewer than 10 digits, or category not configured for the workspace slug.
+
+#### `POST /workspaces/<slug>/call-notes/lookup/` — returning-caller lookup + greeting
+
+**Body**
+```json
+{
+  "phone": "9830012345",      // optional; empty/blank for inbound-unknown
+  "direction": "inbound",     // optional: "inbound" (default) | "outbound"
+  "caller_name": "Ramesh"     // optional; used only when direction="outbound" and phone is unknown
+}
+```
+
+**Behavior**
+- Normalizes phone to last 10 digits and searches all three configured projects. Empty phone → skips DB, treated as not-found.
+- Returns the most recently updated match, or `found=false` if none.
+- Always builds a ready-to-speak `greeting` (plain text for TTS), chosen by:
+  1. Returning caller (phone matched) — `"Welcome back{, <name>}! Naina here{ — last time we spoke about <short_topic>}. How can I help today?"` where `<short_topic>` is derived from the newest `<b>Purpose:</b>` clause in stored history if present.
+  2. Outbound + not found — `"Hello{, <name>}, this is Naina calling on behalf of Sudipto's businesses. Do you have a quick minute?"`
+  3. Inbound + not found (default) — `"Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"`
+
+**Response `200` (found)**
+```json
+{
+  "found": true,
+  "is_returning": true,
+  "greeting": "Welcome back, Ramesh! Naina here — last time we spoke about RoomGuardian demo. How can I help today?",
+  "id": "<uuid>",
+  "identifier": "GRIHATEKMY-3",
+  "category": "home_automation",
+  "caller_name": "Ramesh",
+  "history_html": "<full accumulated description_html>",
+  "call_count": 2,
+  "last_updated": "2026-07-13T16:35:00+05:30"
+}
+```
+
+**Response `200` (not found)**
+```json
+{
+  "found": false,
+  "is_returning": false,
+  "greeting": "Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"
+}
+```
+
 ### Intake (triage queue)
 
 | Method | Path | Purpose |
@@ -324,6 +441,20 @@ Same as above, but use the UUID of the state whose `group` is `cancelled`. Note:
 curl -H "X-Api-Key: $KEY" \
   https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/work-items/WEB-42/
 ```
+
+### Create a page
+
+```bash
+curl -X POST -H "X-Api-Key: $KEY" -H "Content-Type: application/json" \
+  -d '{
+    "name": "Onboarding runbook",
+    "description_html": "<h1>Step 1</h1><p>...</p>",
+    "access": 0
+  }' \
+  https://taskpilot-api.sudiptadhara.in/api/v1/workspaces/acme/projects/<project_id>/pages/
+```
+
+Response includes `id` (UUID) and the resolved `workspace`.
 
 ### Add a comment
 
