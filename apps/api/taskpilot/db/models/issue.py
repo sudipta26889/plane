@@ -174,6 +174,12 @@ class Issue(ProjectBaseModel):
         verbose_name_plural = "Issues"
         db_table = "issues"
         ordering = ("-created_at",)
+        indexes = [
+            models.Index(
+                fields=["external_source", "external_id"],
+                name="issue_external_src_id_idx",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if self.state is None:
