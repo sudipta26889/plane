@@ -66,4 +66,5 @@ from .sticky import StickyViewSet
 from .call_note import (
     CallNoteUpsertEndpoint,
     CallNoteLookupEndpoint,
+    CallNoteHistoryEndpoint,
 )

@@ -340,6 +340,7 @@ Both shapes return the same conceptual payload; only the wrapping differs.
   - `from_number ∈ OUR_DIDS` → **outbound**, customer = `to_number`.
   - neither known / both empty → treated as **inbound-unknown**.
 - The resolved customer number is normalized (last 10 digits) and returned as `customer_phone` so downstream tools (Save Call Note, Lookup Caller) can bind `phone={{initial_context.customer_phone}}` without direction logic. Empty for browser tests where both numbers are blank.
+- Lookup returns a **compact** payload: a short `summary` (bounded, one paragraph) plus `matters[]` (one row per ticket across all four configured projects). It does **not** include full ticket bodies — call `/call-notes/history/` when the agent needs full detail.
 - **Response is always HTTP 200** — even on internal error, we return the default inbound-new greeting. Dograh silently drops non-2xx and `{{greeting}}` goes blank.
 - **All variables must live under `initial_context`** — only those keys become `{{template_variables}}` in Dograh.
 
@@ -349,15 +350,14 @@ Both shapes return the same conceptual payload; only the wrapping differs.
   "initial_context": {
     "found": true,
     "is_returning": true,
-    "greeting": "Welcome back, Ramesh! Naina here — last time we spoke about RoomGuardian demo. How can I help today?",
-    "customer_phone": "9830012345",
-    "id": "<uuid>",
-    "identifier": "GRIHATEKMY-3",
-    "category": "home_automation",
-    "caller_name": "Ramesh",
-    "history_html": "<full accumulated description_html>",
-    "call_count": 2,
-    "last_updated": "2026-07-13T16:35:00+05:30"
+    "greeting": "Welcome back, Sumit sir! Naina here — last time we spoke about RoomGuardian install. How can I help today?",
+    "customer_phone": "9851904515",
+    "caller_name": "Sumit sir",
+    "summary": "Returning caller. Open matters: (1) RoomGuardian install (GrihaTEK MySmartNest); (2) Talk2Term demo (Prodevs). Last spoke 13 Jul 2026.",
+    "matters": [
+      { "category": "home_automation", "identifier": "GRIHATEKMY-4", "topic": "RoomGuardian install", "last_updated": "2026-07-13" },
+      { "category": "prodevs",         "identifier": "PRODEVS-3",    "topic": "Talk2Term demo",       "last_updated": "2026-07-13" }
+    ]
   }
 }
 ```
@@ -369,7 +369,10 @@ Not-found variant:
     "found": false,
     "is_returning": false,
     "greeting": "Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?",
-    "customer_phone": "9830012345"
+    "customer_phone": "9830012345",
+    "caller_name": null,
+    "summary": "",
+    "matters": []
   }
 }
 ```
@@ -385,23 +388,58 @@ Not-found variant:
 }
 ```
 
-**Response `200` (found)** — flat, not wrapped:
+**Response `200` (found)** — flat, not wrapped, same compact shape as Shape A minus the `customer_phone` and `initial_context` wrapper:
 ```json
 {
   "found": true,
   "is_returning": true,
-  "greeting": "Welcome back, Ramesh! Naina here — last time we spoke about RoomGuardian demo. How can I help today?",
-  "id": "<uuid>",
-  "identifier": "GRIHATEKMY-3",
-  "category": "home_automation",
-  "caller_name": "Ramesh",
-  "history_html": "<full accumulated description_html>",
-  "call_count": 2,
-  "last_updated": "2026-07-13T16:35:00+05:30"
+  "greeting": "Welcome back, Sumit sir! Naina here — last time we spoke about RoomGuardian install. How can I help today?",
+  "caller_name": "Sumit sir",
+  "summary": "Returning caller. Open matters: (1) RoomGuardian install (GrihaTEK MySmartNest); (2) Talk2Term demo (Prodevs). Last spoke 13 Jul 2026.",
+  "matters": [
+    { "category": "home_automation", "identifier": "GRIHATEKMY-4", "topic": "RoomGuardian install", "last_updated": "2026-07-13" },
+    { "category": "prodevs",         "identifier": "PRODEVS-3",    "topic": "Talk2Term demo",       "last_updated": "2026-07-13" }
+  ]
 }
 ```
 
-Not-found variant returns `{found:false, is_returning:false, greeting:"..."}`.
+Not-found variant returns `{found:false, is_returning:false, greeting:"...", caller_name:null, summary:"", matters:[]}`.
+
+#### `POST /workspaces/<slug>/call-notes/history/` — full detail on demand
+
+Pull a single ticket's full accumulated history, or the combined history across every ticket a caller has. Intended for on-demand tool calls during a conversation, not injected into the base prompt.
+
+**Body**
+```json
+{
+  "phone": "9851904515",           // required
+  "category": "home_automation"    // optional; omit for combined history
+}
+```
+
+**Behavior**
+- Normalizes phone to last 10 digits.
+- With `category` → returns that project's ticket for this caller.
+- Without `category` → returns every ticket concatenated (`<h4>Business (IDENT-N)</h4>` per section, newest first, separated by `<hr/>`).
+- Not found → `{"found": false}`.
+
+**Response `200` (with category)**
+```json
+{
+  "found": true,
+  "identifier": "GRIHATEKMY-4",
+  "category": "home_automation",
+  "history_html": "<full accumulated description_html for this ticket>"
+}
+```
+
+**Response `200` (combined)**
+```json
+{
+  "found": true,
+  "history_html": "<h4>GrihaTEK MySmartNest (GRIHATEKMY-4)</h4>\n<...>\n<hr/>\n<h4>Prodevs (PRODEVS-3)</h4>\n<...>"
+}
+```
 
 ### Intake (triage queue)
 

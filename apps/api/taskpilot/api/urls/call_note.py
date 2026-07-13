@@ -7,6 +7,7 @@ from django.urls import path
 from taskpilot.api.views import (
     CallNoteUpsertEndpoint,
     CallNoteLookupEndpoint,
+    CallNoteHistoryEndpoint,
 )
 
 urlpatterns = [
@@ -19,5 +20,10 @@ urlpatterns = [
         "workspaces/<str:slug>/call-notes/lookup/",
         CallNoteLookupEndpoint.as_view(http_method_names=["post"]),
         name="call-note-lookup",
+    ),
+    path(
+        "workspaces/<str:slug>/call-notes/history/",
+        CallNoteHistoryEndpoint.as_view(http_method_names=["post"]),
+        name="call-note-history",
     ),
 ]

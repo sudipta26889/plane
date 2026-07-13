@@ -31,6 +31,7 @@ import re
 
 # Django imports
 from django.utils import timezone as dj_tz
+from django.utils.html import escape
 import zoneinfo
 
 # Third-party imports
@@ -152,10 +153,11 @@ def _classify_precall(from_number: str, to_number: str):
     return "inbound", from_number  # unknown-DID fallback; empty from → inbound-unknown
 
 
-def _find_issue(slug: str, norm: str):
+def _find_issues(slug: str, norm: str):
+    """All matching tickets across configured projects, newest updated first."""
     if not norm:
-        return None
-    return (
+        return []
+    return list(
         Issue.objects
         .filter(
             workspace__slug=slug,
@@ -165,31 +167,69 @@ def _find_issue(slug: str, norm: str):
         )
         .select_related("project")
         .order_by("-updated_at")
-        .first()
     )
 
 
-def _lookup_payload(issue, direction: str, dialer_name: str = None):
-    """Common dict used by both response shapes."""
-    if issue is None:
+def _combined_history_html(issues) -> str:
+    """<h4>Business (IDENT-N)</h4> sections concatenated, newest first."""
+    sections = []
+    for iss in issues:
+        sections.append(
+            f"<h4>{escape(iss.project.name)} ({escape(_identifier(iss))})</h4>\n"
+            f"{iss.description_html or ''}"
+        )
+    return "\n<hr/>\n".join(sections)
+
+
+def _build_matters(issues):
+    """Compact row per ticket: category, identifier, topic, date."""
+    return [
+        {
+            "category": PROJECT_TO_CATEGORY.get(str(iss.project_id)),
+            "identifier": _identifier(iss),
+            "topic": _short_topic(iss.description_html or ""),
+            "last_updated": iss.updated_at.astimezone(IST).date().isoformat(),
+        }
+        for iss in issues
+    ]
+
+
+def _build_summary(issues) -> str:
+    """Bounded one-liner. Deterministic v1 — swap in an LLM condense later if wanted."""
+    if not issues:
+        return ""
+    date_str = issues[0].updated_at.astimezone(IST).strftime("%d %b %Y")
+    lines = []
+    for iss in issues:
+        topic = _short_topic(iss.description_html or "")
+        biz = iss.project.name
+        lines.append(f"{topic} ({biz})" if topic else biz)
+    if len(lines) == 1:
+        return f"Returning caller. Open matter: {lines[0]}. Last spoke {date_str}."
+    numbered = "; ".join(f"({i + 1}) {t}" for i, t in enumerate(lines))
+    return f"Returning caller. Open matters: {numbered}. Last spoke {date_str}."
+
+
+def _lookup_payload(issues, direction: str, dialer_name: str = None):
+    """Compact payload — no full history_html; consumer calls /history for detail."""
+    if not issues:
         return {
             "found": False,
             "is_returning": False,
             "greeting": _build_greeting(direction, False, dialer_name, None),
+            "caller_name": None,
+            "summary": "",
+            "matters": [],
         }
-    history = issue.description_html or ""
-    caller_name = _parse_name(issue.name)
+    primary = issues[0]
+    caller_name = _parse_name(primary.name)
     return {
         "found": True,
         "is_returning": True,
-        "greeting": _build_greeting(direction, True, caller_name, _short_topic(history)),
-        "id": str(issue.id),
-        "identifier": _identifier(issue),
-        "category": PROJECT_TO_CATEGORY.get(str(issue.project_id)),
+        "greeting": _build_greeting(direction, True, caller_name, _short_topic(primary.description_html or "")),
         "caller_name": caller_name,
-        "history_html": history,
-        "call_count": history.count(CALL_MARKER),
-        "last_updated": issue.updated_at.astimezone(IST).isoformat(),
+        "summary": _build_summary(issues),
+        "matters": _build_matters(issues),
     }
 
 
@@ -298,8 +338,7 @@ class CallNoteLookupEndpoint(BaseAPIView):
                 call_inbound.get("to_number") or "",
             )
             customer_norm = _norm_phone(customer_raw)
-            issue = _find_issue(slug, customer_norm)
-            payload = _lookup_payload(issue, direction)
+            payload = _lookup_payload(_find_issues(slug, customer_norm), direction)
             payload["customer_phone"] = customer_norm
         except Exception:
             payload = {
@@ -307,6 +346,9 @@ class CallNoteLookupEndpoint(BaseAPIView):
                 "is_returning": False,
                 "greeting": _build_greeting("inbound", False, None, None),
                 "customer_phone": "",
+                "caller_name": None,
+                "summary": "",
+                "matters": [],
             }
         return Response({"initial_context": payload}, status=status.HTTP_200_OK)
 
@@ -314,5 +356,55 @@ class CallNoteLookupEndpoint(BaseAPIView):
         phone_raw = (request.data.get("phone") or "").strip()
         direction = "outbound" if request.data.get("direction") == "outbound" else "inbound"
         dialer_name = (request.data.get("caller_name") or "").strip() or None
-        issue = _find_issue(slug, _norm_phone(phone_raw))
-        return Response(_lookup_payload(issue, direction, dialer_name), status=status.HTTP_200_OK)
+        issues = _find_issues(slug, _norm_phone(phone_raw))
+        return Response(_lookup_payload(issues, direction, dialer_name), status=status.HTTP_200_OK)
+
+
+class CallNoteHistoryEndpoint(BaseAPIView):
+    """Full history on demand. With `category`: that ticket. Without: combined."""
+
+    def post(self, request, slug):
+        norm = _norm_phone((request.data.get("phone") or "").strip())
+        category = request.data.get("category")
+
+        if not norm:
+            return Response({"found": False}, status=status.HTTP_200_OK)
+
+        qs = (
+            Issue.objects
+            .filter(
+                workspace__slug=slug,
+                external_source=DOGRAH_SOURCE,
+                external_id=norm,
+                project_id__in=list(CATEGORY_TO_PROJECT.values()),
+            )
+            .select_related("project")
+            .order_by("-updated_at")
+        )
+
+        if category:
+            if category not in CATEGORY_TO_PROJECT:
+                return Response({"found": False}, status=status.HTTP_200_OK)
+            issue = qs.filter(project_id=CATEGORY_TO_PROJECT[category]).first()
+            if issue is None:
+                return Response({"found": False}, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "found": True,
+                    "identifier": _identifier(issue),
+                    "category": category,
+                    "history_html": issue.description_html or "",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        issues = list(qs)
+        if not issues:
+            return Response({"found": False}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "found": True,
+                "history_html": _combined_history_html(issues),
+            },
+            status=status.HTTP_200_OK,
+        )
