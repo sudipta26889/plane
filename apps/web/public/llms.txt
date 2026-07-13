@@ -339,6 +339,7 @@ Both shapes return the same conceptual payload; only the wrapping differs.
   - `to_number ∈ OUR_DIDS` → **inbound**, customer = `from_number`.
   - `from_number ∈ OUR_DIDS` → **outbound**, customer = `to_number`.
   - neither known / both empty → treated as **inbound-unknown**.
+- The resolved customer number is normalized (last 10 digits) and returned as `customer_phone` so downstream tools (Save Call Note, Lookup Caller) can bind `phone={{initial_context.customer_phone}}` without direction logic. Empty for browser tests where both numbers are blank.
 - **Response is always HTTP 200** — even on internal error, we return the default inbound-new greeting. Dograh silently drops non-2xx and `{{greeting}}` goes blank.
 - **All variables must live under `initial_context`** — only those keys become `{{template_variables}}` in Dograh.
 
@@ -349,6 +350,7 @@ Both shapes return the same conceptual payload; only the wrapping differs.
     "found": true,
     "is_returning": true,
     "greeting": "Welcome back, Ramesh! Naina here — last time we spoke about RoomGuardian demo. How can I help today?",
+    "customer_phone": "9830012345",
     "id": "<uuid>",
     "identifier": "GRIHATEKMY-3",
     "category": "home_automation",
@@ -366,7 +368,8 @@ Not-found variant:
   "initial_context": {
     "found": false,
     "is_returning": false,
-    "greeting": "Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"
+    "greeting": "Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?",
+    "customer_phone": "9830012345"
   }
 }
 ```

@@ -293,17 +293,20 @@ class CallNoteLookupEndpoint(BaseAPIView):
     def _precall(self, slug, call_inbound):
         # Never 4xx/5xx: Dograh silently drops non-2xx, greeting goes blank.
         try:
-            direction, customer = _classify_precall(
+            direction, customer_raw = _classify_precall(
                 call_inbound.get("from_number") or "",
                 call_inbound.get("to_number") or "",
             )
-            issue = _find_issue(slug, _norm_phone(customer))
+            customer_norm = _norm_phone(customer_raw)
+            issue = _find_issue(slug, customer_norm)
             payload = _lookup_payload(issue, direction)
+            payload["customer_phone"] = customer_norm
         except Exception:
             payload = {
                 "found": False,
                 "is_returning": False,
                 "greeting": _build_greeting("inbound", False, None, None),
+                "customer_phone": "",
             }
         return Response({"initial_context": payload}, status=status.HTTP_200_OK)
 
