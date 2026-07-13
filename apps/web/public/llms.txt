@@ -283,6 +283,7 @@ Currently wired to workspace `for-ai` with a hard-coded category → project map
 | `home_automation` | GrihaTEK MySmartNest |
 | `export` | SSS Global Apex / RevatiCraft |
 | `event` | RitualRhythms |
+| `prodevs` | Prodevs |
 
 #### `POST /workspaces/<slug>/call-notes/upsert/` — create or append
 
@@ -308,26 +309,80 @@ Currently wired to workspace `for-ai` with a hard-coded category → project map
 
 **Errors**: `400` for missing `phone`/`category`/`details_html`, unknown `category`, phone with fewer than 10 digits, or category not configured for the workspace slug.
 
-#### `POST /workspaces/<slug>/call-notes/lookup/` — returning-caller lookup + greeting
+#### `POST /workspaces/<slug>/call-notes/lookup/` — dual-shape lookup + greeting
+
+One URL accepts two request shapes so it can serve both Dograh's fixed **Pre-Call Data Fetch** and its mid-call **Lookup Caller** tool.
+
+Both shapes return the same conceptual payload; only the wrapping differs.
+
+**Greeting logic (both shapes)**
+
+1. **Returning caller** (phone matched) — `"Welcome back{, <name>}! Naina here{ — last time we spoke about <short_topic>}. How can I help today?"` where `<short_topic>` is derived from the newest `<b>Purpose:</b>` (or `<strong>Purpose:</strong>`) clause in stored history if present.
+2. **Outbound + not found** — `"Hello{, <name>}, this is Naina calling on behalf of Sudipto's businesses. Do you have a quick minute?"` (name only if the dialer passed one via legacy shape).
+3. **Inbound + not found** (default) — `"Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"`
+
+##### Shape A — Dograh Pre-Call Data Fetch (server-classified direction)
 
 **Body**
 ```json
 {
-  "phone": "9830012345",      // optional; empty/blank for inbound-unknown
+  "event": "call_inbound",
+  "call_inbound": {
+    "agent_id": 1,
+    "from_number": "+919830012345",
+    "to_number":   "+919000000000"
+  }
+}
+```
+
+- Server identifies the customer + direction using a configured set of our own business DIDs (env `DOGRAH_OUR_DIDS`, comma-separated; matched by last-10-digit normalization):
+  - `to_number ∈ OUR_DIDS` → **inbound**, customer = `from_number`.
+  - `from_number ∈ OUR_DIDS` → **outbound**, customer = `to_number`.
+  - neither known / both empty → treated as **inbound-unknown**.
+- **Response is always HTTP 200** — even on internal error, we return the default inbound-new greeting. Dograh silently drops non-2xx and `{{greeting}}` goes blank.
+- **All variables must live under `initial_context`** — only those keys become `{{template_variables}}` in Dograh.
+
+**Response `200`**
+```json
+{
+  "initial_context": {
+    "found": true,
+    "is_returning": true,
+    "greeting": "Welcome back, Ramesh! Naina here — last time we spoke about RoomGuardian demo. How can I help today?",
+    "id": "<uuid>",
+    "identifier": "GRIHATEKMY-3",
+    "category": "home_automation",
+    "caller_name": "Ramesh",
+    "history_html": "<full accumulated description_html>",
+    "call_count": 2,
+    "last_updated": "2026-07-13T16:35:00+05:30"
+  }
+}
+```
+
+Not-found variant:
+```json
+{
+  "initial_context": {
+    "found": false,
+    "is_returning": false,
+    "greeting": "Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"
+  }
+}
+```
+
+##### Shape B — Mid-call `{phone}` tool (flat response, legacy)
+
+**Body**
+```json
+{
+  "phone": "9830012345",      // optional; empty/blank → inbound-unknown
   "direction": "inbound",     // optional: "inbound" (default) | "outbound"
   "caller_name": "Ramesh"     // optional; used only when direction="outbound" and phone is unknown
 }
 ```
 
-**Behavior**
-- Normalizes phone to last 10 digits and searches all three configured projects. Empty phone → skips DB, treated as not-found.
-- Returns the most recently updated match, or `found=false` if none.
-- Always builds a ready-to-speak `greeting` (plain text for TTS), chosen by:
-  1. Returning caller (phone matched) — `"Welcome back{, <name>}! Naina here{ — last time we spoke about <short_topic>}. How can I help today?"` where `<short_topic>` is derived from the newest `<b>Purpose:</b>` clause in stored history if present.
-  2. Outbound + not found — `"Hello{, <name>}, this is Naina calling on behalf of Sudipto's businesses. Do you have a quick minute?"`
-  3. Inbound + not found (default) — `"Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"`
-
-**Response `200` (found)**
+**Response `200` (found)** — flat, not wrapped:
 ```json
 {
   "found": true,
@@ -343,14 +398,7 @@ Currently wired to workspace `for-ai` with a hard-coded category → project map
 }
 ```
 
-**Response `200` (not found)**
-```json
-{
-  "found": false,
-  "is_returning": false,
-  "greeting": "Hello, thanks for calling! This is Naina, the assistant for Sudipto's businesses. May I know your name, and what you're calling about today?"
-}
-```
+Not-found variant returns `{found:false, is_returning:false, greeting:"..."}`.
 
 ### Intake (triage queue)
 
