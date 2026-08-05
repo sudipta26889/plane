@@ -17,7 +17,7 @@ export const config = {
   redisUrl: process.env.REDIS_URL || "redis://localhost:6379/7",
 
   // LLM (smart routing)
-  llmApiBaseUrl: process.env.LLM_API_BASE_URL || "http://192.168.11.118:4000",
+  llmApiBaseUrl: process.env.LLM_API_BASE_URL || "http://nuc.lan:4000",
   llmApiKey: process.env.LLM_API_KEY || "",
   llmModel: process.env.LLM_MODEL || "gpt-4o-mini",
 

@@ -255,8 +255,8 @@ create_task("buy shampoo")
 ### LLM Call
 
 ```python
-# Uses LiteLLM at http://192.168.11.118:4000
-client = OpenAI(base_url="http://192.168.11.118:4000", api_key=llm_api_key)
+# Uses LiteLLM at http://nuc.lan:4000
+client = OpenAI(base_url="http://nuc.lan:4000", api_key=llm_api_key)
 response = client.chat.completions.create(
     model=llm_model,  # from .env
     messages=[
@@ -273,8 +273,8 @@ response = client.chat.completions.create(
 
 - **Framework:** FastAPI + uvicorn
 - **Database:** PostgreSQL (same instance as TaskPilot, separate tables with `mcp_` prefix)
-- **Cache:** Redis at `192.168.11.118:6379/7`
-- **LLM:** LiteLLM proxy at `192.168.11.118:4000`
+- **Cache:** Redis at `nuc.lan:6379/7`
+- **LLM:** LiteLLM proxy at `nuc.lan:4000`
 - **TaskPilot API:** `http://api:4647` (Docker internal)
 - **Location:** `apps/mcp/` in monorepo
 - **Container:** `taskpilot-mcp` on port 4650
@@ -293,13 +293,13 @@ TASKPILOT_API_KEY=taskpilot_api_<token>
 TASKPILOT_WORKSPACE_SLUG=for-ai
 
 # Database (same PostgreSQL, separate tables)
-DATABASE_URL=postgresql://taskpilot_db_user:xxx@192.168.11.118:5432/taskpilot_db
+DATABASE_URL=postgresql://taskpilot_db_user:xxx@nuc.lan:5432/taskpilot_db
 
 # Redis
-REDIS_URL=redis://:xxx@192.168.11.118:6379/7
+REDIS_URL=redis://:xxx@nuc.lan:6379/7
 
 # LLM (for smart routing)
-LLM_API_BASE_URL=http://192.168.11.118:4000
+LLM_API_BASE_URL=http://nuc.lan:4000
 LLM_API_KEY=<key>
 LLM_MODEL=<model>
 

@@ -1,7 +1,7 @@
 # TaskPilot Production Docker Compose
 #
 # All code is baked into images (no volume mounts).
-# Remote: PostgreSQL & Redis @ 192.168.11.118, MinIO @ 192.168.11.100
+# Remote: PostgreSQL & Redis @ nuc.lan, MinIO @ 192.168.10.100
 # Local: Only RabbitMQ container
 # Routing: NPM handles SSL + subdomain routing externally
 #   taskpilot.sudiptadhara.in       → 4646 (web)
@@ -89,6 +89,8 @@ services:
 
   api:
     container_name: taskpilot-api
+    dns:
+      - 192.168.11.1
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -105,6 +107,8 @@ services:
 
   worker:
     container_name: taskpilot-worker
+    dns:
+      - 192.168.11.1
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -120,6 +124,8 @@ services:
 
   beat-worker:
     container_name: taskpilot-beat-worker
+    dns:
+      - 192.168.11.1
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -135,6 +141,8 @@ services:
 
   migrator:
     container_name: taskpilot-migrator
+    dns:
+      - 192.168.11.1
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -153,6 +161,8 @@ services:
 
   mcp:
     container_name: taskpilot-mcp
+    dns:
+      - 192.168.11.1
     build:
       context: ./apps/mcp
       dockerfile: Dockerfile

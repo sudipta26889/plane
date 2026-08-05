@@ -17,6 +17,7 @@ This document is written for LLMs and integrators. Everything needed to programm
 | Admin | `https://taskpilot-admin.sudiptadhara.in` | Administrative console (internal) |
 
 REST API root: `https://taskpilot-api.sudiptadhara.in/api/v1/`
+API docs (Swagger UI): `https://taskpilot-api.sudiptadhara.in/api/schema/swagger-ui/` (ReDoc: `/api/schema/redoc/`, raw OpenAPI schema: `/api/schema/`)
 MCP endpoint: `POST https://taskpilot-mcp.sudiptadhara.in/mcp-server`
 A2A endpoint: `POST https://taskpilot-mcp.sudiptadhara.in/a2a`
 

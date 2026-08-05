@@ -120,7 +120,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/7"
 
     # LLM (smart routing)
-    llm_api_base_url: str = "http://192.168.11.118:4000"
+    llm_api_base_url: str = "http://nuc.lan:4000"
     llm_api_key: str = ""
     llm_model: str = "gpt-4o-mini"
 

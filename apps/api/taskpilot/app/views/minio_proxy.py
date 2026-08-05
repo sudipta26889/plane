@@ -40,7 +40,7 @@ class MinioProxyView(View):
 
     def _proxy(self, request, path):
         minio_url = os.environ.get(
-            "AWS_S3_ENDPOINT_URL", "http://192.168.11.100:7612"
+            "AWS_S3_ENDPOINT_URL", "http://nas.lan:7612"
         )
         # Use the raw request path to preserve URL encoding
         raw_path = request.META.get("RAW_URI", "") or request.get_full_path()

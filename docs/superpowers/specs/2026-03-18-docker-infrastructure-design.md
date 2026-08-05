@@ -8,10 +8,10 @@ TaskPilot is deployed on a home server (`192.168.11.150`) with external services
 
 | Service | Host | Port | Credentials |
 |---------|------|------|-------------|
-| PostgreSQL | 192.168.11.118 | 5432 | user: `taskpilot_db_user`, db: `taskpilot_db` |
-| Redis | 192.168.11.118 | 6379/6 | password-protected |
-| MinIO S3 API | 192.168.11.100 | 7612 | `minioadmin` / (secret) |
-| MinIO Console | 192.168.11.100 | 7613 | Same credentials |
+| PostgreSQL | nuc.lan | 5432 | user: `taskpilot_db_user`, db: `taskpilot_db` |
+| Redis | nuc.lan | 6379/6 | password-protected |
+| MinIO S3 API | nas.lan | 7612 | `minioadmin` / (secret) |
+| MinIO Console | nas.lan | 7613 | Same credentials |
 | Nginx Proxy Manager | External | — | `taskpilot.sudiptadhara.in` → `192.168.11.150:4646` |
 
 ## Port Mapping (192.168.11.150)
@@ -54,9 +54,9 @@ Same services but with:
 
 | Service | Reason |
 |---------|--------|
-| `taskpilot-db` | Using remote PostgreSQL at 192.168.11.118 |
-| `taskpilot-redis` | Using remote Redis at 192.168.11.118 |
-| `taskpilot-minio` | Using remote MinIO at 192.168.11.100 |
+| `taskpilot-db` | Using remote PostgreSQL at nuc.lan |
+| `taskpilot-redis` | Using remote Redis at nuc.lan |
+| `taskpilot-minio` | Using remote MinIO at nas.lan |
 | `proxy` (Caddy) | Nginx Proxy Manager handles SSL/routing externally |
 
 ## Environment Configuration
@@ -67,14 +67,14 @@ Same services but with:
 # Remote PostgreSQL
 POSTGRES_USER=taskpilot_db_user
 POSTGRES_PASSWORD=0tZZr187I9l6ddKziXEoCoSY
-POSTGRES_HOST=192.168.11.118
+POSTGRES_HOST=nuc.lan
 POSTGRES_DB=taskpilot_db
 POSTGRES_PORT=5432
 
 # Remote Redis
-REDIS_HOST=192.168.11.118
+REDIS_HOST=nuc.lan
 REDIS_PORT=6379
-REDIS_URL=redis://:YyD0Tp54vIhmH9gyrbtDu7vDtv8zc5gL@192.168.11.118:6379/6
+REDIS_URL=redis://:YyD0Tp54vIhmH9gyrbtDu7vDtv8zc5gL@nuc.lan:6379/6
 
 # RabbitMQ (local container, accessed via Docker network)
 RABBITMQ_HOST=taskpilot-mq
@@ -86,7 +86,7 @@ RABBITMQ_VHOST=taskpilot
 # Remote MinIO
 AWS_ACCESS_KEY_ID=minioadmin
 AWS_SECRET_ACCESS_KEY=zUd8Su6vsdjbkFf2uiXrtScH
-AWS_S3_ENDPOINT_URL=http://192.168.11.100:7612
+AWS_S3_ENDPOINT_URL=http://nas.lan:7612
 AWS_S3_BUCKET_NAME=taskpilot
 USE_MINIO=1
 
@@ -101,10 +101,10 @@ DEBUG=0
 CORS_ALLOWED_ORIGINS=https://taskpilot.sudiptadhara.in,http://localhost:4646,http://localhost:4649
 
 # Database (remote)
-DATABASE_URL=postgresql://taskpilot_db_user:0tZZr187I9l6ddKziXEoCoSY@192.168.11.118:5432/taskpilot_db
+DATABASE_URL=postgresql://taskpilot_db_user:0tZZr187I9l6ddKziXEoCoSY@nuc.lan:5432/taskpilot_db
 
 # Redis (remote)
-REDIS_URL=redis://:YyD0Tp54vIhmH9gyrbtDu7vDtv8zc5gL@192.168.11.118:6379/6
+REDIS_URL=redis://:YyD0Tp54vIhmH9gyrbtDu7vDtv8zc5gL@nuc.lan:6379/6
 
 # RabbitMQ (local container)
 RABBITMQ_HOST=taskpilot-mq
@@ -116,7 +116,7 @@ RABBITMQ_VHOST=taskpilot
 # MinIO (remote)
 AWS_ACCESS_KEY_ID=minioadmin
 AWS_SECRET_ACCESS_KEY=zUd8Su6vsdjbkFf2uiXrtScH
-AWS_S3_ENDPOINT_URL=http://192.168.11.100:7612
+AWS_S3_ENDPOINT_URL=http://nas.lan:7612
 AWS_S3_BUCKET_NAME=taskpilot
 USE_MINIO=1
 
@@ -151,9 +151,9 @@ Nginx Proxy Manager (Let's Encrypt SSL)
                           │
                           ├──► 192.168.11.150:4647 ──► api (Django)
                           │                              │
-                          │                              ├──► 192.168.11.118 (PostgreSQL)
-                          │                              ├──► 192.168.11.118 (Redis)
-                          │                              ├──► 192.168.11.100:7612 (MinIO)
+                          │                              ├──► nuc.lan (PostgreSQL)
+                          │                              ├──► nuc.lan (Redis)
+                          │                              ├──► nas.lan:7612 (MinIO)
                           │                              └──► taskpilot-mq (RabbitMQ container)
                           │
                           ├──► 192.168.11.150:4648 ──► live (WebSocket)
