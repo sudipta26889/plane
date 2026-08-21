@@ -141,6 +141,21 @@ SPECTACULAR_SETTINGS = {
                 "*Use Cases:* Feature planning, release organization, progress tracking, team coordination."
             ),
         },
+        # Project Organization
+        {
+            "name": "Pages",
+            "description": (
+                "**Documents & Knowledge Base**\n\n"
+                "Create and manage project pages: rich documents used for specs, meeting notes, "
+                "runbooks and any long-form project knowledge.\n\n"
+                "*Key Features:*\n"
+                "- Create pages with HTML and JSON content\n"
+                "- Nest pages under a parent page\n"
+                "- Public and private access control\n"
+                "- Archive and restore pages, cascading to nested pages\n\n"
+                "*Use Cases:* Specifications, meeting notes, runbooks, knowledge bases, external doc sync."
+            ),
+        },
         # Core Project Management
         {
             "name": "Projects",
@@ -272,5 +287,8 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "ModuleStatusEnum": "taskpilot.db.models.module.ModuleStatus",
         "IntakeWorkItemStatusEnum": "taskpilot.db.models.intake.IntakeIssueStatus",
+        # both Page.access and IssueComment.access are named "access"
+        "PageAccessEnum": [(0, "Public"), (1, "Private")],
+        "CommentAccessEnum": [("INTERNAL", "INTERNAL"), ("EXTERNAL", "EXTERNAL")],
     },
 }

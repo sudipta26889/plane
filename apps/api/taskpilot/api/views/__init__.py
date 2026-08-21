@@ -68,3 +68,9 @@ from .call_note import (
     CallNoteLookupEndpoint,
     CallNoteHistoryEndpoint,
 )
+
+from .page import (
+    PageListCreateAPIEndpoint,
+    PageDetailAPIEndpoint,
+    PageArchiveUnarchiveAPIEndpoint,
+)
