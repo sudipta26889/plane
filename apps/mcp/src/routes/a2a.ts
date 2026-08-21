@@ -7,7 +7,7 @@ import { checkRateLimit, buildRateLimitHeaders } from "../a2a/rate-limit.js";
 import { sseManager } from "../a2a/sse.js";
 import { A2A_ERROR_CODES } from "../a2a/types.js";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * GET /.well-known/agent-card.json

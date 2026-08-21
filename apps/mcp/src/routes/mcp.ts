@@ -4,7 +4,7 @@ import { setCorsHeaders } from "../utils/cors.js";
 import { config } from "../config.js";
 import { getToolDefinitions, executeToolCall } from "../tools/handlers.js";
 
-const router = Router();
+const router: Router = Router();
 
 router.options("/mcp-server", (_req, res) => {
   setCorsHeaders(res);

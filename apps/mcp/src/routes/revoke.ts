@@ -3,7 +3,7 @@ import express from "express";
 import { revokeAccessTokenFn } from "../utils/tokens.js";
 import { setCorsHeaders, noCacheHeaders } from "../utils/cors.js";
 
-const router = Router();
+const router: Router = Router();
 
 router.use(["/mcp-server/revoke", "/revoke"], express.urlencoded({ extended: true }));
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { config } from "../config.js";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * RFC 9728: OAuth 2.0 Protected Resource Metadata

@@ -5,7 +5,7 @@ import { generateAccessToken, refreshAccessTokenFn } from "../utils/tokens.js";
 import { setCorsHeaders, noCacheHeaders } from "../utils/cors.js";
 import { db } from "../db.js";
 
-const router = Router();
+const router: Router = Router();
 
 // Token endpoint uses application/x-www-form-urlencoded (per OAuth spec)
 router.use(["/mcp-server/token", "/token"], express.urlencoded({ extended: true }));

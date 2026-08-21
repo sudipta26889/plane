@@ -3,7 +3,7 @@ import { generateSecureToken } from "../utils/pkce.js";
 import { setCorsHeaders, noCacheHeaders } from "../utils/cors.js";
 import { db } from "../db.js";
 
-const router = Router();
+const router: Router = Router();
 
 // Claude.ai bug #82: also handle /register (root level)
 router.options(["/mcp-server/register", "/register"], (_req, res) => {
