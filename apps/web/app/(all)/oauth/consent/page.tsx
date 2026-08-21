@@ -18,7 +18,7 @@ import { useAppRouter } from "@/hooks/use-app-router";
 // layouts
 import DefaultLayout from "@/layouts/default-layout";
 
-const MCP_BASE_URL = process.env.VITE_MCP_BASE_URL || "https://taskpilot-mcp.sudiptadhara.in";
+const MCP_BASE_URL = process.env.VITE_MCP_BASE_URL || "";
 
 type TOAuthStatePayload = {
   client_name: string;

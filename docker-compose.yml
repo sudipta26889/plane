@@ -28,6 +28,7 @@ services:
         VITE_SPACE_BASE_PATH: ${VITE_SPACE_BASE_PATH}
         VITE_LIVE_BASE_URL: ${VITE_LIVE_BASE_URL}
         VITE_LIVE_BASE_PATH: ${VITE_LIVE_BASE_PATH}
+        VITE_MCP_BASE_URL: ${VITE_MCP_BASE_URL}
     ports:
       - "4646:4646"
     restart: always

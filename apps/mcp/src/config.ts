@@ -3,7 +3,7 @@ import "dotenv/config";
 export const config = {
   port: parseInt(process.env.MCP_PORT || "4650", 10),
   baseUrl: process.env.MCP_ISSUER_URL || "http://localhost:4650",
-  frontendUrl: process.env.FRONTEND_URL || "https://taskpilot.sudiptadhara.in",
+  frontendUrl: process.env.FRONTEND_URL || "",
 
   // TaskPilot API
   taskpilotApiUrl: process.env.TASKPILOT_API_URL || "http://api:4647",
