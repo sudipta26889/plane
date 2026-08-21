@@ -15,11 +15,11 @@ from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 
 # Module imports
-from taskpilot.api.serializers import PageSerializer, PageDetailSerializer
+from taskpilot.api.serializers import PageSerializer, PageDetailSerializer, PageVersionSerializer
 from taskpilot.app.permissions import ROLE, ProjectEntityPermission
 from taskpilot.app.views.page.base import unarchive_archive_page_and_descendants
 from taskpilot.bgtasks.page_transaction_task import page_transaction
-from taskpilot.db.models import Page, ProjectMember, UserFavorite, UserRecentVisit
+from taskpilot.db.models import Page, PageVersion, ProjectMember, UserFavorite, UserRecentVisit
 from .base import BaseAPIView
 from taskpilot.utils.openapi import (
     page_docs,
@@ -446,3 +446,58 @@ class PageArchiveUnarchiveAPIEndpoint(BaseAPIView):
         unarchive_archive_page_and_descendants(pk, None)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PageVersionListAPIEndpoint(BaseAPIView):
+    """Page Version List Endpoint"""
+
+    serializer_class = PageVersionSerializer
+    model = PageVersion
+    permission_classes = [ProjectEntityPermission]
+    use_read_replica = True
+
+    def get_queryset(self):
+        # Resolve the page through the shared visibility queryset first, so a
+        # private page owned by someone else — or one not linked to this
+        # project — yields no versions rather than leaking its history
+        # (GHSA-g49r / GHSA-ghcr).
+        page = project_page_queryset(self.kwargs.get("slug"), self.kwargs.get("project_id"), self.request.user).filter(
+            pk=self.kwargs.get("pk")
+        )
+        return (
+            PageVersion.objects.filter(page__in=page).select_related("workspace", "owned_by").order_by("-last_saved_at")
+        )
+
+    @page_docs(
+        operation_id="list_page_versions",
+        summary="List page versions",
+        description="Retrieve the version history of a page. Each entry is a saved snapshot; the stored content is not included.",  # noqa: E501
+        parameters=[
+            PAGE_ID_PARAMETER,
+            CURSOR_PARAMETER,
+            PER_PAGE_PARAMETER,
+            FIELDS_PARAMETER,
+            EXPAND_PARAMETER,
+        ],
+        responses={
+            200: create_paginated_response(
+                PageVersionSerializer,
+                "PaginatedPageVersionResponse",
+                "Paginated list of page versions",
+                "Paginated Page Versions",
+            ),
+        },
+    )
+    def get(self, request, slug, project_id, pk):
+        """List page versions
+
+        Retrieve the version history of a page, newest first. Versions of
+        pages the requesting user cannot see are not returned.
+        """
+        return self.paginate(
+            request=request,
+            queryset=self.get_queryset(),
+            on_results=lambda versions: (
+                PageVersionSerializer(versions, many=True, fields=self.fields, expand=self.expand).data
+            ),
+        )

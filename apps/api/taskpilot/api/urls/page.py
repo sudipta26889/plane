@@ -8,6 +8,7 @@ from taskpilot.api.views import (
     PageListCreateAPIEndpoint,
     PageDetailAPIEndpoint,
     PageArchiveUnarchiveAPIEndpoint,
+    PageVersionListAPIEndpoint,
 )
 
 urlpatterns = [
@@ -25,5 +26,10 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:pk>/archive/",
         PageArchiveUnarchiveAPIEndpoint.as_view(http_method_names=["post", "delete"]),
         name="page-archive-unarchive",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:pk>/versions/",
+        PageVersionListAPIEndpoint.as_view(http_method_names=["get"]),
+        name="page-versions",
     ),
 ]

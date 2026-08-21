@@ -10,7 +10,7 @@ from rest_framework import serializers
 
 # Module imports
 from .base import BaseSerializer
-from taskpilot.db.models import Label, Page, PageLabel, Project, ProjectPage
+from taskpilot.db.models import Label, Page, PageLabel, PageVersion, Project, ProjectPage
 from taskpilot.utils.content_validator import validate_html_content
 
 
@@ -168,3 +168,27 @@ class PageDetailSerializer(PageSerializer):
                 self._sync_labels(page, labels)
 
         return page
+
+
+class PageVersionSerializer(BaseSerializer):
+    """
+    Serializer for page version snapshots.
+
+    Carries only metadata — the stored content (description_binary/html/json)
+    is deliberately left out so listing versions stays cheap.
+    """
+
+    class Meta:
+        model = PageVersion
+        fields = [
+            "id",
+            "workspace",
+            "page",
+            "last_saved_at",
+            "owned_by",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+        ]
+        read_only_fields = fields

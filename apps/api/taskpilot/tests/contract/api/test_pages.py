@@ -9,7 +9,7 @@ import pytest
 from django.utils import timezone
 from rest_framework import status
 
-from taskpilot.db.models import Label, Page, Project, ProjectMember, ProjectPage, User
+from taskpilot.db.models import Label, Page, PageVersion, Project, ProjectMember, ProjectPage, User
 
 
 @pytest.fixture
@@ -451,3 +451,93 @@ class TestPageArchiveUnarchiveAPIEndpoint:
         create_page.save()
         response = member_api_key_client.delete(url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def _make_version(page, owner, **kwargs):
+    """Helper to create a saved snapshot of a page"""
+    return PageVersion.objects.create(
+        workspace=page.workspace,
+        page=page,
+        owned_by=owner,
+        description_html=kwargs.pop("description_html", "<p>snapshot</p>"),
+        **kwargs,
+    )
+
+
+@pytest.mark.contract
+class TestPageVersionListAPIEndpoint:
+    """Test Page Version List API Endpoint"""
+
+    def get_versions_url(self, workspace_slug, project_id, page_id):
+        """Helper to get page versions endpoint URL"""
+        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/pages/{page_id}/versions/"
+
+    @pytest.mark.django_db
+    def test_untouched_page_has_no_versions(self, api_key_client, workspace, project, create_page):
+        """Test a page nobody has edited reports an empty version list"""
+        url = self.get_versions_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["total_count"] == 0
+        assert response.data["results"] == []
+
+    @pytest.mark.django_db
+    def test_list_versions(self, api_key_client, workspace, project, create_page, create_user):
+        """Test saved snapshots are returned, which is how callers detect an edit"""
+        _make_version(create_page, create_user)
+        _make_version(create_page, create_user)
+        url = self.get_versions_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["total_count"] == 2
+        assert len(response.data["results"]) == 2
+        assert {v["page"] for v in response.data["results"]} == {create_page.id}
+
+    @pytest.mark.django_db
+    def test_version_payload_excludes_content(self, api_key_client, workspace, project, create_page, create_user):
+        """Test listing versions stays cheap by leaving the stored content out"""
+        _make_version(create_page, create_user)
+        url = self.get_versions_url(workspace.slug, project.id, create_page.id)
+
+        item = api_key_client.get(url).data["results"][0]
+
+        assert "last_saved_at" in item
+        assert not {"description_binary", "description_html", "description_json"} & set(item)
+
+    @pytest.mark.django_db
+    def test_versions_of_other_users_private_page_not_exposed(self, api_key_client, workspace, project, other_user):
+        """Test a private page's history is not readable by someone else"""
+        page = _make_page(project, other_user, access=Page.PRIVATE_ACCESS)
+        _make_version(page, other_user)
+        url = self.get_versions_url(workspace.slug, project.id, page.id)
+
+        response = api_key_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["total_count"] == 0
+
+    @pytest.mark.django_db
+    def test_versions_scoped_to_the_url_project(self, api_key_client, workspace, project, create_user, create_page):
+        """Test a page reached through the wrong project returns no history (GHSA-g49r)"""
+        other_project = Project.objects.create(
+            name="Other Project", identifier="OTHER", workspace=workspace, created_by=create_user, page_view=True
+        )
+        ProjectMember.objects.create(project=other_project, member=create_user, role=20, is_active=True)
+        _make_version(create_page, create_user)
+        url = self.get_versions_url(workspace.slug, other_project.id, create_page.id)
+
+        response = api_key_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["total_count"] == 0
+
+    @pytest.mark.django_db
+    def test_versions_require_authentication(self, api_client, workspace, project, create_page):
+        """Test the versions endpoint rejects unauthenticated requests"""
+        url = self.get_versions_url(workspace.slug, project.id, create_page.id)
+
+        assert api_client.get(url).status_code == status.HTTP_401_UNAUTHORIZED
