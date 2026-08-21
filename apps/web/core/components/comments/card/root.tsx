@@ -9,10 +9,10 @@ import { observer } from "mobx-react";
 // taskpilot imports
 import type { EditorRefApi } from "@taskpilot/editor";
 import type { TIssueComment, TCommentsOperations } from "@taskpilot/types";
-// taskpilot web imports
-import { CommentBlock, CommentCardDisplay } from "@/taskpilot-web/components/comments";
 // local imports
 import { CommentQuickActions } from "../quick-actions";
+import { CommentBlock } from "../comment-block";
+import { CommentCardDisplay } from "./display";
 
 type TCommentCard = {
   workspaceSlug: string;

@@ -16,7 +16,7 @@ import { copyTextToClipboard } from "@taskpilot/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // taskpilot web imports
-import { EPageStoreType, usePageStore } from "@/taskpilot-web/hooks/store";
+import { EPageStoreType, usePageStore } from "@/hooks/store";
 
 export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
   // navigation

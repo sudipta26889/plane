@@ -11,8 +11,8 @@ import type { TIssue, TStateGroups } from "@taskpilot/types";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// taskpilot web imports
-import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
+// components
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // local imports
 import { WorkItemPreviewCardDate } from "./date";
 

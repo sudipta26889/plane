@@ -8,7 +8,7 @@ import React from "react";
 // components
 import { Logo } from "@taskpilot/propel/emoji-icon-picker";
 // taskpilot imports
-import type { TPartialProject } from "@/taskpilot-web/types";
+import type { TPartialProject } from "@taskpilot/types";
 // local imports
 import { PowerKMenuBuilder } from "./builder";
 

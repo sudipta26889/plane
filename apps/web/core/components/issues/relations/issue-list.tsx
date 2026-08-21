@@ -4,14 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
 // taskpilot imports
 import type { TIssue, TIssueServiceType } from "@taskpilot/types";
 import { EIssueServiceType } from "@taskpilot/types";
-// TaskPilot-web imports
-import type { TIssueRelationTypes } from "@/taskpilot-web/types";
+import type { TIssueRelationTypes } from "@taskpilot/types";
 // local imports
 import { RelationIssueListItem } from "./issue-list-item";
 

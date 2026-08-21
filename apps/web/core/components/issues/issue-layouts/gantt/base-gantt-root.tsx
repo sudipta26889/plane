@@ -24,9 +24,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
-// taskpilot web hooks
-import { useBulkOperationStatus } from "@/taskpilot-web/hooks/use-bulk-operation-status";
-
+import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
+// local imports
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import { GanttQuickAddIssueButton, QuickAddIssueRoot } from "../quick-add";
 import { IssueGanttBlock } from "./blocks";

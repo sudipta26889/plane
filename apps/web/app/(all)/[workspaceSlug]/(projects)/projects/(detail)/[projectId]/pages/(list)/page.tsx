@@ -25,7 +25,7 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 // taskpilot web hooks
-import { EPageStoreType } from "@/taskpilot-web/hooks/store";
+import { EPageStoreType } from "@/hooks/store";
 import type { Route } from "./+types/page";
 
 const getPageType = (pageType?: string | null): TPageNavigationTabs => {

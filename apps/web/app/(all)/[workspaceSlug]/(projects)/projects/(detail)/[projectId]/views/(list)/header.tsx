@@ -18,7 +18,7 @@ import { ViewListHeader } from "@/components/views/view-list-header";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 // taskpilot web imports
-import { CommonProjectBreadcrumbs } from "@/taskpilot-web/components/breadcrumbs/common";
+import { CommonProjectBreadcrumbs } from "@/components/breadcrumbs/common";
 
 export const ProjectViewsHeader = observer(function ProjectViewsHeader() {
   const { workspaceSlug, projectId } = useParams();

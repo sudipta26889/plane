@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import { useTranslation } from "@taskpilot/i18n";
 type TEstimateTextInputProps = {
   value?: string;

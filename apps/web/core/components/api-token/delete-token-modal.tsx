@@ -14,7 +14,7 @@ import type { IApiToken } from "@taskpilot/types";
 // ui
 import { AlertModalCore } from "@taskpilot/ui";
 // fetch-keys
-import { API_TOKENS_LIST } from "@/constants/fetch-keys";
+import { API_TOKENS_LIST } from "@taskpilot/constants";
 
 type Props = {
   isOpen: boolean;

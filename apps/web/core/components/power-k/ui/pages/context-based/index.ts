@@ -8,8 +8,6 @@ export * from "./root";
 
 // components
 import type { TPowerKContextType } from "@/components/power-k/core/types";
-// taskpilot web imports
-import { CONTEXT_ENTITY_MAP_EXTENDED } from "@/taskpilot-web/components/command-palette/power-k/pages/context-based";
 
 export type TContextEntityMap = {
   i18n_title: string;
@@ -33,5 +31,4 @@ export const CONTEXT_ENTITY_MAP: Record<TPowerKContextType, TContextEntityMap> =
     i18n_title: "power_k.contextual_actions.module.title",
     i18n_indicator: "power_k.contextual_actions.module.indicator",
   },
-  ...CONTEXT_ENTITY_MAP_EXTENDED,
 };

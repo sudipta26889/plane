@@ -5,7 +5,6 @@
  */
 
 import { Button } from "@taskpilot/propel/button";
-import { cn } from "@taskpilot/utils";
 
 type Props = React.ComponentProps<"button"> & {
   label: React.ReactNode;

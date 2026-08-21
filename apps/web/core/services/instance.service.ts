@@ -6,7 +6,7 @@
 
 // types
 import { API_BASE_URL } from "@taskpilot/constants";
-import type { IInstanceInfo, TPage } from "@taskpilot/types";
+import type { IInstanceInfo } from "@taskpilot/types";
 // helpers
 // services
 import { APIService } from "@/services/api.service";

@@ -38,6 +38,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="instance",
             name="product",
-            field=models.CharField(default="plane-ce", max_length=255),
+            field=models.CharField(default="taskpilot-ce", max_length=255),
         ),
     ]

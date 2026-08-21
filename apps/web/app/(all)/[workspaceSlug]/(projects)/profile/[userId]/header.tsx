@@ -5,7 +5,6 @@
  */
 
 // ui
-import type { FC } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter } from "next/navigation";
 import { PanelRight } from "lucide-react";
@@ -14,7 +13,6 @@ import { useTranslation } from "@taskpilot/i18n";
 import { YourWorkIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
 import type { IUserProfileProjectSegregation } from "@taskpilot/types";
 import { Breadcrumbs, Header, CustomMenu } from "@taskpilot/ui";
-import { cn } from "@taskpilot/utils";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { ProfileIssuesFilter } from "@/components/profile/profile-issues-filter";

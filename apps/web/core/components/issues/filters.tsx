@@ -16,7 +16,7 @@ import { EIssueLayoutTypes, EIssuesStoreType } from "@taskpilot/types";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 // taskpilot web imports
-import type { TProject } from "@/taskpilot-web/types";
+import type { TProject } from "@taskpilot/types";
 // local imports
 import { WorkItemsModal } from "../analytics/work-items/modal";
 import { WorkItemFiltersToggle } from "../work-item-filters/filters-toggle";

@@ -11,8 +11,8 @@ import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@taskpilot/utils";
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 // taskpilot web hooks
-import { useExtendedEditorConfig } from "@/taskpilot-web/hooks/editor/use-extended-editor-config";
-import { useFileSize } from "@/taskpilot-web/hooks/use-file-size";
+import { useExtendedEditorConfig } from "@/hooks/editor/use-extended-editor-config";
+import { useFileSize } from "@/hooks/use-file-size";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();

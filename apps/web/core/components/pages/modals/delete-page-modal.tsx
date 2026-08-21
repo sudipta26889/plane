@@ -14,8 +14,8 @@ import { getPageName } from "@taskpilot/utils";
 // constants
 // taskpilot web hooks
 import { useAppRouter } from "@/hooks/use-app-router";
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
-import { usePageStore } from "@/taskpilot-web/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
+import { usePageStore } from "@/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

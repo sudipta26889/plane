@@ -11,7 +11,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import { Popover, Transition } from "@headlessui/react";
 // taskpilot imports
-import { getRandomLabelColor, LABEL_COLOR_OPTIONS, PROJECT_SETTINGS_TRACKER_EVENTS } from "@taskpilot/constants";
+import { getRandomLabelColor, LABEL_COLOR_OPTIONS } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { Button } from "@taskpilot/propel/button";
 import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
@@ -91,7 +91,7 @@ export const CreateUpdateLabelInline = observer(
 
       await labelOperationsCallbacks
         .createLabel(formData)
-        .then((res) => {
+        .then((_res) => {
           handleClose();
           reset(defaultValues);
         })
@@ -111,7 +111,7 @@ export const CreateUpdateLabelInline = observer(
 
       await labelOperationsCallbacks
         .updateLabel(labelToUpdate.id, formData)
-        .then((res) => {
+        .then((_res) => {
           reset(defaultValues);
           handleClose();
         })

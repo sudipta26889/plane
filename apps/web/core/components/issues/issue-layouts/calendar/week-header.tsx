@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 import { EStartOfTheWeek } from "@taskpilot/types";
 import { getOrderedDays } from "@taskpilot/utils";
-import { DAYS_LIST } from "@/constants/calendar";
+import { DAYS_LIST } from "@taskpilot/constants";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";

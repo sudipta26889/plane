@@ -11,11 +11,11 @@ import { ISSUE_LAYOUT_MAP } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { CheckIcon } from "@taskpilot/propel/icons";
 import { EIssueLayoutTypes } from "@taskpilot/types";
+import { getButtonStyling } from "@taskpilot/propel/button";
 import { Dropdown } from "@taskpilot/ui";
 import { cn } from "@taskpilot/utils";
 // components
 import { IssueLayoutIcon } from "@/components/issues/issue-layouts/layout-icon";
-import { getIconButtonStyling } from "@taskpilot/propel/icon-button";
 
 type TLayoutDropDown = {
   onChange: (value: EIssueLayoutTypes) => void;
@@ -74,7 +74,7 @@ export const LayoutDropDown = observer(function LayoutDropDown(props: TLayoutDro
       value={value?.toString()}
       keyExtractor={keyExtractor}
       options={options}
-      buttonContainerClassName={cn(getIconButtonStyling("secondary", "lg"), "w-auto px-2")}
+      buttonContainerClassName={cn(getButtonStyling("secondary", "lg"))}
       buttonContent={buttonContent}
       renderItem={itemContent}
       disableSearch

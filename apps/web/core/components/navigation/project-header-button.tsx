@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TPartialProject } from "@/taskpilot-web/types";
+import type { TPartialProject } from "@taskpilot/types";
 // taskpilot propel imports
 import { Logo } from "@taskpilot/propel/emoji-icon-picker";
 import { ChevronDownIcon } from "@taskpilot/propel/icons";

@@ -24,13 +24,12 @@ import { EIssuesStoreType, EIssueLayoutTypes } from "@taskpilot/types";
 import { Spinner } from "@taskpilot/ui";
 import { renderFormattedPayloadDate, cn } from "@taskpilot/utils";
 // constants
-import { MONTHS_LIST } from "@/constants/calendar";
+import { MONTHS_LIST } from "@taskpilot/constants";
 // helpers
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import useSize from "@/hooks/use-window-size";
 // store
-import type { IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { ICalendarStore } from "@/store/issue/issue_calendar_view.store";
 import type { IModuleIssuesFilter } from "@/store/issue/module";

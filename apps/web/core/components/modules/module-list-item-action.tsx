@@ -9,14 +9,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { SquareUser } from "lucide-react";
 // TaskPilot imports
-import {
-  MODULE_STATUS,
-  EUserPermissions,
-  EUserPermissionsLevel,
-  IS_FAVORITE_MENU_OPEN,
-  MODULE_TRACKER_EVENTS,
-  MODULE_TRACKER_ELEMENTS,
-} from "@taskpilot/constants";
+import { MODULE_STATUS, EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@taskpilot/constants";
 import { useLocalStorage } from "@taskpilot/hooks";
 import { useTranslation } from "@taskpilot/i18n";
 import { TOAST_TYPE, setPromiseToast, setToast } from "@taskpilot/propel/toast";

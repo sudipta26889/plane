@@ -15,13 +15,11 @@ import { calculateTimeAgo, generateWorkItemLink } from "@taskpilot/utils";
 // components
 import { ListItem } from "@/components/core/list";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
-// helpers
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// taskpilot web components
-import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 
 type BlockProps = {
   activity: TActivityEntityData;

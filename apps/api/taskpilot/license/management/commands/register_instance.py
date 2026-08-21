@@ -55,7 +55,7 @@ class Command(BaseCommand):
                 latest_version=current_version,
                 last_checked_at=timezone.now(),
                 is_test=os.environ.get("IS_TEST", "0") == "1",
-                edition=InstanceEdition.PLANE_COMMUNITY.value,
+                edition=InstanceEdition.TASKPILOT_COMMUNITY.value,
             )
 
             self.stdout.write(self.style.SUCCESS("Instance registered"))
@@ -67,7 +67,7 @@ class Command(BaseCommand):
             instance.current_version = current_version
             instance.latest_version = current_version
             instance.is_test = os.environ.get("IS_TEST", "0") == "1"
-            instance.edition = InstanceEdition.PLANE_COMMUNITY.value
+            instance.edition = InstanceEdition.TASKPILOT_COMMUNITY.value
             instance.save()
 
         return

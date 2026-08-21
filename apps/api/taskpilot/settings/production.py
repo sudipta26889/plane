@@ -34,7 +34,7 @@ LOGGING = {
     "formatters": {
         "verbose": {"format": "%(asctime)s [%(process)d] %(levelname)s %(name)s: %(message)s"},
         "json": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "()": "pythonjsonlogger.json.JsonFormatter",
             "fmt": "%(levelname)s %(asctime)s %(module)s %(name)s %(message)s",
         },
     },
@@ -81,11 +81,6 @@ LOGGING = {
             "propagate": False,
         },
         "taskpilot.external": {
-            "level": "INFO",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        "taskpilot.mongo": {
             "level": "INFO",
             "handlers": ["console"],
             "propagate": False,

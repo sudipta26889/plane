@@ -12,9 +12,9 @@ import { getAssetIdFromUrl, checkURLValidity } from "@taskpilot/utils";
 // hooks
 import useKeypress from "@/hooks/use-keypress";
 // taskpilot web components
-import { CreateProjectForm } from "@/taskpilot-web/components/projects/create/root";
+import { CreateProjectForm } from "@/components/projects/create/root";
 // taskpilot web types
-import type { TProject } from "@/taskpilot-web/types/projects";
+import type { TProject } from "@taskpilot/types";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();

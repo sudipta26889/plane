@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 import pytest
+from django.core.cache import cache
 from rest_framework.test import APIClient
 from pytest_django.fixtures import django_db_setup
 
@@ -14,6 +15,26 @@ from taskpilot.db.models.api import APIToken
 def django_db_setup(django_db_setup):  # noqa: F811
     """Set up the Django database for the test session"""
     pass
+
+
+@pytest.fixture(autouse=True)
+def _reset_request_throttles():
+    """Drop throttle history between tests.
+
+    SimpleRateThrottle keeps its request history in the shared cache, which the
+    test session reuses. Without this the counts leak across tests and later
+    ones start returning 429. Two key shapes are in play: DRF's default
+    "throttle_<scope>_<ident>" and ApiKeyRateThrottle's "api_key:<token>".
+    Scoped to those so unrelated cache state survives.
+    """
+
+    def _clear():
+        for pattern in ("throttle_*", "api_key:*", "service_token:*"):
+            cache.delete_pattern(pattern)
+
+    _clear()
+    yield
+    _clear()
 
 
 @pytest.fixture

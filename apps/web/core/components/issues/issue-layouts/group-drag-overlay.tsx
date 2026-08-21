@@ -12,8 +12,6 @@ import { useTranslation } from "@taskpilot/i18n";
 import type { TIssueOrderByOptions } from "@taskpilot/types";
 // helpers
 import { cn } from "@taskpilot/utils";
-// taskpilot web imports
-import { WorkFlowDisabledOverlay } from "@/taskpilot-web/components/workflow";
 
 type Props = {
   dragColumnOrientation: "justify-start" | "justify-center" | "justify-end";
@@ -59,13 +57,7 @@ export function GroupDragOverlay(props: Props) {
         { hidden: !shouldOverlayBeVisible }
       )}
     >
-      {workflowDisabledSource ? (
-        <WorkFlowDisabledOverlay
-          messageContainerRef={messageContainerRef}
-          workflowDisabledSource={workflowDisabledSource}
-          shouldOverlayBeVisible={shouldOverlayBeVisible}
-        />
-      ) : (
+      {workflowDisabledSource ? null : (
         <div
           className={cn("my-8 flex flex-col items-center rounded-sm p-3", {
             "text-secondary": shouldOverlayBeVisible,

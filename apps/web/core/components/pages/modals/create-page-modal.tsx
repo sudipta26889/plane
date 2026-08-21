@@ -13,8 +13,8 @@ import { EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
 // taskpilot web hooks
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
-import { usePageStore } from "@/taskpilot-web/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
+import { usePageStore } from "@/hooks/store";
 // local imports
 import { PageForm } from "./page-form";
 

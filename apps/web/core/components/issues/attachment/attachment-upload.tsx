@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import { useDropzone } from "react-dropzone";
 // taskpilot web hooks
-import { useFileSize } from "@/taskpilot-web/hooks/use-file-size";
+import { useFileSize } from "@/hooks/use-file-size";
 // types
 import type { TAttachmentOperations } from "../issue-detail-widgets/attachments/helper";
 

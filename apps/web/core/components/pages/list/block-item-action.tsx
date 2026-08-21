@@ -15,7 +15,7 @@ import { renderFormattedDate, getFileURL } from "@taskpilot/utils";
 import { useMember } from "@/hooks/store/use-member";
 import { usePageOperations } from "@/hooks/use-page-operations";
 // taskpilot web hooks
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

@@ -30,6 +30,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="instance",
             name="edition",
-            field=models.CharField(default="PLANE_COMMUNITY", max_length=255),
+            field=models.CharField(default="TASKPILOT_COMMUNITY", max_length=255),
         ),
     ]

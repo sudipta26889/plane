@@ -10,9 +10,9 @@ import { action, makeObservable, observable, runInAction, computed } from "mobx"
 import { EUserPermissions, API_BASE_URL } from "@taskpilot/constants";
 import type { IUser, TUserPermissions } from "@taskpilot/types";
 // taskpilot web imports
-import type { RootStore } from "@/taskpilot-web/store/root.store";
-import type { IUserPermissionStore } from "@/taskpilot-web/store/user/permission.store";
-import { UserPermissionStore } from "@/taskpilot-web/store/user/permission.store";
+import type { RootStore } from "@/store/root.store";
+import type { IUserPermissionStore } from "@/store/user/base-permissions.store";
+import { UserPermissionStore } from "@/store/user/base-permissions.store";
 // services
 import { AuthService } from "@/services/auth.service";
 import { UserService } from "@/services/user.service";
@@ -153,7 +153,7 @@ export class UserStore implements IUserStore {
    * @returns {Promise<IUser>}
    */
   updateCurrentUser = async (data: Partial<IUser>): Promise<IUser> => {
-    const currentUserData = this.data;
+    const currentUserData = cloneDeep(this.data);
     try {
       if (currentUserData) {
         Object.keys(data).forEach((key: string) => {
@@ -162,6 +162,14 @@ export class UserStore implements IUserStore {
         });
       }
       const user = await this.userService.updateUser(data);
+      if (user && this.data) {
+        runInAction(() => {
+          Object.keys(user).forEach((key: string) => {
+            const userKey: keyof IUser = key as keyof IUser;
+            if (this.data) set(this.data, userKey, user[userKey]);
+          });
+        });
+      }
       return user;
     } catch (error) {
       if (currentUserData) {

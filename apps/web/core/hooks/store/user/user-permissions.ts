@@ -8,7 +8,7 @@ import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
 // taskpilot web imports
-import type { IUserPermissionStore } from "@/taskpilot-web/store/user/permission.store";
+import type { IUserPermissionStore } from "@/store/user/base-permissions.store";
 
 export const useUserPermissions = (): IUserPermissionStore => {
   const context = useContext(StoreContext);

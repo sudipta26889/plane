@@ -5,10 +5,9 @@
  */
 
 import { autorun } from "mobx";
-// Store
-import type { RootStore } from "@/taskpilot-web/store/root.store";
-import { BaseTimeLineStore } from "@/taskpilot-web/store/timeline/base-timeline.store";
-import type { IBaseTimelineStore } from "@/taskpilot-web/store/timeline/base-timeline.store";
+import type { RootStore } from "@/store/root.store";
+import { BaseTimeLineStore } from "@/store/timeline/base-timeline.store";
+import type { IBaseTimelineStore } from "@/store/timeline/base-timeline.store";
 
 export interface IModulesTimeLineStore extends IBaseTimelineStore {
   isDependencyEnabled: boolean;

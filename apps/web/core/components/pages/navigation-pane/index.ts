@@ -5,7 +5,7 @@
  */
 
 // taskpilot web imports
-import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/taskpilot-web/components/pages/navigation-pane";
+import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/components/pages/navigation-pane/tab-panels";
 
 export * from "./root";
 export * from "./types";

@@ -6,7 +6,6 @@
 
 import type { Editor } from "@tiptap/react";
 
-import type { FC } from "react";
 import { CheckIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
 // taskpilot utils
 import { cn } from "@taskpilot/utils";

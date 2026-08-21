@@ -9,7 +9,6 @@ import { observer } from "mobx-react";
 import { MoreHorizontal } from "lucide-react";
 // taskpilot imports
 import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
-import { useTranslation } from "@taskpilot/i18n";
 import { IconButton } from "@taskpilot/propel/icon-button";
 import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
 import type { TContextMenuItem } from "@taskpilot/ui";
@@ -44,7 +43,6 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
 
   const { getModuleById, restoreModule } = useModule();
 
-  const { t } = useTranslation();
   // derived values
   const moduleDetails = getModuleById(moduleId);
   // auth

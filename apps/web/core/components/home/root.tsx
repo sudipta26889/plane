@@ -13,11 +13,11 @@ import { ContentWrapper } from "@taskpilot/ui";
 import { useHome } from "@/hooks/store/use-home";
 import { useUserProfile, useUser } from "@/hooks/store/user";
 // taskpilot web imports
-import { HomePeekOverviewsRoot } from "@/taskpilot-web/components/home";
-import { TourRoot } from "@/taskpilot-web/components/onboarding/tour/root";
+import { TourRoot } from "@/components/onboarding/tour/root";
 // local imports
 import { DashboardWidgets } from "./home-dashboard-widgets";
 import { UserGreetingsView } from "./user-greetings";
+import { HomePeekOverviewsRoot } from "../issues/peek-overview/peek-overviews";
 
 export const WorkspaceHomeView = observer(function WorkspaceHomeView() {
   // store hooks

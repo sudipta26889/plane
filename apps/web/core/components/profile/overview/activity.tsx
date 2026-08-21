@@ -9,13 +9,14 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 // ui
 import { useTranslation } from "@taskpilot/i18n";
+import { Avatar } from "@taskpilot/propel/avatar";
 import { EmptyStateCompact } from "@taskpilot/propel/empty-state";
 import { Loader, Card } from "@taskpilot/ui";
 import { calculateTimeAgo, getFileURL } from "@taskpilot/utils";
 // components
 import { ActivityMessage, IssueLink } from "@/components/core/activity";
 // constants
-import { USER_PROFILE_ACTIVITY } from "@/constants/fetch-keys";
+import { USER_PROFILE_ACTIVITY } from "@taskpilot/constants";
 // helpers
 // hooks
 import { useUser } from "@/hooks/store/user";
@@ -44,48 +45,7 @@ export const ProfileActivity = observer(function ProfileActivity() {
     <div className="space-y-2">
       <h3 className="text-16 font-medium">{t("profile.stats.recent_activity.title")}</h3>
       <Card>
-        {userProfileActivity ? (
-          userProfileActivity.results.length > 0 ? (
-            <div className="space-y-5">
-              {userProfileActivity.results.map((activity) => (
-                <div key={activity.id} className="flex gap-3">
-                  <div className="grid h-6 w-6 flex-shrink-0 place-items-center overflow-hidden rounded-sm">
-                    {activity.actor_detail?.avatar_url && activity.actor_detail?.avatar_url !== "" ? (
-                      <img
-                        src={getFileURL(activity.actor_detail?.avatar_url)}
-                        alt={activity.actor_detail?.display_name}
-                        className="rounded-sm"
-                      />
-                    ) : (
-                      <div className="grid h-6 w-6 place-items-center rounded-sm border-2 border-strong text-11 text-on-color">
-                        {activity.actor_detail?.display_name?.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="-mt-1 w-4/5 break-words">
-                    <p className="inline text-13 text-secondary">
-                      <span className="font-medium text-primary">
-                        {currentUser?.id === activity.actor_detail?.id
-                          ? "You"
-                          : activity.actor_detail?.display_name}{" "}
-                      </span>
-                      {activity.field ? (
-                        <ActivityMessage activity={activity} showIssue />
-                      ) : (
-                        <span>
-                          created <IssueLink activity={activity} />
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-11 whitespace-nowrap text-secondary">{calculateTimeAgo(activity.created_at)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyStateCompact title={t("no_data_yet")} assetKey="unknown" assetClassName="size-20" />
-          )
-        ) : (
+        {!userProfileActivity ? (
           <Loader className="space-y-5">
             <Loader.Item height="40px" />
             <Loader.Item height="40px" />
@@ -93,6 +53,36 @@ export const ProfileActivity = observer(function ProfileActivity() {
             <Loader.Item height="40px" />
             <Loader.Item height="40px" />
           </Loader>
+        ) : Array.isArray(userProfileActivity.results) && userProfileActivity.results.length > 0 ? (
+          <div className="space-y-5">
+            {userProfileActivity.results.map((activity) => (
+              <div key={activity.id} className="flex gap-3">
+                <Avatar
+                  name={activity.actor_detail?.display_name}
+                  src={getFileURL(activity.actor_detail?.avatar_url)}
+                  size="base"
+                  shape="square"
+                />
+                <div className="-mt-1 w-4/5 break-words">
+                  <p className="inline text-13 text-secondary">
+                    <span className="font-medium text-primary">
+                      {currentUser?.id === activity.actor_detail?.id ? "You" : activity.actor_detail?.display_name}{" "}
+                    </span>
+                    {activity.field ? (
+                      <ActivityMessage activity={activity} showIssue />
+                    ) : (
+                      <span>
+                        created <IssueLink activity={activity} />
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-11 whitespace-nowrap text-secondary">{calculateTimeAgo(activity.created_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyStateCompact title={t("no_data_yet")} assetKey="unknown" assetClassName="size-20" />
         )}
       </Card>
     </div>

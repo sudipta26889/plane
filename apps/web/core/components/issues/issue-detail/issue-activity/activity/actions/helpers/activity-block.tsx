@@ -4,17 +4,16 @@
  * See the LICENSE file for details.
  */
 
-import type { FC, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Network } from "lucide-react";
 // taskpilot imports
 import { Tooltip } from "@taskpilot/propel/tooltip";
 import { renderFormattedTime, renderFormattedDate, calculateTimeAgo } from "@taskpilot/utils";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// taskpilot web imports
-import { IssueCreatorDisplay } from "@/taskpilot-web/components/issues/issue-details/issue-creator";
 // local imports
 import { IssueUser } from "../";
+import { IssueCreatorDisplay } from "./issue-creator";
 
 type TIssueActivityBlockComponent = {
   icon?: ReactNode;

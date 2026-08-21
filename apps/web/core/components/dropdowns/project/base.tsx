@@ -19,7 +19,7 @@ import { cn, sortBySelectedFirst } from "@taskpilot/utils";
 // hooks
 import { useDropdown } from "@/hooks/use-dropdown";
 // taskpilot web imports
-import type { TProject } from "@/taskpilot-web/types";
+import type { TProject } from "@taskpilot/types";
 // local imports
 import { DropdownButton } from "../buttons";
 import { BUTTON_VARIANTS_WITH_TEXT } from "../constants";

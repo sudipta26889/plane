@@ -5,13 +5,15 @@
  */
 
 import { observer } from "mobx-react";
+// types
+import type { TIssueRelationTypes } from "@taskpilot/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// TaskPilot-web
-import { getRelationActivityContent, useTimeLineRelationOptions } from "@/taskpilot-web/components/relations";
-import type { TIssueRelationTypes } from "@/taskpilot-web/types";
-//
+// components
+import { useTimeLineRelationOptions } from "@/components/relations";
+// local helpers
 import { IssueActivityBlockComponent } from "./";
+import { getRelationActivityContent } from "./helpers/activity";
 
 type TIssueRelationActivity = { activityId: string; ends: "top" | "bottom" | undefined };
 

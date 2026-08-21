@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import { isEmpty } from "lodash-es";
 import { observer } from "mobx-react";
 // taskpilot helpers
@@ -18,8 +17,6 @@ import { SidebarMenuItems } from "@/components/workspace/sidebar/sidebar-menu-it
 // hooks
 import { useFavorite } from "@/hooks/store/use-favorite";
 import { useUserPermissions } from "@/hooks/store/user";
-// taskpilot web components
-import { SidebarTeamsList } from "@/taskpilot-web/components/workspace/sidebar/teams-sidebar-list";
 
 export const AppSidebar = observer(function AppSidebar() {
   // store hooks
@@ -39,8 +36,6 @@ export const AppSidebar = observer(function AppSidebar() {
       <SidebarMenuItems />
       {/* Favorites Menu */}
       {canPerformWorkspaceMemberActions && !isFavoriteEmpty && <SidebarFavoritesMenu />}
-      {/* Teams List */}
-      <SidebarTeamsList />
       {/* Projects List */}
       <SidebarProjectsList />
     </SidebarWrapper>

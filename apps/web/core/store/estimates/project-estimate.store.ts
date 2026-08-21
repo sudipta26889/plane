@@ -12,8 +12,8 @@ import type { IEstimate as IEstimateType, IEstimateFormData, TEstimateSystemKeys
 // taskpilot web services
 import estimateService from "@/services/estimate.service";
 // taskpilot web store
-import type { IEstimate } from "@/taskpilot-web/store/estimates/estimate";
-import { Estimate } from "@/taskpilot-web/store/estimates/estimate";
+import type { IEstimate } from "@/store/estimates/estimate";
+import { Estimate } from "@/store/estimates/estimate";
 // store
 import type { CoreRootStore } from "../root.store";
 

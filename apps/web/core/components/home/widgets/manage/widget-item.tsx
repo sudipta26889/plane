@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import type {
@@ -21,7 +20,7 @@ import { useParams } from "next/navigation";
 import { createRoot } from "react-dom/client";
 // taskpilot types
 import { useTranslation } from "@taskpilot/i18n";
-import type { InstructionType, TWidgetEntityData } from "@taskpilot/types";
+import type { InstructionType } from "@taskpilot/types";
 // taskpilot ui
 import { DropIndicator, ToggleSwitch } from "@taskpilot/ui";
 // taskpilot utils

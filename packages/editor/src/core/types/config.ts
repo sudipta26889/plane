@@ -5,7 +5,6 @@
  */
 
 // taskpilot imports
-import type { TWebhookConnectionQueryParams } from "@taskpilot/types";
 import type { TExtendedFileHandler } from "@/taskpilot-editor/types/config";
 
 export type TFileHandler = {

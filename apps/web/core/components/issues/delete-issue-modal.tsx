@@ -14,12 +14,10 @@ import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
 import type { TDeDupeIssue, TIssue } from "@taskpilot/types";
 // ui
 import { AlertModalCore } from "@taskpilot/ui";
-// constants
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-// taskpilot-web
 
 type Props = {
   isOpen: boolean;

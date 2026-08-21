@@ -11,7 +11,7 @@ import { SitesProjectPublishService } from "@taskpilot/services";
 import type { TProjectPublishSettings } from "@taskpilot/types";
 // store
 import { PublishStore } from "@/store/publish/publish.store";
-import type { CoreRootStore } from "@/store/root.store";
+import type { RootStore } from "@/store/root.store";
 
 export interface IPublishListStore {
   // observables
@@ -26,7 +26,7 @@ export class PublishListStore implements IPublishListStore {
   // service
   publishService;
 
-  constructor(private rootStore: CoreRootStore) {
+  constructor(private rootStore: RootStore) {
     makeObservable(this, {
       // observables
       publishMap: observable,

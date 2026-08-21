@@ -9,21 +9,18 @@ import { createContext } from "react";
 import type { UseFormReset, UseFormWatch } from "react-hook-form";
 // taskpilot imports
 import type { EditorRefApi } from "@taskpilot/editor";
-import type { ISearchIssueResponse, TIssue } from "@taskpilot/types";
-// taskpilot web imports
-import type { TIssuePropertyValues, TIssuePropertyValueErrors } from "@/taskpilot-web/types/issue-types";
-import type { TIssueFields } from "@/taskpilot-web/components/issues/issue-modal";
+import type { ISearchIssueResponse, TIssue, TIssuePropertyValues, TIssuePropertyValueErrors } from "@taskpilot/types";
 
 export type TPropertyValuesValidationProps = {
   projectId: string | null;
   workspaceSlug: string;
-  watch: UseFormWatch<TIssueFields>;
+  watch: UseFormWatch<TIssue>;
 };
 
 export type TActiveAdditionalPropertiesProps = {
   projectId: string | null;
   workspaceSlug: string;
-  watch: UseFormWatch<TIssueFields>;
+  watch: UseFormWatch<TIssue>;
 };
 
 export type TCreateUpdatePropertyValuesProps = {

@@ -10,8 +10,8 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { Button } from "@taskpilot/propel/button";
 import { cn } from "@taskpilot/utils";
 // constants
-import type { TTaskPilotPlans } from "@/constants/plans";
-import { ComingSoonBadge, TASKPILOT_PLANS, PLANS_LIST } from "@/constants/plans";
+import type { TTaskPilotPlans } from "@/components/workspace/billing/comparison/plans";
+import { ComingSoonBadge, TASKPILOT_PLANS, PLANS_LIST } from "@/components/workspace/billing/comparison/plans";
 // local imports
 import { PlanFeatureDetail } from "./feature-detail";
 

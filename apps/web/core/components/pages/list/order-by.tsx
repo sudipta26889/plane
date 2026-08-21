@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import { ArrowDownWideNarrow, ArrowUpWideNarrow, Check } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 // taskpilot imports
 import { getButtonStyling } from "@taskpilot/propel/button";
 // types
-import { CheckIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import { CheckIcon } from "@taskpilot/propel/icons";
 import type { TPageFiltersSortBy, TPageFiltersSortKey } from "@taskpilot/types";
 import { CustomMenu } from "@taskpilot/ui";
 

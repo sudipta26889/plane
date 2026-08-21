@@ -15,7 +15,7 @@ import type {
 } from "@taskpilot/types";
 // helpers
 // taskpilot web types
-import type { TProject, TPartialProject } from "@/taskpilot-web/types";
+import type { TProject, TPartialProject } from "@taskpilot/types";
 // services
 import { APIService } from "@/services/api.service";
 

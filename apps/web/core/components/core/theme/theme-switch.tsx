@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 // taskpilot imports
 import type { I_THEME_OPTION } from "@taskpilot/constants";
 import { THEME_OPTIONS } from "@taskpilot/constants";

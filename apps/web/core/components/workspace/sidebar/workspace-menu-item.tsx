@@ -18,7 +18,7 @@ import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useUserPermissions } from "@/hooks/store/user";
 // taskpilot web imports
-import { UpgradeBadge } from "@/taskpilot-web/components/workspace/upgrade-badge";
+import { UpgradeBadge } from "@/components/workspace/upgrade-badge";
 
 export type SidebarWorkspaceMenuItemProps = {
   item: {

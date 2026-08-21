@@ -10,7 +10,7 @@ import Link from "next/link";
 // icons
 import { Eye, EyeOff, Info, XCircle } from "lucide-react";
 // taskpilot imports
-import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_EVENTS, AUTH_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_ELEMENTS } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { Button } from "@taskpilot/propel/button";
 import { CloseIcon } from "@taskpilot/propel/icons";

@@ -7,7 +7,7 @@
 import type { ReactElement } from "react";
 import { createContext } from "react";
 // taskpilot web store
-import { RootStore } from "@/taskpilot-web/store/root.store";
+import { RootStore } from "@/store/root.store";
 
 export let rootStore = new RootStore();
 

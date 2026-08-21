@@ -7,7 +7,6 @@
 import type { Editor } from "@tiptap/react";
 import { ALargeSmall, Ban } from "lucide-react";
 import { useMemo } from "react";
-import type { FC } from "react";
 // taskpilot utils
 import { cn } from "@taskpilot/utils";
 // constants

@@ -11,8 +11,8 @@ import { EPageAccess } from "@taskpilot/constants";
 import type { TChangeHandlerProps } from "@taskpilot/propel/emoji-icon-picker";
 import type { TDocumentPayload, TLogoProps, TNameDescriptionLoader, TPage } from "@taskpilot/types";
 // taskpilot web store
-import { ExtendedBasePage } from "@/taskpilot-web/store/pages/extended-base-page";
-import type { RootStore } from "@/taskpilot-web/store/root.store";
+import { ExtendedBasePage } from "@/store/pages/extended-base-page";
+import type { RootStore } from "@/store/root.store";
 // local imports
 import { PageEditorInstance } from "./page-editor-info";
 

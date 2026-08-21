@@ -1,4 +1,4 @@
-ARG PLANE_VERSION=v0.27.1
+ARG TASKPILOT_VERSION=v0.27.1
 FROM --platform=$BUILDPLATFORM tonistiigi/binfmt AS binfmt
 
 # **************************************************
@@ -6,12 +6,12 @@ FROM --platform=$BUILDPLATFORM tonistiigi/binfmt AS binfmt
 # **************************************************
 FROM node:22-alpine AS node
 
-FROM taskpilot/taskpilot-frontend:${PLANE_VERSION} AS web-img
-FROM taskpilot/taskpilot-backend:${PLANE_VERSION} AS backend-img
-FROM taskpilot/taskpilot-space:${PLANE_VERSION} AS space-img
-FROM taskpilot/taskpilot-admin:${PLANE_VERSION} AS admin-img
-FROM taskpilot/taskpilot-live:${PLANE_VERSION} AS live-img
-FROM taskpilot/taskpilot-proxy:${PLANE_VERSION} AS proxy-img
+FROM taskpilot/taskpilot-frontend:${TASKPILOT_VERSION} AS web-img
+FROM taskpilot/taskpilot-backend:${TASKPILOT_VERSION} AS backend-img
+FROM taskpilot/taskpilot-space:${TASKPILOT_VERSION} AS space-img
+FROM taskpilot/taskpilot-admin:${TASKPILOT_VERSION} AS admin-img
+FROM taskpilot/taskpilot-live:${TASKPILOT_VERSION} AS live-img
+FROM taskpilot/taskpilot-proxy:${TASKPILOT_VERSION} AS proxy-img
 
 # **************************************************
 #  STAGE 1: Runner
@@ -59,7 +59,7 @@ RUN mkdir -p /app/logs/access && \
     mkdir -p /app/data && \
     chmod +x /app/start.sh
 
-VOLUME ['/app/data', '/app/logs']
+VOLUME ["/app/data", "/app/logs"]
 
 EXPOSE 80 443
 

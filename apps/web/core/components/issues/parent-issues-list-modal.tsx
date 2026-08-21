@@ -20,12 +20,10 @@ import { Loader, EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
 import { generateWorkItemLink, getTabIndex } from "@taskpilot/utils";
 // components
 import { IssueSearchModalEmptyState } from "@/components/core/modals/issue-search-modal-empty-state";
-// helpers
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // hooks
 import useDebounce from "@/hooks/use-debounce";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// taskpilot web components
-import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
 // services
 import { ProjectService } from "@/services/project";
 

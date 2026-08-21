@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="instance",
             name="product",
-            field=models.CharField(default="plane-ce", max_length=50),
+            field=models.CharField(default="taskpilot-ce", max_length=50),
         ),
         migrations.CreateModel(
             name="ChangeLog",

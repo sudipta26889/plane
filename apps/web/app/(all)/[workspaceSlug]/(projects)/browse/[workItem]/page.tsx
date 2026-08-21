@@ -27,8 +27,8 @@ import { useAppRouter } from "@/hooks/use-app-router";
 // layouts
 import { ProjectAuthWrapper } from "@/layouts/auth-layout/project-wrapper";
 // taskpilot web imports
-import { useWorkItemProperties } from "@/taskpilot-web/hooks/use-issue-properties";
-import { WorkItemDetailRoot } from "@/taskpilot-web/components/browse/workItem-detail";
+import { useWorkItemProperties } from "@/hooks/use-issue-properties";
+import { WorkItemDetailRoot } from "@/components/browse/workItem-detail";
 
 import type { Route } from "./+types/page";
 

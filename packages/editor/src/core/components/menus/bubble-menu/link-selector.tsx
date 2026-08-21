@@ -6,7 +6,6 @@
 
 import type { Editor } from "@tiptap/core";
 
-import type { FC } from "react";
 import { useCallback, useRef, useState } from "react";
 import { LinkIcon, TrashIcon, CheckIcon } from "@taskpilot/propel/icons";
 // taskpilot imports

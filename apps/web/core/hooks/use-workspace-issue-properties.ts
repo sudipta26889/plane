@@ -6,8 +6,8 @@
 
 import useSWR from "swr";
 // taskpilot web imports
-import { WORKSPACE_ESTIMATES, WORKSPACE_CYCLES, WORKSPACE_LABELS, WORKSPACE_MODULES } from "@/constants/fetch-keys";
-import { useWorkspaceIssuePropertiesExtended } from "@/taskpilot-web/hooks/use-workspace-issue-properties-extended";
+import { WORKSPACE_ESTIMATES, WORKSPACE_CYCLES, WORKSPACE_LABELS, WORKSPACE_MODULES } from "@taskpilot/constants";
+import { useWorkspaceIssuePropertiesExtended } from "@/hooks/use-workspace-issue-properties-extended";
 // taskpilot imports
 import { useProjectEstimates } from "./store/estimates";
 import { useCycle } from "./store/use-cycle";

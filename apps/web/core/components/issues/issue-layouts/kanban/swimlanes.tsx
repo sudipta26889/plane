@@ -23,7 +23,7 @@ import { Row } from "@taskpilot/ui";
 // hooks
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 // taskpilot web imports
-import { useWorkFlowFDragNDrop } from "@/taskpilot-web/components/workflow";
+import { useWorkFlowFDragNDrop } from "@/components/workflow";
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
 import type { GroupDropLocation } from "../utils";

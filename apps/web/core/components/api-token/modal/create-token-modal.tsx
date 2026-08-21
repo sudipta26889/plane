@@ -13,7 +13,7 @@ import type { IApiToken } from "@taskpilot/types";
 import { EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
 import { renderFormattedDate, csvDownload } from "@taskpilot/utils";
 // constants
-import { API_TOKENS_LIST } from "@/constants/fetch-keys";
+import { API_TOKENS_LIST } from "@taskpilot/constants";
 // local imports
 import { CreateApiTokenForm } from "./form";
 import { GeneratedTokenDetails } from "./generated-token-details";

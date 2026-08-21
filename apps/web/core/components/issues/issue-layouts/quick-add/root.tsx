@@ -16,9 +16,8 @@ import { PlusIcon } from "@taskpilot/propel/icons";
 import { setPromiseToast } from "@taskpilot/propel/toast";
 import type { IProject, TIssue, EIssueLayoutTypes } from "@taskpilot/types";
 import { cn, createIssuePayload } from "@taskpilot/utils";
-// taskpilot web imports
-import { QuickAddIssueFormRoot } from "@/taskpilot-web/components/issues/quick-add";
 // local imports
+import { QuickAddIssueFormRoot } from "./form";
 import { CreateIssueToastActionItems } from "../../create-issue-toast-action-items";
 
 export type TQuickAddIssueForm = {
@@ -89,6 +88,7 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
     if (!isOpen) reset({ ...defaultValues });
   }, [isOpen, reset]);
 
+  // oxlint-disable-next-line no-shadow
   const handleIsOpen = (isOpen: boolean) => {
     if (isQuickAddOpen !== undefined && setIsQuickAddOpen) {
       setIsQuickAddOpen(isOpen);
@@ -103,6 +103,7 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
     reset({ ...defaultValues });
 
     const payload = createIssuePayload(projectId.toString(), {
+      // oxlint-disable-next-line unicorn/no-useless-fallback-in-spread
       ...(prePopulatedData ?? {}),
       ...formData,
     });
@@ -149,6 +150,7 @@ export const QuickAddIssueRoot = observer(function QuickAddIssueRoot(props: TQui
           layout={layout}
           prePopulatedData={prePopulatedData}
           projectId={projectId?.toString()}
+          // oxlint-disable-next-line no-unneeded-ternary
           hasError={errors && errors?.name && errors?.name?.message ? true : false}
           setFocus={setFocus}
           register={register}

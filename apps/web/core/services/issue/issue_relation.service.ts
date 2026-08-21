@@ -5,10 +5,7 @@
  */
 
 import { API_BASE_URL } from "@taskpilot/constants";
-import type { TIssueRelation, TIssue } from "@taskpilot/types";
-// helpers
-// TaskPilot-web
-import type { TIssueRelationTypes } from "@/taskpilot-web/types";
+import type { TIssueRelation, TIssue, TIssueRelationTypes } from "@taskpilot/types";
 // services
 import { APIService } from "@/services/api.service";
 

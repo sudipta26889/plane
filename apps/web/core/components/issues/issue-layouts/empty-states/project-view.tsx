@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // components
-import { EUserPermissions, EUserPermissionsLevel, WORK_ITEM_TRACKER_ELEMENTS } from "@taskpilot/constants";
+import { EUserPermissions, EUserPermissionsLevel } from "@taskpilot/constants";
 import { EmptyStateDetailed } from "@taskpilot/propel/empty-state";
 import { EIssuesStoreType } from "@taskpilot/types";
 // hooks

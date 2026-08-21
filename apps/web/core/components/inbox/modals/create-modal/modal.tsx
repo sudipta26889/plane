@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import { useState } from "react";
 // taskpilot imports
 import { EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";

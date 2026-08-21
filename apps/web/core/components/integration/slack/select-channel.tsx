@@ -13,7 +13,7 @@ import type { IWorkspaceIntegration, ISlackIntegration } from "@taskpilot/types"
 // ui
 import { Loader } from "@taskpilot/ui";
 // fetch-keys
-import { SLACK_CHANNEL_INFO } from "@/constants/fetch-keys";
+import { SLACK_CHANNEL_INFO } from "@taskpilot/constants";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import useIntegrationPopup from "@/hooks/use-integration-popup";

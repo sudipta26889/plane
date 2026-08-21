@@ -14,13 +14,12 @@ import { CustomSearchSelect } from "@taskpilot/ui";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// taskpilot web imports
-import { useNavigationItems } from "@/taskpilot-web/components/navigations";
 // local imports
 import { SwitcherLabel } from "../common/switcher-label";
 import { ProjectHeaderButton } from "./project-header-button";
 import { getTabUrl } from "./tab-navigation-utils";
 import { useTabPreferences } from "./use-tab-preferences";
+import { useNavigationItems } from "./use-navigation-items";
 
 type TProjectHeaderProps = {
   workspaceSlug: string;

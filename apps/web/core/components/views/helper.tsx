@@ -6,7 +6,6 @@
 
 import { EIssueLayoutTypes } from "@taskpilot/types";
 import { WorkspaceSpreadsheetRoot } from "@/components/issues/issue-layouts/spreadsheet/roots/workspace-root";
-import { WorkspaceAdditionalLayouts } from "@/taskpilot-web/components/views/helper";
 
 export type TWorkspaceLayoutProps = {
   activeLayout: EIssueLayoutTypes | undefined;
@@ -52,6 +51,12 @@ export function WorkspaceActiveLayout(props: TWorkspaceLayoutProps) {
         />
       );
     default:
-      return <WorkspaceAdditionalLayouts {...props} />;
+      return <></>;
   }
 }
+
+export type TLayoutSelectionProps = {
+  onChange: (layout: EIssueLayoutTypes) => void;
+  selectedLayout: EIssueLayoutTypes;
+  workspaceSlug: string;
+};

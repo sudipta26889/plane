@@ -13,12 +13,10 @@ import type { TIssue, IIssueDisplayFilterOptions, IIssueDisplayProperties } from
 import { EIssueLayoutTypes } from "@taskpilot/types";
 // components
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
+import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// taskpilot web components
-import { IssueBulkOperationsRoot } from "@/taskpilot-web/components/issues/bulk-operations";
-// taskpilot web hooks
-import { useBulkOperationStatus } from "@/taskpilot-web/hooks/use-bulk-operation-status";
+import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { QuickAddIssueRoot, SpreadsheetAddIssueButton } from "../quick-add";

@@ -12,8 +12,8 @@ import { generateWorkItemLink } from "@taskpilot/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
-// taskpilot web components
-import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
+// components
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 
 type TIssueParentSiblingItem = {
   workspaceSlug: string;

@@ -12,8 +12,8 @@ import { Tooltip } from "@taskpilot/propel/tooltip";
 import { CustomMenu } from "@taskpilot/ui";
 import { cn } from "@taskpilot/utils";
 // constants
-import type { ToolbarMenuItem } from "@/constants/editor";
-import { TOOLBAR_ITEMS, TYPOGRAPHY_ITEMS } from "@/constants/editor";
+import type { ToolbarMenuItem } from "@taskpilot/editor";
+import { TOOLBAR_ITEMS, TYPOGRAPHY_ITEMS } from "@taskpilot/editor";
 // local imports
 import { ColorDropdown } from "./color-dropdown";
 

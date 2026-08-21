@@ -4,22 +4,19 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
 // taskpilot imports
 import { useTranslation } from "@taskpilot/i18n";
-import type { TIssue, TIssueServiceType } from "@taskpilot/types";
+import type { TIssue, TIssueServiceType, TIssueRelationTypes } from "@taskpilot/types";
 import { EIssueServiceType } from "@taskpilot/types";
 import { Collapsible } from "@taskpilot/ui";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
+import { useTimeLineRelationOptions } from "@/components/relations";
+import { CreateUpdateEpicModal } from "@/components/epic-modal";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// TaskPilot-web
-import { CreateUpdateEpicModal } from "@/taskpilot-web/components/epics/epic-modal";
-import { useTimeLineRelationOptions } from "@/taskpilot-web/components/relations";
-import type { TIssueRelationTypes } from "@/taskpilot-web/types";
 // helper
 import { DeleteIssueModal } from "../../delete-issue-modal";
 import { RelationIssueList } from "../../relations/issue-list";

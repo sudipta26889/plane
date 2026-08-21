@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 // types
@@ -29,7 +28,7 @@ export const User = observer(function User(props: TUser) {
 
   return (
     <>
-      {customUserName || actorDetail?.display_name.includes("-intake") ? (
+      {customUserName || actorDetail?.display_name?.includes("-intake") ? (
         <span className="font-medium text-primary">{customUserName || "TaskPilot"}</span>
       ) : (
         <Link

@@ -17,7 +17,7 @@ import { DocumentEditor } from "@/components/editor/document/editor";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { usePageFilters } from "@/hooks/use-page-filters";
 // taskpilot web hooks
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
 
 export type TVersionEditorProps = {
   activeVersion: string | null;

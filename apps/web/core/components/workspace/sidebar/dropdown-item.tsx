@@ -15,8 +15,6 @@ import { useTranslation } from "@taskpilot/i18n";
 import { CheckIcon } from "@taskpilot/propel/icons";
 import type { IWorkspace } from "@taskpilot/types";
 import { cn, getFileURL, getUserRole } from "@taskpilot/utils";
-// taskpilot web imports
-import { SubscriptionPill } from "@/taskpilot-web/components/common/subscription/subscription-pill";
 
 type TProps = {
   workspace: IWorkspace;
@@ -84,9 +82,7 @@ const SidebarDropdownItem = observer(function SidebarDropdownItem(props: TProps)
             <span className="flex-shrink-0 p-1">
               <CheckIcon className="h-5 w-5 text-primary" />
             </span>
-          ) : (
-            <SubscriptionPill workspace={workspace} />
-          )}
+          ) : null}
         </div>
         {workspace.id === activeWorkspace?.id && (
           <>

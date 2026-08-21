@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React, { useMemo } from "react";
 import { observer } from "mobx-react";
 import { useTranslation } from "@taskpilot/i18n";
@@ -13,8 +12,8 @@ import { EIssueServiceType } from "@taskpilot/types";
 import { CollapsibleButton } from "@taskpilot/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// TaskPilot-web
-import { useTimeLineRelationOptions } from "@/taskpilot-web/components/relations";
+// components
+import { useTimeLineRelationOptions } from "@/components/relations";
 // local imports
 import { RelationActionButton } from "./quick-action-button";
 

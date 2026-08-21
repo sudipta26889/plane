@@ -22,18 +22,11 @@ import { GanttChartSidebar, MonthChartView, QuarterChartView, WeekChartView } fr
 // helpers
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
-// taskpilot web components
-import {
-  TimelineDependencyPaths,
-  TimelineDraggablePath,
-  GanttAdditionalLayers,
-} from "@/taskpilot-web/components/gantt-chart";
-import { GanttChartRowList } from "@/taskpilot-web/components/gantt-chart/blocks/block-row-list";
-import { GanttChartBlocksList } from "@/taskpilot-web/components/gantt-chart/blocks/blocks-list";
-import { IssueBulkOperationsRoot } from "@/taskpilot-web/components/issues/bulk-operations";
-// taskpilot web hooks
-import { useBulkOperationStatus } from "@/taskpilot-web/hooks/use-bulk-operation-status";
-//
+import { GanttChartRowList } from "@/components/gantt-chart/blocks/block-row-list";
+import { GanttChartBlocksList } from "@/components/gantt-chart/blocks/blocks-list";
+import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
+import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
+// local imports
 import { DEFAULT_BLOCK_WIDTH, GANTT_SELECT_GROUP, HEADER_HEIGHT } from "../constants";
 import { getItemPositionWidth } from "../views";
 import { TimelineDragHelper } from "./timeline-drag-helper";
@@ -110,6 +103,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
         canScroll: ({ source }) => source.data.dragInstanceId === "GANTT_REORDER",
       })
     );
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
   }, [ganttContainerRef?.current]);
 
   // handling scroll functionality
@@ -219,9 +213,6 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
                       selectionHelpers={helpers}
                       ganttContainerRef={ganttContainerRef}
                     />
-                    <TimelineDependencyPaths isEpic={isEpic} />
-                    <TimelineDraggablePath />
-                    <GanttAdditionalLayers itemsContainerWidth={itemsContainerWidth} blockCount={blockIds.length} />
                     <GanttChartBlocksList
                       blockIds={blockIds}
                       blockToRender={blockToRender}

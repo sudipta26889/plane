@@ -91,7 +91,7 @@ tmp/
 ## packages
 dist
 .temp/
-deploy/selfhost/plane-app/
+deploy/selfhost/taskpilot-app/
 
 ## Storybook
 *storybook.log
@@ -117,3 +117,10 @@ secrets/
 docs/superpowers/.idx
 .husky
 .superpowers/
+!packages/i18n/scripts/
+
+# i18n auto-generated types (regenerated on every build)
+packages/i18n/src/types/keys.generated.ts
+
+# Local security notes (not for version control)
+/security/

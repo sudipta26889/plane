@@ -17,8 +17,8 @@ import type { ISearchIssueResponse, TIssue } from "@taskpilot/types";
 import { getTabIndex } from "@taskpilot/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// taskpilot web components
-import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
+// components
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 
 type TIssueParentTagProps = {
   control: Control<TIssue>;

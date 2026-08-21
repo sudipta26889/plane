@@ -14,7 +14,7 @@ import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
 import type { TPageVersion } from "@taskpilot/types";
 import { renderFormattedDate, renderFormattedTime } from "@taskpilot/utils";
 // helpers
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
 // local imports
 import type { TVersionEditorProps } from "./editor";
 

@@ -10,7 +10,7 @@ import useSWR from "swr";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
 // taskpilot web hooks
-import { EPageStoreType, usePageStore } from "@/taskpilot-web/hooks/store";
+import { EPageStoreType, usePageStore } from "@/hooks/store";
 // local components
 import type { Route } from "./+types/layout";
 import { PageDetailsHeader } from "./header";

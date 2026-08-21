@@ -7,7 +7,6 @@
 import React from "react";
 import { observer } from "mobx-react";
 // taskpilot imports
-import { WORK_ITEM_TRACKER_EVENTS } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { PlusIcon, WorkItemsIcon } from "@taskpilot/propel/icons";
 import type { TIssue, TIssueServiceType } from "@taskpilot/types";

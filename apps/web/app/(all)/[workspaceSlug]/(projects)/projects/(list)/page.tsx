@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { ProjectPageRoot } from "@/taskpilot-web/components/projects/page";
+import { ProjectPageRoot } from "@/components/projects/page";
 
 function ProjectsPage() {
   return <ProjectPageRoot />;

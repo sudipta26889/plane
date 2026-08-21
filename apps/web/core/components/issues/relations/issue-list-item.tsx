@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
 import { useTranslation } from "@taskpilot/i18n";
 import { LinkIcon, EditIcon, TrashIcon, CloseIcon } from "@taskpilot/propel/icons";
 // taskpilot imports
 import { Tooltip } from "@taskpilot/propel/tooltip";
+import type { TIssueRelationTypes } from "@taskpilot/types";
 import type { TIssue, TIssueServiceType } from "@taskpilot/types";
 import { EIssueServiceType } from "@taskpilot/types";
 import { ControlLink, CustomMenu } from "@taskpilot/ui";
@@ -20,9 +20,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// taskpilot web imports
-import { IssueIdentifier } from "@/taskpilot-web/components/issues/issue-details/issue-identifier";
-import type { TIssueRelationTypes } from "@/taskpilot-web/types";
+// components
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // local imports
 import { useRelationOperations } from "../issue-detail-widgets/relations/helper";
 import { RelationIssueProperty } from "./properties";

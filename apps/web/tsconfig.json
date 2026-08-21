@@ -6,7 +6,6 @@
       "@/app/*": ["./app/*"],
       "@/helpers/*": ["./helpers/*"],
       "@/styles/*": ["./styles/*"],
-      "@/taskpilot-web/*": ["./ce/*"],
       "package.json": ["./package.json"]
     },
     "strictNullChecks": true,

@@ -6,12 +6,11 @@
 
 // taskpilot imports
 import { ScrollArea } from "@taskpilot/propel/scrollarea";
-// taskpilot web imports
-import { PageNavigationPaneOutlineTabEmptyState } from "@/taskpilot-web/components/pages/navigation-pane/tab-panels/empty-states/outline";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageContentBrowser } from "../../editor/summary";
+import { PageNavigationPaneOutlineTabEmptyState } from "./empty-state/outline";
 
 type Props = {
   page: TPageInstance;

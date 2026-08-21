@@ -9,9 +9,9 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // taskpilot imports
 import type { EIssuesStoreType, TIssue } from "@taskpilot/types";
-// taskpilot web imports
-import { IssueModalProvider } from "@/taskpilot-web/components/issues/issue-modal/provider";
+// local imports
 import { CreateUpdateIssueModalBase } from "./base";
+import { IssueModalProvider } from "./provider";
 
 export interface IssuesModalProps {
   data?: Partial<TIssue>;

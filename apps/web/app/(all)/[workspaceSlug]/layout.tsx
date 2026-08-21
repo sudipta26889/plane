@@ -6,9 +6,9 @@
 
 import { Outlet } from "react-router";
 import { AuthenticationWrapper } from "@/lib/wrappers/authentication-wrapper";
-import { WorkspaceContentWrapper } from "@/taskpilot-web/components/workspace/content-wrapper";
-import { AppRailVisibilityProvider } from "@/taskpilot-web/hooks/app-rail";
-import { GlobalModals } from "@/taskpilot-web/components/common/modal/global";
+import { WorkspaceContentWrapper } from "@/components/workspace/content-wrapper";
+import { AppRailVisibilityProvider } from "@/lib/app-rail";
+import { GlobalModals } from "@/components/common/modal/global";
 import { WorkspaceAuthWrapper } from "@/layouts/auth-layout/workspace-wrapper";
 import type { Route } from "./+types/layout";
 

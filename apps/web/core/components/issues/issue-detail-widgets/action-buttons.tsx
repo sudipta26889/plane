@@ -4,15 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React from "react";
 import { Paperclip } from "lucide-react";
 import { useTranslation } from "@taskpilot/i18n";
 import { LinkIcon, ViewsIcon, RelationPropertyIcon } from "@taskpilot/propel/icons";
 // taskpilot imports
 import type { TIssueServiceType, TWorkItemWidgets } from "@taskpilot/types";
-// taskpilot web imports
-import { WorkItemAdditionalWidgetActionButtons } from "@/taskpilot-web/components/issues/issue-detail-widgets/action-buttons";
 // local imports
 import { IssueAttachmentActionButton } from "./attachments";
 import { IssueLinksActionButton } from "./links";
@@ -93,14 +90,6 @@ export function IssueDetailWidgetActionButtons(props: Props) {
           issueServiceType={issueServiceType}
         />
       )}
-      <WorkItemAdditionalWidgetActionButtons
-        disabled={disabled}
-        hideWidgets={hideWidgets ?? []}
-        issueServiceType={issueServiceType}
-        projectId={projectId}
-        workItemId={issueId}
-        workspaceSlug={workspaceSlug}
-      />
     </div>
   );
 }

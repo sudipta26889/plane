@@ -9,7 +9,7 @@ import { ArrowDownWideNarrow } from "lucide-react";
 import { PROJECT_ORDER_BY_OPTIONS } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { getButtonStyling } from "@taskpilot/propel/button";
-import { CheckIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import { CheckIcon } from "@taskpilot/propel/icons";
 import type { TProjectOrderByOptions } from "@taskpilot/types";
 import { CustomMenu } from "@taskpilot/ui";
 

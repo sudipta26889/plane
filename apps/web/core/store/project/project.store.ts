@@ -12,7 +12,7 @@ import type { TFetchStatus, TLoader, TProjectAnalyticsCount, TProjectAnalyticsCo
 // helpers
 import { orderProjects, shouldFilterProject } from "@taskpilot/utils";
 // services
-import type { TProject, TPartialProject } from "@/taskpilot-web/types/projects";
+import type { TProject, TPartialProject } from "@taskpilot/types";
 import { IssueLabelService, IssueService } from "@/services/issue";
 import { ProjectService, ProjectStateService, ProjectArchiveService } from "@/services/project";
 // store

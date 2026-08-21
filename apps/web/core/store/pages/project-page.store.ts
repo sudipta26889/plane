@@ -15,7 +15,6 @@ import { EUserProjectRoles } from "@taskpilot/types";
 import { filterPagesByPageType, getPageName, orderPages, shouldFilterPage } from "@taskpilot/utils";
 // taskpilot web constants
 // taskpilot web store
-import type { RootStore } from "@/taskpilot-web/store/root.store";
 // services
 import { ProjectPageService } from "@/services/page";
 // store
@@ -81,7 +80,7 @@ export class ProjectPageStore implements IProjectPageStore {
   service: ProjectPageService;
   rootStore: CoreRootStore;
 
-  constructor(private store: RootStore) {
+  constructor(private store: CoreRootStore) {
     makeObservable(this, {
       // observables
       loader: observable.ref,
@@ -328,7 +327,7 @@ export class ProjectPageStore implements IProjectPageStore {
    * @description delete a page
    * @param {string} pageId
    */
-  removePage = async ({ pageId, shouldSync = true }: { pageId: string; shouldSync?: boolean }) => {
+  removePage = async ({ pageId, shouldSync: _shouldSync = true }: { pageId: string; shouldSync?: boolean }) => {
     try {
       const { workspaceSlug, projectId } = this.store.router;
       if (!workspaceSlug || !projectId || !pageId) return undefined;

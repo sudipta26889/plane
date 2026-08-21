@@ -92,4 +92,4 @@ chatController.registerWebSocketRoutes(router);
 
 ## License
 
-This project is licensed under the [GNU Affero General Public License v3.0](https://github.com/taskpilot/plane/blob/master/LICENSE.txt).
+This project is licensed under the [GNU Affero General Public License v3.0](https://github.com/taskpilot/taskpilot/blob/master/LICENSE.txt).

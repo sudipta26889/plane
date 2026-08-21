@@ -18,7 +18,7 @@ import { cn } from "@taskpilot/utils";
 import { useEditorConfig } from "@/hooks/editor";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // taskpilot web hooks
-import { useEditorFlagging } from "@/taskpilot-web/hooks/use-editor-flagging";
+import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 import { StickyEditorToolbar } from "./toolbar";
 
 interface StickyEditorWrapperProps extends Omit<

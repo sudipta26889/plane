@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 // taskpilot types
 import { useTranslation } from "@taskpilot/i18n";
 import type { IUser } from "@taskpilot/types";

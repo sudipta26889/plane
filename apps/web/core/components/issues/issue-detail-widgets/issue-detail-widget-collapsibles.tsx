@@ -4,16 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
 // taskpilot imports
 import type { TIssueServiceType, TWorkItemWidgets } from "@taskpilot/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// TaskPilot-web
-import { WorkItemAdditionalWidgetCollapsibles } from "@/taskpilot-web/components/issues/issue-detail-widgets/collapsibles";
-import { useTimeLineRelationOptions } from "@/taskpilot-web/components/relations";
+import { useTimeLineRelationOptions } from "@/components/relations";
 // local imports
 import { AttachmentsCollapsible } from "./attachments";
 import { LinksCollapsible } from "./links";
@@ -90,14 +87,6 @@ export const IssueDetailWidgetCollapsibles = observer(function IssueDetailWidget
           issueServiceType={issueServiceType}
         />
       )}
-      <WorkItemAdditionalWidgetCollapsibles
-        disabled={disabled}
-        hideWidgets={hideWidgets ?? []}
-        issueServiceType={issueServiceType}
-        projectId={projectId}
-        workItemId={issueId}
-        workspaceSlug={workspaceSlug}
-      />
     </div>
   );
 });

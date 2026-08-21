@@ -16,7 +16,7 @@ import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
 import type { IProject, IUserLite, IWorkspace } from "@taskpilot/types";
 import { Loader, ToggleSwitch } from "@taskpilot/ui";
 // constants
-import { PROJECT_DETAILS } from "@/constants/fetch-keys";
+import { PROJECT_DETAILS } from "@taskpilot/constants";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";

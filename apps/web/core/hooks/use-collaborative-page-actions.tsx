@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import type { EditorRefApi, TDocumentEventsServer } from "@taskpilot/editor";
+import type { TDocumentEventsServer } from "@taskpilot/editor";
 import type { TDocumentEventsClient } from "@taskpilot/editor/lib";
 import { DocumentCollaborativeEvents, getServerEventName } from "@taskpilot/editor/lib";
 import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";

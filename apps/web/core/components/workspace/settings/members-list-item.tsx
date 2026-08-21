@@ -21,7 +21,7 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions, useUserSettings } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 // taskpilot web imports
-import { useMemberColumns } from "@/taskpilot-web/components/workspace/settings/useMemberColumns";
+import { useMemberColumns } from "@/components/workspace/settings/useMemberColumns";
 
 type Props = {
   memberDetails: (IWorkspaceMember | null)[];

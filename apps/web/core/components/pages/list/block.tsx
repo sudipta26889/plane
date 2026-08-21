@@ -16,8 +16,8 @@ import { BlockItemAction } from "@/components/pages/list/block-item-action";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // taskpilot web hooks
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
-import { usePage } from "@/taskpilot-web/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
+import { usePage } from "@/hooks/store";
 
 type TPageListBlock = {
   pageId: string;

@@ -13,11 +13,10 @@ import { CORE_EXTENSIONS } from "@taskpilot/editor";
 import type { TEditorAsset } from "@taskpilot/editor";
 import { useTranslation } from "@taskpilot/i18n";
 import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@taskpilot/utils";
-// taskpilot web imports
-import { AdditionalPageNavigationPaneAssetItem } from "@/taskpilot-web/components/pages/navigation-pane/tab-panels/assets";
-import { PageNavigationPaneAssetsTabEmptyState } from "@/taskpilot-web/components/pages/navigation-pane/tab-panels/empty-states/assets";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
+// local import
+import { PageNavigationPaneAssetsTabEmptyState } from "./empty-state/assets";
 
 type Props = {
   page: TPageInstance;
@@ -97,14 +96,7 @@ const AssetItem = observer(function AssetItem(props: AssetItemProps) {
       </a>
     );
 
-  return (
-    <AdditionalPageNavigationPaneAssetItem
-      asset={asset}
-      assetSrc={assetSrc}
-      assetDownloadSrc={assetDownloadSrc}
-      page={page}
-    />
-  );
+  return null;
 });
 
 export const PageNavigationPaneAssetsTabPanel = observer(function PageNavigationPaneAssetsTabPanel(props: Props) {

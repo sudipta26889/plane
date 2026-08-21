@@ -8,7 +8,7 @@ import logging
 
 # Third party imports
 from celery import Celery
-from pythonjsonlogger.jsonlogger import JsonFormatter
+from pythonjsonlogger.json import JsonFormatter
 from celery.signals import after_setup_logger, after_setup_task_logger
 from celery.schedules import crontab
 
@@ -19,6 +19,7 @@ from taskpilot.settings.redis import redis_instance
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "taskpilot.settings.production")
 
 ri = redis_instance()
+
 
 app = Celery("taskpilot")
 

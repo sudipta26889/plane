@@ -19,8 +19,8 @@ import type { ISvgIcons } from "@taskpilot/propel/icons";
 import { Tooltip } from "@taskpilot/propel/tooltip";
 // constants
 import { cn } from "@taskpilot/utils";
-import type { ToolbarMenuItem } from "@/constants/editor";
-import { TOOLBAR_ITEMS } from "@/constants/editor";
+import type { ToolbarMenuItem } from "@taskpilot/editor";
+import { TOOLBAR_ITEMS } from "@taskpilot/editor";
 // helpers
 
 type Props = {

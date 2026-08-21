@@ -10,7 +10,7 @@ import type { TContextMenuItem } from "@taskpilot/ui";
 import { CustomMenu } from "@taskpilot/ui";
 import { copyUrlToClipboard, cn } from "@taskpilot/utils";
 import { useLayoutMenuItems } from "@/components/common/quick-actions-helper";
-import { Ellipsis, MoreHorizontal } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 import { IconButton } from "@taskpilot/propel/icon-button";
 
 type Props = {

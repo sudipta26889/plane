@@ -11,14 +11,11 @@ import { InfoIcon } from "@taskpilot/propel/icons";
 // taskpilot imports
 import { ETabIndices } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
+import type { TProject } from "@taskpilot/types";
 // ui
 import { Tooltip } from "@taskpilot/propel/tooltip";
 import { Input, TextArea } from "@taskpilot/ui";
 import { cn, projectIdentifierSanitizer, getTabIndex } from "@taskpilot/utils";
-// taskpilot utils
-// helpers
-// taskpilot-web types
-import type { TProject } from "@/taskpilot-web/types/projects";
 
 type Props = {
   setValue: UseFormSetValue<TProject>;

@@ -14,11 +14,11 @@ import { Breadcrumbs, Header } from "@taskpilot/ui";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { IssueDetailQuickActions } from "@/components/issues/issue-detail/issue-detail-quick-actions";
 // constants
-import { ISSUE_DETAILS } from "@/constants/fetch-keys";
+import { ISSUE_DETAILS } from "@taskpilot/constants";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 // taskpilot web
-import { ProjectBreadcrumb } from "@/taskpilot-web/components/breadcrumbs/project";
+import { ProjectBreadcrumb } from "@/components/breadcrumbs/project";
 // services
 import { IssueService } from "@/services/issue";
 

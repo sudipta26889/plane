@@ -20,7 +20,7 @@ import {
   renderAdditionalAction,
   renderAdditionalValue,
   shouldShowConnector,
-} from "@/taskpilot-web/components/workspace-notifications/notification-card/content";
+} from "../../notification-card/content";
 
 // Types
 export type TNotificationFieldData = {

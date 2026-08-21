@@ -27,9 +27,9 @@ import { MultipleSelectGroup } from "@/components/core/multiple-select";
 // hooks
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 // taskpilot web components
-import { IssueBulkOperationsRoot } from "@/taskpilot-web/components/issues/bulk-operations";
+import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
 // taskpilot web hooks
-import { useBulkOperationStatus } from "@/taskpilot-web/hooks/use-bulk-operation-status";
+import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // utils
 import type { GroupDropLocation } from "../utils";
 import { getGroupByColumns, isWorkspaceLevel, isSubGrouped } from "../utils";

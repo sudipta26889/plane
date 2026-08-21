@@ -20,7 +20,7 @@ import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // taskpilot web imports
-import { getSidebarNavigationItemIcon } from "@/taskpilot-web/components/workspace/sidebar/helper";
+import { getSidebarNavigationItemIcon } from "@/components/workspace/sidebar/helper";
 
 type Props = {
   item: IWorkspaceSidebarNavigationItem;

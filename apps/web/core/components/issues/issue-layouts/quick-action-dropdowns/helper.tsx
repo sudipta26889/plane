@@ -13,8 +13,7 @@ import { TOAST_TYPE, setToast } from "@taskpilot/propel/toast";
 import type { EIssuesStoreType, TIssue } from "@taskpilot/types";
 import type { TContextMenuItem } from "@taskpilot/ui";
 import { copyUrlToClipboard, generateWorkItemLink } from "@taskpilot/utils";
-// types
-import { createCopyMenuWithDuplication } from "@/taskpilot-web/components/issues/issue-layouts/quick-action-dropdowns";
+import { createCopyMenuWithDuplication } from "./copy-menu-helper";
 
 // Generic helper function to handle optional function calls gracefully
 // Overload for functions without parameters
@@ -113,6 +112,7 @@ export const useIssueActionHandlers = (props: MenuItemFactoryProps) => {
       return;
     }
     await handleRestore()
+      // oxlint-disable-next-line promise/always-return
       .then(() => {
         setToast({
           type: TOAST_TYPE.SUCCESS,
@@ -293,6 +293,7 @@ export const useWorkItemDetailMenuItems = (props: MenuItemFactoryProps): TContex
       factory.createRestoreMenuItem(),
       factory.createDeleteMenuItem(),
     ],
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [factory]
   );
 };
@@ -334,6 +335,7 @@ export const useCycleIssueMenuItems = (props: MenuItemFactoryProps): TContextMen
       factory.createArchiveMenuItem(),
       factory.createDeleteMenuItem(),
     ],
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [factory, props.cycleId]
   );
 };
@@ -359,6 +361,7 @@ export const useModuleIssueMenuItems = (props: MenuItemFactoryProps): TContextMe
       factory.createArchiveMenuItem(),
       factory.createDeleteMenuItem(),
     ],
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
     [factory, props.moduleId]
   );
 };

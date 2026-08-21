@@ -10,8 +10,8 @@ import { EModalPosition, EModalWidth, ModalCore } from "@taskpilot/ui";
 // components
 import { ProductUpdatesFooter } from "@/components/global";
 // taskpilot web components
-import { ProductUpdatesChangelog } from "@/taskpilot-web/components/global/product-updates/changelog";
-import { ProductUpdatesHeader } from "@/taskpilot-web/components/global/product-updates/header";
+import { ProductUpdatesChangelog } from "@/components/global/product-updates/changelog";
+import { ProductUpdatesHeader } from "@/components/global/product-updates/header";
 
 export type ProductUpdatesModalProps = {
   isOpen: boolean;

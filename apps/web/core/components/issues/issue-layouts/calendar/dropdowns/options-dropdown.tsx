@@ -21,10 +21,9 @@ import type { TCalendarLayouts, TSupportedFilterForUpdate } from "@taskpilot/typ
 import { ToggleSwitch } from "@taskpilot/ui";
 // types
 // constants
-import { CALENDAR_LAYOUTS } from "@/constants/calendar";
+import { CALENDAR_LAYOUTS } from "@taskpilot/constants";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import useSize from "@/hooks/use-window-size";
-import type { IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssuesFilter } from "@/store/issue/module";
 import type { IProjectIssuesFilter } from "@/store/issue/project";

@@ -21,7 +21,7 @@ import { useEditorConfig, useEditorMention } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // taskpilot web hooks
-import { useEditorFlagging } from "@/taskpilot-web/hooks/use-editor-flagging";
+import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 // taskpilot web service
 import { WorkspaceService } from "@/services/workspace.service";
 import { LiteToolbar } from "./lite-toolbar";

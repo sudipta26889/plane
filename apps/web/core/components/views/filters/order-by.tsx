@@ -9,7 +9,7 @@ import { ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 import { VIEW_SORT_BY_OPTIONS, VIEW_SORTING_KEY_OPTIONS } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { getButtonStyling } from "@taskpilot/propel/button";
-import { CheckIcon, ChevronDownIcon } from "@taskpilot/propel/icons";
+import { CheckIcon } from "@taskpilot/propel/icons";
 import type { TViewFiltersSortBy, TViewFiltersSortKey } from "@taskpilot/types";
 import { CustomMenu } from "@taskpilot/ui";
 

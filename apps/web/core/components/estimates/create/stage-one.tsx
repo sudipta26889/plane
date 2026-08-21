@@ -10,13 +10,12 @@ import { EEstimateSystem, ESTIMATE_SYSTEMS } from "@taskpilot/constants";
 import { useTranslation } from "@taskpilot/i18n";
 import { Tooltip } from "@taskpilot/propel/tooltip";
 import type { TEstimateSystemKeys } from "@taskpilot/types";
-// components
+// helpers
+import { isEstimateSystemEnabled } from "./helper";
 import { convertMinutesToHoursMinutesString } from "@taskpilot/utils";
-// taskpilot web imports
-import { isEstimateSystemEnabled } from "@/taskpilot-web/components/estimates/helper";
-import { UpgradeBadge } from "@/taskpilot-web/components/workspace/upgrade-badge";
+// components
+import { UpgradeBadge } from "@/components/workspace/upgrade-badge";
 import { RadioInput } from "../radio-select";
-// local imports
 
 type TEstimateCreateStageOne = {
   estimateSystem: TEstimateSystemKeys;

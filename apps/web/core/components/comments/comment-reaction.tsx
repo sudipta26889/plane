@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 // taskpilot imports
@@ -12,7 +11,6 @@ import { stringToEmoji } from "@taskpilot/propel/emoji-icon-picker";
 import { EmojiReactionGroup, EmojiReactionPicker } from "@taskpilot/propel/emoji-reaction";
 import type { EmojiReactionType } from "@taskpilot/propel/emoji-reaction";
 import type { TCommentsOperations, TIssueComment } from "@taskpilot/types";
-import { cn } from "@taskpilot/utils";
 // helpers
 // local imports
 

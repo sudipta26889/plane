@@ -6,8 +6,7 @@
 
 // helpers
 import { API_BASE_URL } from "@taskpilot/constants";
-// taskpilot web constants
-import type { AI_EDITOR_TASKS } from "@/constants/ai";
+import type { AI_EDITOR_TASKS } from "@taskpilot/constants";
 // services
 import { APIService } from "@/services/api.service";
 // types

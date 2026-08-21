@@ -8,7 +8,7 @@
 import type { ICycle, IModule, IProjectView, IWorkspaceView } from "@taskpilot/types";
 import type { TContextMenuItem } from "@taskpilot/ui";
 // hooks
-import { useQuickActionsFactory } from "@/taskpilot-web/components/common/quick-actions-factory";
+import { useQuickActionsFactory } from "@/components/common/quick-actions-factory";
 
 // Types
 interface UseCycleMenuItemsProps {

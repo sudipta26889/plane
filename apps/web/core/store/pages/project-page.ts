@@ -10,7 +10,7 @@ import { computedFn } from "mobx-utils";
 import { EPageAccess, EUserPermissions } from "@taskpilot/constants";
 import type { TPage } from "@taskpilot/types";
 // taskpilot web store
-import type { RootStore } from "@/taskpilot-web/store/root.store";
+import type { RootStore } from "@/store/root.store";
 // services
 import { ProjectPageService } from "@/services/page";
 const projectPageService = new ProjectPageService();

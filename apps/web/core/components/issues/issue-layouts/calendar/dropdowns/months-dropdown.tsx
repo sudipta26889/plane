@@ -13,9 +13,8 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@taskpilot/propel/icons";
 // icons
 // constants
 import { getDate } from "@taskpilot/utils";
-import { MONTHS_LIST } from "@/constants/calendar";
+import { MONTHS_LIST } from "@taskpilot/constants";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
-import type { IProjectEpicsFilter } from "@/taskpilot-web/store/issue/epic";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";
 import type { IModuleIssuesFilter } from "@/store/issue/module";
 import type { IProjectIssuesFilter } from "@/store/issue/project";

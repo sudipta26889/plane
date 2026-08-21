@@ -16,9 +16,8 @@ import { calculateTotalFilters } from "@taskpilot/utils";
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
-// taskpilot web hooks
-import type { EPageStoreType } from "@/taskpilot-web/hooks/store";
-import { usePageStore } from "@/taskpilot-web/hooks/store";
+import { usePageStore } from "@/hooks/store";
+import type { EPageStoreType } from "@/hooks/store";
 // local imports
 import { PageAppliedFiltersList } from "../list/applied-filters";
 import { PageFiltersSelection } from "../list/filters";

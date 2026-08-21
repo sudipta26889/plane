@@ -27,7 +27,7 @@ import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 // taskpilot web hooks
-import { EPageStoreType, usePage, usePageStore } from "@/taskpilot-web/hooks/store";
+import { EPageStoreType, usePage, usePageStore } from "@/hooks/store";
 // taskpilot web services
 import { WorkspaceService } from "@/services/workspace.service";
 // services

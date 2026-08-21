@@ -40,7 +40,7 @@ import {
   StatePropertyIcon,
 } from "@taskpilot/propel/icons";
 import { store } from "@/lib/store-context";
-import type { TProjectActivity } from "@/taskpilot-web/types";
+import type { TProjectActivity } from "@taskpilot/types";
 
 type ActivityIconMap = {
   [key: string]: FC<{ className?: string }>;

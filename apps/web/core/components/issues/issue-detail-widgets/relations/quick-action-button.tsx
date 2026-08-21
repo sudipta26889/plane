@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { FC } from "react";
 import React from "react";
 import { observer } from "mobx-react";
 
@@ -15,9 +14,10 @@ import type { TIssueServiceType } from "@taskpilot/types";
 import { CustomMenu } from "@taskpilot/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// TaskPilot-web
-import { useTimeLineRelationOptions } from "@/taskpilot-web/components/relations";
-import type { TIssueRelationTypes } from "@/taskpilot-web/types";
+// components
+import { useTimeLineRelationOptions } from "@/components/relations";
+// types
+import type { TIssueRelationTypes } from "@taskpilot/types";
 
 type Props = {
   issueId: string;
@@ -56,6 +56,7 @@ export const RelationActionButton = observer(function RelationActionButton(props
 
         return (
           <CustomMenu.MenuItem
+            // oxlint-disable-next-line react/no-array-index-key
             key={index}
             onClick={() => {
               handleOnClick(item.key);
