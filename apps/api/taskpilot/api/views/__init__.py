@@ -84,4 +84,5 @@ from .page import (
     PageDetailAPIEndpoint,
     PageArchiveUnarchiveAPIEndpoint,
     PageVersionListAPIEndpoint,
+    PageDescriptionAPIEndpoint,
 )

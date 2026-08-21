@@ -728,6 +728,29 @@ PAGE_EXAMPLE = OpenApiExample(
     },
 )
 
+PAGE_DESCRIPTION_UPDATE_EXAMPLE = OpenApiExample(
+    "PageDescriptionUpdateSerializer",
+    value={
+        "description_html": "<h1>Meeting Notes</h1><p>Refreshed body.</p>",
+        "description_json": {
+            "type": "doc",
+            "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Refreshed body."}]}],
+        },
+    },
+    description="Example request for replacing a page body",
+)
+
+PAGE_DESCRIPTION_EXAMPLE = OpenApiExample(
+    name="PageDescription",
+    value={
+        "description_html": "<h1>Meeting Notes</h1><p>Refreshed body.</p>",
+        "description_json": {
+            "type": "doc",
+            "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Refreshed body."}]}],
+        },
+    },
+)
+
 STICKY_EXAMPLE = OpenApiExample(
     name="Sticky",
     value={

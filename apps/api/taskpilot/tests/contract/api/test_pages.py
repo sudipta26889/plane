@@ -541,3 +541,94 @@ class TestPageVersionListAPIEndpoint:
         url = self.get_versions_url(workspace.slug, project.id, create_page.id)
 
         assert api_client.get(url).status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.contract
+class TestPageDescriptionAPIEndpoint:
+    """Test Page Description Update API Endpoint"""
+
+    def get_description_url(self, workspace_slug, project_id, page_id):
+        """Helper to get page description endpoint URL"""
+        return f"/api/v1/workspaces/{workspace_slug}/projects/{project_id}/pages/{page_id}/description/"
+
+    @pytest.mark.django_db
+    def test_update_description(self, api_key_client, workspace, project, create_page):
+        """Test replacing a page body"""
+        url = self.get_description_url(workspace.slug, project.id, create_page.id)
+        body = {"description_html": "<p>Refreshed</p>", "description_json": {"type": "doc", "content": []}}
+
+        with patch("taskpilot.api.views.page.page_transaction") as mock_page_transaction:
+            response = api_key_client.patch(url, body, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        create_page.refresh_from_db()
+        assert create_page.description_html == "<p>Refreshed</p>"
+        assert create_page.description_json == {"type": "doc", "content": []}
+        mock_page_transaction.delay.assert_called_once()
+
+    @pytest.mark.django_db
+    def test_update_description_leaves_metadata_alone(self, api_key_client, workspace, project, create_page):
+        """Test the body-only update does not disturb name, access or labels"""
+        url = self.get_description_url(workspace.slug, project.id, create_page.id)
+
+        with patch("taskpilot.api.views.page.page_transaction"):
+            api_key_client.patch(url, {"description_html": "<p>New</p>", "name": "Hijacked"}, format="json")
+
+        create_page.refresh_from_db()
+        assert create_page.name == "Existing Page"
+
+    @pytest.mark.django_db
+    def test_update_description_mints_no_version(self, api_key_client, workspace, project, create_page):
+        """Test an API write is not recorded as a version, so /versions/ stays a human-edit signal"""
+        url = self.get_description_url(workspace.slug, project.id, create_page.id)
+
+        with patch("taskpilot.api.views.page.page_transaction"):
+            api_key_client.patch(url, {"description_html": "<p>New</p>"}, format="json")
+
+        assert PageVersion.objects.filter(page=create_page).count() == 0
+
+    @pytest.mark.django_db
+    def test_update_description_sanitizes_html(self, api_key_client, workspace, project, create_page):
+        """Test the body is sanitized on the way in"""
+        url = self.get_description_url(workspace.slug, project.id, create_page.id)
+
+        with patch("taskpilot.api.views.page.page_transaction"):
+            response = api_key_client.patch(
+                url, {"description_html": "<p>ok</p><script>alert(1)</script>"}, format="json"
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        create_page.refresh_from_db()
+        assert "<script>" not in create_page.description_html
+
+    @pytest.mark.django_db
+    def test_update_description_on_locked_page(self, api_key_client, workspace, project, create_page):
+        """Test locked pages reject a body update"""
+        create_page.is_locked = True
+        create_page.save()
+        url = self.get_description_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.patch(url, {"description_html": "<p>x</p>"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_update_description_on_archived_page(self, api_key_client, workspace, project, create_page):
+        """Test archived pages reject a body update"""
+        create_page.archived_at = timezone.now()
+        create_page.save()
+        url = self.get_description_url(workspace.slug, project.id, create_page.id)
+
+        response = api_key_client.patch(url, {"description_html": "<p>x</p>"}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_update_description_of_other_users_private_page(self, api_key_client, workspace, project, other_user):
+        """Test a private page owned by someone else is not writable"""
+        page = _make_page(project, other_user, access=Page.PRIVATE_ACCESS)
+        url = self.get_description_url(workspace.slug, project.id, page.id)
+
+        response = api_key_client.patch(url, {"description_html": "<p>x</p>"}, format="json")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -17,6 +17,7 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 # Module imports
 from taskpilot.api.serializers import PageSerializer, PageDetailSerializer, PageVersionSerializer
 from taskpilot.app.permissions import ROLE, ProjectEntityPermission
+from taskpilot.app.serializers import PageBinaryUpdateSerializer
 from taskpilot.app.views.page.base import unarchive_archive_page_and_descendants
 from taskpilot.bgtasks.page_transaction_task import page_transaction
 from taskpilot.db.models import Page, PageVersion, ProjectMember, UserFavorite, UserRecentVisit
@@ -32,8 +33,10 @@ from taskpilot.utils.openapi import (
     # Request Examples
     PAGE_CREATE_EXAMPLE,
     PAGE_UPDATE_EXAMPLE,
+    PAGE_DESCRIPTION_UPDATE_EXAMPLE,
     # Response Examples
     PAGE_EXAMPLE,
+    PAGE_DESCRIPTION_EXAMPLE,
     INVALID_REQUEST_RESPONSE,
     DELETED_RESPONSE,
     ARCHIVED_RESPONSE,
@@ -501,3 +504,73 @@ class PageVersionListAPIEndpoint(BaseAPIView):
                 PageVersionSerializer(versions, many=True, fields=self.fields, expand=self.expand).data
             ),
         )
+
+
+class PageDescriptionAPIEndpoint(BaseAPIView):
+    """Page Description Update Endpoint"""
+
+    serializer_class = PageBinaryUpdateSerializer
+    model = Page
+    permission_classes = [ProjectEntityPermission]
+
+    def get_queryset(self):
+        return project_page_queryset(self.kwargs.get("slug"), self.kwargs.get("project_id"), self.request.user)
+
+    @page_docs(
+        operation_id="update_page_description",
+        summary="Update page description",
+        description="Replace a page's body without touching its name, labels or access. Accepts description_html, description_json and a base64 description_binary.",  # noqa: E501
+        parameters=[
+            PAGE_ID_PARAMETER,
+        ],
+        request=OpenApiRequest(
+            request=PageBinaryUpdateSerializer,
+            examples=[PAGE_DESCRIPTION_UPDATE_EXAMPLE],
+        ),
+        responses={
+            200: OpenApiResponse(
+                description="Page description updated",
+                response=PageBinaryUpdateSerializer,
+                examples=[PAGE_DESCRIPTION_EXAMPLE],
+            ),
+            400: INVALID_REQUEST_RESPONSE,
+        },
+    )
+    def patch(self, request, slug, project_id, pk):
+        """Update page description
+
+        Replace a page's body, leaving its name, labels and access untouched.
+        Locked and archived pages reject the update.
+        """
+        page = self.get_queryset().get(pk=pk)
+
+        if page.is_locked:
+            return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if page.archived_at:
+            return Response({"error": "Page is archived"}, status=status.HTTP_400_BAD_REQUEST)
+
+        old_description_html = page.description_html
+        serializer = PageBinaryUpdateSerializer(page, data=request.data, partial=True)
+        if serializer.is_valid():
+            page = serializer.save()
+            # capture mentions/links from the sanitized content
+            if request.data.get("description_html"):
+                page_transaction.delay(
+                    new_description_html=page.description_html or "<p></p>",
+                    old_description_html=old_description_html,
+                    page_id=str(pk),
+                )
+            # NOTE: deliberately no track_page_version here. A version records a
+            # human save, which is what /versions/ lets integrations detect; if API
+            # writes minted versions too, a caller re-reading the count straight
+            # after its own write would race the async task and later mistake its
+            # own edit for someone else's.
+            return Response(
+                {
+                    "description_html": page.description_html,
+                    "description_json": page.description_json,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
