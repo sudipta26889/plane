@@ -16,7 +16,7 @@ import { RichTextEditor } from "@/components/editor/rich-text";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 // services
 import { AIService } from "@/services/ai.service";
-import { AI_EDITOR_TASKS } from "@/constants/ai";
+import { AI_EDITOR_TASKS } from "@taskpilot/constants";
 
 const aiService = new AIService();
 
