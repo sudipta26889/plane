@@ -615,7 +615,15 @@ git commit -m "feat(a2a): add work-item relation skills"
 - Produces on the client: `lookupCallNote(params)`, `upsertCallNote(data)`, `callNoteHistory(params)`.
 - Produces skills `callnote.lookup` (`taskpilot:read`) and `callnote.upsert` (`taskpilot:write`).
 
-Call notes are workspace-scoped, with no project segment in the path. The routing convention already lives in the project descriptions — ProDevs, GrihaTEK and RitualRhythms each declare that their call notes land in that project — so the upsert handler routes with `routeWorkItem` rather than inventing its own rule.
+Call notes are workspace-scoped, with no project segment in the path.
+
+**Correction, found during implementation:** this plan originally said the upsert
+handler should route with `routeWorkItem`. That is wrong against the source. All
+three endpoints are POST-only and the upsert body is
+`{phone, category, details_html, caller_name?}`, where `category` is exactly one
+of `home_automation | export | event | prodevs` — the server maps that enum to a
+hardcoded project itself. There is no project field to route to. The agent
+supplies the enum from call context instead.
 
 - [ ] **Step 1: Read the endpoint contract first**
 
