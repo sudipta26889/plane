@@ -22,15 +22,24 @@ const NEIGHBOUR_LIMIT = 20;
 
 const ROUTING_SYSTEM_PROMPT = `You route work items to projects in TaskPilot.
 
-You are given the projects (their descriptions are the routing rules, written by the
-user), and the projects of the most similar existing work items as evidence.
+You are given two things: the projects with their descriptions, and a summary of
+where the most similar EXISTING work items are actually filed.
+
+The filing evidence outranks the descriptions. Descriptions are short, often
+stale, and rarely describe everything a project has come to hold — a project
+described as being about one topic is frequently where all of a product's work
+lives, engineering included. The evidence shows what the user actually does.
+When the two disagree, follow the evidence.
+
+Only prefer a description over the evidence when the item plainly belongs to a
+project that has no similar items yet.
 
 Reply with ONLY a JSON object:
 {"project_id": "<exact id from the list>", "confidence": <0.0-1.0>, "reason": "<one sentence>"}
 
-Set confidence below 0.5 when the item could plausibly belong to more than one
-project, or when no project's description covers it. Never invent a project id.
-It is far better to be honestly unsure than to be confidently wrong.
+Set confidence below 0.5 when the evidence is split, or when neither the
+evidence nor any description covers the item. Never invent a project id. It is
+far better to be honestly unsure than to be confidently wrong.
 
 Keep "reason" under 15 words. A long reason risks the reply being truncated,
 which throws the whole routing decision away.`;
@@ -120,16 +129,32 @@ export function decideFromNeighbours(
   return { projectId: topProjectId, confidence: share };
 }
 
-function formatEvidence(scores: Map<string, number>, projects: ProjectSummary[]): string {
-  if (scores.size === 0) return "No similar existing work items were found.";
+/**
+ * Describe where similar work already lives, in terms a model will actually
+ * weigh: how many of the nearest items each project holds, and how close the
+ * closest one is. A bare summed-similarity float was easy to ignore in favour
+ * of reasoning about the project description.
+ */
+export function formatEvidence(hits: QdrantHit[], projects: ProjectSummary[]): string {
+  if (hits.length === 0) return "No similar existing work items were found.";
 
-  return [...scores.entries()]
+  const counts = countHitsByProject(hits);
+  const best = new Map<string, number>();
+  for (const hit of hits) {
+    const projectId = hit.payload?.project_id;
+    if (!projectId) continue;
+    const id = String(projectId);
+    best.set(id, Math.max(best.get(id) ?? 0, hit.score));
+  }
+
+  const lines = [...counts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .map(([projectId, score]) => {
+    .map(([projectId, count]) => {
       const project = projects.find((candidate) => candidate.id === projectId);
-      return `- ${project?.name || projectId} (id: ${projectId}) — summed similarity ${score.toFixed(2)}`;
-    })
-    .join("\n");
+      return `- ${project?.name || projectId} (id: ${projectId}): ${count} of the ${hits.length} most similar items, closest match ${(best.get(projectId) ?? 0).toFixed(2)}`;
+    });
+
+  return lines.join("\n");
 }
 
 export async function routeWorkItem(
@@ -175,6 +200,7 @@ export async function routeWorkItem(
 
   let neighbourScores = new Map<string, number>();
   let neighbourHitsByProject = new Map<string, number>();
+  let neighbourHits: QdrantHit[] = [];
   let degraded = false;
 
   try {
@@ -188,6 +214,7 @@ export async function routeWorkItem(
         ],
       },
     });
+    neighbourHits = hits;
     neighbourScores = scoreNeighbours(hits);
     neighbourHitsByProject = countHitsByProject(hits);
   } catch (err: any) {
@@ -209,7 +236,7 @@ export async function routeWorkItem(
         {
           role: "user",
           content: `Projects:\n${formatProjectsForPrompt(projects)}\n\nEvidence from similar existing work items:\n${formatEvidence(
-            neighbourScores,
+            neighbourHits,
             projects,
           )}\n\nWork item:\n${text}`,
         },
