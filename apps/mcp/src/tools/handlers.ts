@@ -492,11 +492,11 @@ const TOOLS = [
   },
   {
     name: "page_list",
-    description: "List pages (documents) in a project, or across all projects. Pages are documents, not tasks.",
+    description: "List pages in a project. To COUNT pages, call this once with project_hint and read total_available — that is the true total; count and pages are only this page of results. Do not page through to count. To find a page by topic use page_search instead.",
     inputSchema: {
       type: "object",
       properties: {
-        project_hint: { type: "string", description: "Project name or identifier to limit to (optional)" },
+        project_hint: { type: "string", description: "Project name or identifier. Always pass this when asking about one project — without it every project is listed." },
         cursor: {
           type: "string",
           description: "next_cursor from a previous call, to page further. Requires project_hint, since a cursor is per-project.",
