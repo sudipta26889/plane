@@ -1,11 +1,21 @@
 import crypto from "node:crypto";
 import { db } from "../db.js";
+import { clearRunState } from "../agent/state.js";
 import { executeToolCall } from "../tools/handlers.js";
+import { buildApprovalRequest, submitApproval } from "./dharahil.js";
 import { getSkillDefinition } from "./skill-registry.js";
 import { logAuditEvent } from "./audit-log.js";
 import { queueWebhookDeliveries } from "./webhooks.js";
 import { isValidTransition, isTerminalState } from "./types.js";
 import type { A2aTaskState, AuthContext } from "./types.js";
+import type { AgentResult } from "../agent/loop.js";
+
+/**
+ * The skill an agent-loop task records. Deliberately absent from the skill
+ * registry, so `message.send` can never be asked to dispatch it directly — an
+ * agent run only ever starts from free text.
+ */
+export const AGENT_SKILL = "agent.run";
 
 /**
  * Maps A2A skill input to MCP tool args.
@@ -229,6 +239,120 @@ export async function executeA2aTask(
 
     throw err;
   }
+}
+
+/**
+ * Ask DharaHIL to approve one tool call and record it as this task's pending
+ * approval.
+ *
+ * The upsert is not incidental: `a2a_approvals` holds one row per task, and a
+ * resumed agent run can suspend again on a later call in the same turn. A plain
+ * INSERT would throw there and leave the run parked with no live request.
+ */
+export async function requestApproval(params: {
+  taskId: string;
+  skill: string;
+  toolName: string;
+  toolArgs: Record<string, any>;
+  userId: string;
+  contextSummary: string;
+}): Promise<void> {
+  const { requestId, expiresAt } = await submitApproval(
+    buildApprovalRequest({
+      toolName: params.toolName,
+      toolArgs: params.toolArgs,
+      userId: params.userId,
+      taskId: params.taskId,
+      contextSummary: params.contextSummary,
+    }),
+  );
+
+  await db.query(
+    `INSERT INTO a2a_approvals (task_id, skill, request_data, dharahil_request_id, expires_at, status)
+     VALUES ($1, $2, $3, $4, $5, 'pending')
+     ON CONFLICT (task_id) DO UPDATE SET
+       skill = EXCLUDED.skill,
+       request_data = EXCLUDED.request_data,
+       dharahil_request_id = EXCLUDED.dharahil_request_id,
+       expires_at = EXCLUDED.expires_at,
+       status = 'pending',
+       responded_at = NULL,
+       responded_by = NULL`,
+    [params.taskId, params.skill, JSON.stringify(params.toolArgs), requestId, expiresAt],
+  );
+}
+
+/**
+ * Settle an A2A task from one agent-loop outcome, and return the state it
+ * ended in. The task must exist and still be in `submitted` — that holds both
+ * for a fresh run and for a resumed one, which the poller moves back to
+ * `submitted` when the human approves.
+ *
+ * The loop has already executed whatever it executed, each call through
+ * `executeToolCall` with its own scope check, approval gate and audit entry.
+ * Nothing here runs a tool.
+ */
+export async function settleAgentRun(
+  taskId: string,
+  contextId: string,
+  result: AgentResult,
+  auth: AuthContext,
+): Promise<A2aTaskState> {
+  const event = (state: A2aTaskState, extra: Record<string, any> = {}) =>
+    queueWebhookDeliveries(
+      taskId,
+      state === "completed" ? "task.completed" : state === "failed" ? "task.failed" : "task.approval_required",
+      { task_id: taskId, context_id: contextId, skill: AGENT_SKILL, state, ...extra, created_at: new Date().toISOString() },
+      auth.clientId,
+    );
+
+  if (result.status === "needs_approval") {
+    const { name, args } = result.toolCall;
+    await transitionState(taskId, "auth_required", `Awaiting approval for ${name}`);
+    try {
+      await requestApproval({
+        taskId,
+        skill: AGENT_SKILL,
+        toolName: name,
+        toolArgs: args,
+        userId: auth.userId,
+        contextSummary: `TaskPilot agent wants to call ${name}`,
+      });
+    } catch (err: any) {
+      // Same posture as the single-skill path: log and leave the task parked.
+      // Failing closed strands the run; it never executes the write.
+      console.error(`[a2a] Failed to submit approval for ${taskId}:`, err);
+    }
+    await event("auth_required");
+    return "auth_required";
+  }
+
+  // Past this point the run is over either way, so the saved transcript is dead
+  // weight. (A run that completed normally already cleared its own.)
+  await clearRunState(taskId);
+
+  if (result.status === "failed") {
+    await storeError(taskId, { message: result.error });
+    await transitionState(taskId, "failed", result.error);
+    await event("failed", { error: { message: result.error } });
+    return "failed";
+  }
+
+  await transitionState(taskId, "working");
+  await storeResult(taskId, { answer: result.answer, toolsUsed: result.toolsUsed });
+
+  // `stoppedEarly` is the only thing allowed to decide this. The answer text
+  // says so too, but reading prose to set a state is how a run that merely
+  // mentions a limit ends up marked failed.
+  if (result.stoppedEarly) {
+    await transitionState(taskId, "failed", "Agent stopped early: step or time limit reached");
+    await event("failed", { result: { answer: result.answer, toolsUsed: result.toolsUsed } });
+    return "failed";
+  }
+
+  await transitionState(taskId, "completed");
+  await event("completed", { result: { answer: result.answer, toolsUsed: result.toolsUsed }, completed_at: new Date().toISOString() });
+  return "completed";
 }
 
 /**

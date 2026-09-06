@@ -1,13 +1,17 @@
+import crypto from "node:crypto";
 import { db } from "../db.js";
+import { runAgent } from "../agent/loop.js";
 import { getAllSkills, getSkillDefinition, requiresApproval } from "./skill-registry.js";
 import {
+  AGENT_SKILL,
   createA2aTask,
   executeA2aTask,
   getA2aTask,
   listA2aTasks,
+  requestApproval,
+  settleAgentRun,
   transitionState,
 } from "./task-executor.js";
-import { buildApprovalRequest, submitApproval } from "./dharahil.js";
 import { logAuditEvent } from "./audit-log.js";
 import { queueWebhookDeliveries } from "./webhooks.js";
 import { hasRequiredScope } from "./auth.js";
@@ -149,6 +153,72 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
   let { contextId, skill, input } = params;
   const { idempotencyKey } = params;
 
+  // Checked before anything else now, not just before dispatch: an agent run
+  // costs model calls, and a client's retry must not buy a second one.
+  if (idempotencyKey) {
+    const existing = await db.query(
+      `SELECT * FROM a2a_tasks WHERE idempotency_key = $1 AND client_id = $2`,
+      [idempotencyKey, auth.clientId],
+    );
+    if (existing.rows.length > 0) {
+      const task = existing.rows[0];
+      return jsonRpcResult(body.id, { taskId: task.task_id, state: task.state, result: task.result });
+    }
+  }
+
+  // Free text goes to the ReAct loop, which can chain tool calls — look an item
+  // up, then act on it. An explicit skill never comes through here: that path
+  // is exact and callers depend on it.
+  if (!skill && params.text && contextId) {
+    // The task row is written only once the run's outcome is known. That is
+    // what lets a loop which never got off the ground fall through to the
+    // intent adapter without stranding a phantom task behind it.
+    const taskId = `task_${crypto.randomUUID()}`;
+    const result = await runAgent({ text: params.text, contextId, auth, taskId });
+
+    // Fall back only while nothing has run. Once the loop has executed a tool,
+    // re-running the same text through the single-shot adapter would repeat
+    // that write — losing a feature is better than doing one twice.
+    if (result.status === "failed" && result.toolsUsed.length === 0) {
+      console.warn(`[agent] loop unavailable (${result.error}); falling back to the intent adapter`);
+    } else {
+      await createA2aTask({
+        taskId,
+        contextId,
+        clientId: auth.clientId,
+        userId: auth.userId,
+        workspaceSlug: auth.workspaceSlug,
+        skill: AGENT_SKILL,
+        input: { text: params.text },
+        requiresApproval: result.status === "needs_approval",
+        idempotencyKey,
+      });
+
+      const state = await settleAgentRun(taskId, contextId, result, auth);
+
+      await logAuditEvent({
+        userId: auth.userId,
+        clientId: auth.clientId,
+        ipAddress,
+        operation: "message.send",
+        taskId,
+        skill: AGENT_SKILL,
+        success: state === "completed",
+        ...(result.status === "failed" ? { errorMessage: result.error } : {}),
+        metadata: { agent: true, state },
+      });
+
+      return jsonRpcResult(body.id, {
+        taskId,
+        state,
+        ...(result.status === "completed"
+          ? { result: { answer: result.answer, toolsUsed: result.toolsUsed } }
+          : {}),
+        ...(result.status === "failed" ? { error: { message: result.error } } : {}),
+      });
+    }
+  }
+
   // Peers that can only send free text (OpenClaw's built-in channel) name no
   // skill. Ask the LLM which one they meant; it returns null when unsure, and
   // we then refuse below rather than act on a guess.
@@ -180,22 +250,6 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
     return jsonRpcError(body.id, A2A_ERROR_CODES.AUTH_REQUIRED, `Missing required scope: ${skillDef.scope}`);
   }
 
-  // Idempotency check
-  if (idempotencyKey) {
-    const existing = await db.query(
-      `SELECT * FROM a2a_tasks WHERE idempotency_key = $1 AND client_id = $2`,
-      [idempotencyKey, auth.clientId],
-    );
-    if (existing.rows.length > 0) {
-      const task = existing.rows[0];
-      return jsonRpcResult(body.id, {
-        taskId: task.task_id,
-        state: task.state,
-        result: task.result,
-      });
-    }
-  }
-
   const taskInput = input || {};
 
   if (requiresApproval(skill, taskInput, auth.clientId)) {
@@ -214,21 +268,14 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
 
     // Submit approval request
     try {
-      const approvalRequest = buildApprovalRequest({
+      await requestApproval({
+        taskId,
+        skill,
         toolName: skillDef.mcpTool,
         toolArgs: taskInput,
         userId: auth.userId,
-        taskId,
         contextSummary: `A2A ${skill} request`,
       });
-      const { requestId, expiresAt } = await submitApproval(approvalRequest);
-
-      // Save approval record
-      await db.query(
-        `INSERT INTO a2a_approvals (task_id, skill, request_data, dharahil_request_id, expires_at, status)
-         VALUES ($1, $2, $3, $4, $5, 'pending')`,
-        [taskId, skill, JSON.stringify(taskInput), requestId, expiresAt],
-      );
     } catch (err: any) {
       console.error("[a2a] Failed to submit approval:", err);
     }

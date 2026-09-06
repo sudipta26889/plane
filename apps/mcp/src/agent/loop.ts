@@ -28,7 +28,10 @@ export type PendingToolCall = { id: string; name: string; args: Record<string, a
 export type AgentResult =
   | { status: "completed"; answer: string; toolsUsed: string[]; stoppedEarly?: true }
   | { status: "needs_approval"; toolCall: PendingToolCall }
-  | { status: "failed"; error: string };
+  // `toolsUsed` matters as much on a failure as on a success: a caller that
+  // wants to retry the request another way has to know whether anything
+  // already ran, or the retry repeats a write.
+  | { status: "failed"; error: string; toolsUsed: string[] };
 
 type CompletedResult = Extract<AgentResult, { status: "completed" }>;
 
@@ -151,6 +154,7 @@ export async function runAgent(input: {
         return {
           status: "failed",
           error: `Cannot resume ${input.taskId}: the approved call ${approvedCallId} is not pending in the saved state.`,
+          toolsUsed,
         };
       }
     } else {
@@ -163,7 +167,7 @@ export async function runAgent(input: {
     }
 
     const llmConfig = await getLlmConfig();
-    if (!llmConfig.apiKey) return { status: "failed", error: "No LLM API key configured" };
+    if (!llmConfig.apiKey) return { status: "failed", error: "No LLM API key configured", toolsUsed };
     const llm = new OpenAI({ baseURL: llmConfig.baseUrl, apiKey: llmConfig.apiKey });
 
     // Scope-filtered: a tool the caller's token cannot use only buys a wasted
@@ -258,7 +262,7 @@ export async function runAgent(input: {
       );
 
       const message = response.choices[0]?.message;
-      if (!message) return { status: "failed", error: "The model returned no message" };
+      if (!message) return { status: "failed", error: "The model returned no message", toolsUsed };
       messages.push(message as ChatMessage);
 
       const calls = message.tool_calls ?? [];
@@ -270,6 +274,6 @@ export async function runAgent(input: {
     }
   } catch (err: any) {
     console.error(`[agent] run failed for ${input.taskId}: ${err.message}`);
-    return { status: "failed", error: err.message };
+    return { status: "failed", error: err.message, toolsUsed };
   }
 }

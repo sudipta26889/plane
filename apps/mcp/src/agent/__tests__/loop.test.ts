@@ -405,7 +405,7 @@ describe("runAgent: recovery", () => {
 
     const result = await run();
 
-    expect(result).toEqual({ status: "failed", error: expect.stringContaining("ECONNREFUSED") });
+    expect(result).toEqual({ status: "failed", error: expect.stringContaining("ECONNREFUSED"), toolsUsed: [] });
   });
 });
 
