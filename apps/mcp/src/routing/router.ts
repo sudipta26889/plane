@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { config } from "../config.js";
 import { embed } from "../knowledge/embeddings.js";
+import { buildIndexText } from "../knowledge/index-sync.js";
 import { search, type QdrantHit } from "../knowledge/qdrant.js";
 import {
   getWorkspaceContext,
@@ -16,6 +17,12 @@ export interface RouteDecision {
   reason: string;
   candidates: ProjectSummary[];
   source: "hint" | "single" | "llm" | "neighbours" | "undecided";
+  /**
+   * The embedding of this item's text, when one was computed. Handed back so a
+   * caller doing dedupe on the same text does not pay a second embed — the CPU
+   * embedder runs at ~1750 chars/sec, so the duplicate call is not free.
+   */
+  vector?: number[];
 }
 
 const NEIGHBOUR_LIMIT = 20;
@@ -196,15 +203,19 @@ export async function routeWorkItem(
     };
   }
 
-  const text = input.description ? `${input.title}\n\n${input.description}` : input.title;
+  // Cap exactly as index-sync does. Comparing a query embedded from the full
+  // text against vectors built from the first 4096 chars is both slower and
+  // semantically a different text.
+  const text = buildIndexText({ name: input.title, description_stripped: input.description ?? null });
 
   let neighbourScores = new Map<string, number>();
   let neighbourHitsByProject = new Map<string, number>();
   let neighbourHits: QdrantHit[] = [];
+  let vector: number[] | undefined;
   let degraded = false;
 
   try {
-    const vector = await embed(text);
+    vector = await embed(text);
     const hits = await search(vector, {
       limit: NEIGHBOUR_LIMIT,
       filter: {
@@ -269,6 +280,7 @@ export async function routeWorkItem(
       reason: String(parsed.reason || ""),
       candidates: projects,
       source: confidence >= config.routeConfidenceThreshold ? "llm" : "undecided",
+      vector,
     };
   } catch (err: any) {
     console.warn(`[router] LLM routing failed: ${err.message}`);
@@ -291,6 +303,7 @@ export async function routeWorkItem(
       reason: "Chosen from similar existing work items; the LLM was unavailable.",
       candidates: projects,
       source: "neighbours",
+      vector,
     };
   }
 
@@ -300,5 +313,6 @@ export async function routeWorkItem(
     reason: "No project matched with enough confidence to file this automatically.",
     candidates: projects,
     source: "undecided",
+    vector,
   };
 }

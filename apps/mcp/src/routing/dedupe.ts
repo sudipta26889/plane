@@ -37,12 +37,14 @@ export function pickDuplicate(hits: QdrantHit[], threshold: number): DuplicateMa
  */
 export async function findDuplicate(
   text: string,
-  opts: { projectIds: string[] },
+  opts: { projectIds: string[]; vector?: number[] },
 ): Promise<DuplicateMatch | null> {
   if (opts.projectIds.length === 0) return null;
 
   try {
-    const vector = await embed(text);
+    // Reuse the router's embedding when the caller already has one for this
+    // exact text; embedding is the expensive step on a CPU-only server.
+    const vector = opts.vector ?? (await embed(text));
     const hits = await search(vector, {
       limit: CANDIDATE_LIMIT,
       // Deliberately WITHOUT the router's must_not on triage: an item parked in

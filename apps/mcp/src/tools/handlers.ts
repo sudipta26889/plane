@@ -1,6 +1,7 @@
 import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
 import { routeWorkItem } from "../routing/router.js";
 import { findDuplicate } from "../routing/dedupe.js";
+import { buildIndexText } from "../knowledge/index-sync.js";
 import { isCriticalAction } from "../a2a/skill-registry.js";
 import { runApprovalLoop } from "../a2a/dharahil.js";
 import { config } from "../config.js";
@@ -415,9 +416,11 @@ async function handleCreateTask(args: any, client: TaskPilotClient, workspace: s
   if (decision.projectId) {
     const project = decision.candidates.find((candidate) => candidate.id === decision.projectId);
 
+    // Reuse the router's embedding: it was computed from this exact text, and
+    // the CPU embedder is the slowest step in creating an item.
     const duplicate = await findDuplicate(
-      args.description ? `${args.title}\n\n${args.description}` : args.title,
-      { projectIds: [decision.projectId] },
+      buildIndexText({ name: args.title, description_stripped: args.description ?? null }),
+      { projectIds: [decision.projectId], vector: decision.vector },
     );
 
     if (duplicate && !args.force_create) {

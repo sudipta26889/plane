@@ -61,7 +61,10 @@ export async function getWorkspaceContext(
   workspace: string,
   client: TaskPilotClient,
 ): Promise<WorkspaceContext> {
-  const cacheKey = `mcp:ctx:${workspace}`;
+  // Keyed by the client's user+workspace scope, not the slug: listProjects is
+  // filtered to the calling user's memberships, so a slug-only key would leak
+  // one member's visible projects to another.
+  const cacheKey = `mcp:ctx:${client.cacheScope()}`;
 
   try {
     const cached = await getRedis()?.get(cacheKey);

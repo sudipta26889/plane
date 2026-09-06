@@ -13,7 +13,8 @@ import revokeRouter from "./routes/revoke.js";
 import approveRouter from "./routes/approve.js";
 import mcpRouter from "./routes/mcp.js";
 import a2aRouter from "./routes/a2a.js";
-import { checkDependencies, reportHealthTransitions } from "./health.js";
+import { checkDependencies, reportHealthTransitions, redactHealthReport } from "./health.js";
+import { authenticateA2aRequest } from "./a2a/auth.js";
 
 const app = express();
 
@@ -39,9 +40,21 @@ app.use((req, _res, next) => {
 // Health check. Returns 503 when a dependency is down: every one of them has a
 // fallback that keeps the server answering, so a 200 here regardless of their
 // state is how a dead LLM endpoint stayed invisible for months.
-app.get("/health", async (_req, res) => {
+app.get("/health", async (req, res) => {
   const report = await checkDependencies();
-  res.status(report.status === "ok" ? 200 : 503).json(report);
+
+  // Anyone may learn WHETHER the server is healthy — monitoring needs that
+  // without a credential. Only an authenticated caller sees which host, which
+  // model, and the raw error text.
+  let detailed = false;
+  try {
+    await authenticateA2aRequest(req);
+    detailed = true;
+  } catch {
+    detailed = false;
+  }
+
+  res.status(report.status === "ok" ? 200 : 503).json(detailed ? report : redactHealthReport(report));
 });
 
 // Liveness only — "is the process up", for restart policies that must not react

@@ -64,6 +64,16 @@ export class TaskPilotClient {
     this.workspace = workspaceSlug;
   }
 
+  /**
+   * A cache discriminator that is stable for this user+workspace and safe to
+   * put in a key. The projects endpoint is scoped to the calling user, so
+   * caching its result per workspace alone would show one member's project
+   * list to every other member of that workspace.
+   */
+  cacheScope(): string {
+    return `${this.workspace}:${crypto.createHash("sha256").update(this.apiKey).digest("hex").slice(0, 16)}`;
+  }
+
   private async request(method: string, path: string, body?: any): Promise<any> {
     const url = `${this.baseUrl}${path}`;
     const resp = await fetch(url, {
