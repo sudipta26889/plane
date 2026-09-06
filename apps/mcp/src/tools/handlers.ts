@@ -1,5 +1,6 @@
 import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
 import { routeWorkItem } from "../routing/router.js";
+import { findDuplicate } from "../routing/dedupe.js";
 import { isCriticalAction } from "../a2a/skill-registry.js";
 import { runApprovalLoop } from "../a2a/dharahil.js";
 import { config } from "../config.js";
@@ -111,6 +112,10 @@ const TOOLS = [
         description: { type: "string", description: "Detailed description (optional)" },
         priority: { type: "string", enum: ["urgent", "high", "medium", "low", "none"], description: "Priority level" },
         project_hint: { type: "string", description: "Project name or identifier to route to (optional)" },
+        force_create: {
+          type: "boolean",
+          description: "Create even if a near-duplicate exists. Default false.",
+        },
       },
       required: ["title"],
     },
@@ -409,6 +414,21 @@ async function handleCreateTask(args: any, client: TaskPilotClient, workspace: s
 
   if (decision.projectId) {
     const project = decision.candidates.find((candidate) => candidate.id === decision.projectId);
+
+    const duplicate = await findDuplicate(
+      args.description ? `${args.title}\n\n${args.description}` : args.title,
+      { projectIds: [decision.projectId] },
+    );
+
+    if (duplicate && !args.force_create) {
+      return {
+        status: "possible_duplicate",
+        duplicate_of: duplicate.identifier,
+        score: duplicate.score,
+        hint: "Comment on the existing item, or pass force_create: true to file anyway.",
+      };
+    }
+
     const issue = await client.createIssue(decision.projectId, data);
 
     return {
