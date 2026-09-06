@@ -1,5 +1,22 @@
 import "dotenv/config";
 
+/**
+ * Parse "workspace-slug:PROJECT_IDENTIFIER" pairs into a lookup map.
+ * Malformed pairs are skipped — a typo in the env must not stop the server booting.
+ */
+export function parseIntakeProjects(raw: string | undefined): Map<string, string> {
+  const map = new Map<string, string>();
+  if (!raw) return map;
+
+  for (const pair of raw.split(",")) {
+    const [slug, identifier] = pair.split(":");
+    if (!slug?.trim() || !identifier?.trim()) continue;
+    map.set(slug.trim(), identifier.trim());
+  }
+
+  return map;
+}
+
 export const config = {
   port: parseInt(process.env.MCP_PORT || "4650", 10),
   baseUrl: process.env.MCP_ISSUER_URL || "http://localhost:4650",
@@ -20,6 +37,24 @@ export const config = {
   llmApiBaseUrl: process.env.LLM_API_BASE_URL || "http://nuc.lan:4000",
   llmApiKey: process.env.LLM_API_KEY || "",
   llmModel: process.env.LLM_MODEL || "gpt-4o-mini",
+
+  // Vector store (Qdrant) — awareness of existing work items
+  qdrantUrl: process.env.QDRANT_URL || "",
+  qdrantApiKey: process.env.QDRANT_API_KEY || "",
+  qdrantCollection: process.env.QDRANT_COLLECTION_NAME || "taskpilot_vector_db",
+
+  // Embedding server. Dimension is fixed by the model and by the PKM
+  // collection we reuse — changing it invalidates every stored vector.
+  embeddingUrl: process.env.EMBEDDING_DIRECT_URL || "",
+  embeddingDims: 1024,
+
+  // Routing thresholds. Tuned by scripts/eval-routing.ts, not by feel.
+  routeConfidenceThreshold: parseFloat(process.env.A2A_ROUTE_CONFIDENCE || "0.7"),
+  dedupeSimilarityThreshold: parseFloat(process.env.A2A_DEDUPE_SIMILARITY || "0.85"),
+
+  // Where low-confidence items go, per workspace. Unset means the router
+  // returns "undecided" and nothing is written.
+  intakeProjects: parseIntakeProjects(process.env.A2A_INTAKE_PROJECTS),
 
   // JWT secret (for signing tokens)
   jwtSecret: process.env.MCP_JWT_SECRET || process.env.SECRET_KEY || "change-me",
