@@ -108,6 +108,12 @@ async function initA2aDatabase(client: any): Promise<void> {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS a2a_agent_runs (
+      task_id VARCHAR(255) PRIMARY KEY,
+      state JSONB NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_task_id ON a2a_tasks(task_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_context_id ON a2a_tasks(context_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_client_state ON a2a_tasks(client_id, state);
