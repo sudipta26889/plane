@@ -1,8 +1,10 @@
 import { config } from "../config.js";
 
-// The embedding server lazily unloads after 300s idle and takes ~10.5s to
-// reload; a single warm call is ~0.11s. Allow for a cold start.
-const EMBED_TIMEOUT_MS = 60_000;
+// The server lazily unloads after 300s idle. Warm throughput on real work-item
+// text is ~1750 chars/sec, so a full batch runs tens of seconds; a cold start
+// adds a model load on top. 60s covered neither together and aborted the first
+// batch of every sync.
+const EMBED_TIMEOUT_MS = 180_000;
 
 function assertDims(vector: number[]): number[] {
   if (vector.length !== config.embeddingDims) {
