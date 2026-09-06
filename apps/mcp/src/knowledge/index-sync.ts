@@ -3,8 +3,9 @@ import { db } from "../db.js";
 import { embedBatch } from "./embeddings.js";
 import { ensureCollection, upsertPoints, retrievePayloads } from "./qdrant.js";
 
-// Keeps a single embed call bounded: ~9 texts/sec on CPU, so a long tail of
-// 10k-character descriptions would dominate the sync.
+// Bounds one item's contribution to a batch. Throughput is char-bound
+// (~1750 chars/sec warm on CPU), so an untrimmed 10k-char description would
+// cost as much as six average items on its own.
 const MAX_INDEX_CHARS = 4096;
 
 // Measured on real work items (avg ~1018 chars): ~1750 chars/sec warm, so 32
@@ -40,6 +41,10 @@ export async function syncWorkItems(): Promise<{ embedded: number; skipped: numb
   // Keyset pagination over the whole corpus. A fixed LIMIT would silently
   // stop indexing the oldest items once the corpus outgrew it, and nothing
   // would report the gap — routing would just quietly stop seeing them.
+  //
+  // The cursor is per-run: a mid-sync failure restarts from the beginning next
+  // tick rather than resuming. That is deliberate — the hash skip makes the
+  // re-scan cost one Qdrant lookup per page and no embedding calls.
   for (;;) {
     const rows = await db.query(
       `SELECT i.id, i.name, i.description_stripped, i.project_id, i.workspace_id,

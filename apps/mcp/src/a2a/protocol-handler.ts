@@ -12,6 +12,7 @@ import { logAuditEvent } from "./audit-log.js";
 import { queueWebhookDeliveries } from "./webhooks.js";
 import { hasRequiredScope } from "./auth.js";
 import { buildAgentCard } from "./agent-card.js";
+import { resolveIntent } from "./intent.js";
 import { config } from "../config.js";
 import { isTerminalState, A2A_ERROR_CODES } from "./types.js";
 import type { AuthContext } from "./types.js";
@@ -145,7 +146,20 @@ function handleGetAgentCard(body: any) {
 
 async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string) {
   const params = normalizeMessageParams(body.params || {});
-  const { contextId, skill, input, idempotencyKey } = params;
+  let { contextId, skill, input } = params;
+  const { idempotencyKey } = params;
+
+  // Peers that can only send free text (OpenClaw's built-in channel) name no
+  // skill. Ask the LLM which one they meant; it returns null when unsure, and
+  // we then refuse below rather than act on a guess.
+  if (!skill && params.text) {
+    const intent = await resolveIntent(params.text);
+    if (intent) {
+      skill = intent.skill;
+      input = intent.input;
+      console.log(`[intent] "${String(params.text).slice(0, 60)}" -> ${intent.skill}`);
+    }
+  }
 
   if (!skill || !contextId) {
     const received = params.text

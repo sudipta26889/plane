@@ -54,7 +54,7 @@ function decryptInstanceValue(encrypted: string): string {
   return decrypted.toString("utf8");
 }
 
-async function getLlmConfig(): Promise<LlmConfig> {
+export async function getLlmConfig(): Promise<LlmConfig> {
   const now = Date.now();
   if (cachedLlmConfig && now - llmConfigFetchedAt < LLM_CONFIG_TTL) {
     return cachedLlmConfig;
