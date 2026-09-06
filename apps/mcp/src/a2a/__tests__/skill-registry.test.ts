@@ -7,9 +7,9 @@ import {
 } from "../skill-registry.js";
 
 describe("Skill Registry", () => {
-  it("maps all 28 A2A skills to MCP tools", () => {
+  it("maps all 30 A2A skills to MCP tools", () => {
     const skills = getAllSkills();
-    expect(skills.length).toBe(28);
+    expect(skills.length).toBe(30);
   });
 
   it("resolves task.create to create_task", () => {
@@ -29,6 +29,20 @@ describe("Skill Registry", () => {
 
   it("returns undefined for unknown skills", () => {
     expect(getSkillDefinition("nonexistent")).toBeUndefined();
+  });
+
+  it("resolves callnote.upsert to callnote_upsert as a write skill", () => {
+    const skill = getSkillDefinition("callnote.upsert");
+    expect(skill).toBeDefined();
+    expect(skill!.mcpTool).toBe("callnote_upsert");
+    expect(skill!.scope).toBe("taskpilot:write");
+  });
+
+  it("resolves callnote.lookup to callnote_lookup as a read skill", () => {
+    const skill = getSkillDefinition("callnote.lookup");
+    expect(skill).toBeDefined();
+    expect(skill!.mcpTool).toBe("callnote_lookup");
+    expect(skill!.scope).toBe("taskpilot:read");
   });
 
   it("identifies task.move to Cancelled as critical", () => {

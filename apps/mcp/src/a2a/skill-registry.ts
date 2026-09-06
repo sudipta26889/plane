@@ -35,6 +35,8 @@ const SKILL_REGISTRY: Record<string, SkillDefinition> = {
   "intake.triage":        { name: "intake.triage",        mcpTool: "intake_triage",    scope: "taskpilot:write", approval: "conditional", description: "Accept or reject a queued intake item" },
   "relation.list":        { name: "relation.list",        mcpTool: "relation_list",    scope: "taskpilot:read",  approval: false, description: "List a task's relations (blocking, duplicate, relates_to, etc.)" },
   "relation.add":         { name: "relation.add",         mcpTool: "relation_add",     scope: "taskpilot:write", approval: false, description: "Link two tasks with a relation, e.g. mark one a duplicate of another" },
+  "callnote.upsert":      { name: "callnote.upsert",      mcpTool: "callnote_upsert",  scope: "taskpilot:write", approval: false, description: "Create or append a call note for a phone number under a business category" },
+  "callnote.lookup":      { name: "callnote.lookup",      mcpTool: "callnote_lookup",  scope: "taskpilot:read",  approval: false, description: "Look up open call-note matters for a phone number" },
 };
 
 export function getSkillDefinition(skillName: string): SkillDefinition | undefined {

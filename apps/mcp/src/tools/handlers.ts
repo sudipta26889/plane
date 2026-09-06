@@ -13,7 +13,7 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive", "intake_triage", "relation_add"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive", "intake_triage", "relation_add", "callnote_upsert"]);
 
 /** Exactly the values IssueRelationCreateSerializer accepts. */
 export const RELATION_TYPES = [
@@ -23,6 +23,15 @@ export const RELATION_TYPES = [
 
 export function isValidRelationType(type: string): boolean {
   return (RELATION_TYPES as readonly string[]).includes(type);
+}
+
+/** Exactly the categories CATEGORY_TO_PROJECT accepts in call_note.py. Each
+ * maps server-side to a hardcoded project for this workspace — the API has
+ * no project field to route with. */
+export const CALL_NOTE_CATEGORIES = ["home_automation", "export", "event", "prodevs"] as const;
+
+export function isValidCallNoteCategory(category: string): boolean {
+  return (CALL_NOTE_CATEGORIES as readonly string[]).includes(category);
 }
 
 /** TaskPilot stores intake status as a small int; agents need the name. */
@@ -525,6 +534,38 @@ const TOOLS = [
         relation_type: { type: "string", enum: [...RELATION_TYPES], description: "Relation type" },
       },
       required: ["identifier", "target_identifier", "relation_type"],
+    },
+  },
+  {
+    name: "callnote_upsert",
+    description:
+      "Create or append a call note for a phone number. Workspace-scoped, no project — " +
+      "one work item is kept per (category, phone); calling again for the same number appends " +
+      `a new dated block instead of creating a duplicate. category must be one of: ${CALL_NOTE_CATEGORIES.join(", ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        phone: { type: "string", description: "Caller's phone number (any format; at least 10 digits)" },
+        category: { type: "string", enum: [...CALL_NOTE_CATEGORIES], description: "Which business this call belongs to" },
+        details_html: { type: "string", description: "HTML content for this call's note block" },
+        caller_name: { type: "string", description: "Caller's name (optional, only used when creating a new note)" },
+      },
+      required: ["phone", "category", "details_html"],
+    },
+  },
+  {
+    name: "callnote_lookup",
+    description:
+      "Look up open call-note matters for a phone number across all categories. " +
+      "Returns a compact summary and greeting; each matter's identifier can be passed to get_task for full detail.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        phone: { type: "string", description: "Caller's phone number (any format; at least 10 digits)" },
+        direction: { type: "string", enum: ["inbound", "outbound"], description: "Call direction (optional, default inbound)" },
+        caller_name: { type: "string", description: "Dialer-supplied caller name, used only when no existing matter is found (optional)" },
+      },
+      required: ["phone"],
     },
   },
 ];
@@ -1220,6 +1261,30 @@ async function handleAddRelation(args: any, client: TaskPilotClient, _workspace:
   };
 }
 
+async function handleUpsertCallNote(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.phone || !args.category || !args.details_html) {
+    return { error: "phone, category and details_html are required" };
+  }
+  if (!isValidCallNoteCategory(args.category)) {
+    return { error: `category must be one of ${CALL_NOTE_CATEGORIES.join(", ")}` };
+  }
+  return client.upsertCallNote({
+    phone: args.phone,
+    category: args.category,
+    details_html: args.details_html,
+    ...(args.caller_name ? { caller_name: args.caller_name } : {}),
+  });
+}
+
+async function handleLookupCallNote(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.phone) return { error: "phone is required" };
+  return client.lookupCallNote({
+    phone: args.phone,
+    ...(args.direction === "outbound" ? { direction: "outbound" as const } : {}),
+    ...(args.caller_name ? { caller_name: args.caller_name } : {}),
+  });
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -1249,4 +1314,6 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   intake_triage: handleTriageIntake,
   relation_list: handleListRelations,
   relation_add: handleAddRelation,
+  callnote_upsert: handleUpsertCallNote,
+  callnote_lookup: handleLookupCallNote,
 };

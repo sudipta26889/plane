@@ -83,10 +83,10 @@ describe("mapStateGroupToSimpleStatus", () => {
 });
 
 describe("all tools registration", () => {
-  it("should register exactly 28 tools", async () => {
+  it("should register exactly 30 tools", async () => {
     const { getToolDefinitions } = await import("../handlers.js");
     const tools = getToolDefinitions();
-    expect(tools).toHaveLength(28);
+    expect(tools).toHaveLength(30);
   });
 
   it("should have unique tool names", async () => {
@@ -248,5 +248,48 @@ describe("relation types", () => {
   it("exposes the list so the tool description can enumerate it", () => {
     expect(RELATION_TYPES).toContain("duplicate");
     expect(RELATION_TYPES.length).toBe(8);
+  });
+});
+
+import { CALL_NOTE_CATEGORIES, isValidCallNoteCategory } from "../handlers.js";
+
+describe("call note categories", () => {
+  it("accepts every category the API defines", () => {
+    // Verified against CATEGORY_TO_PROJECT in apps/api/taskpilot/api/views/call_note.py.
+    for (const category of ["home_automation", "export", "event", "prodevs"]) {
+      expect(isValidCallNoteCategory(category)).toBe(true);
+    }
+  });
+
+  it("rejects a category the API would refuse", () => {
+    // Sending an invalid category would fail server-side with an opaque 400.
+    expect(isValidCallNoteCategory("prodev")).toBe(false);
+    expect(isValidCallNoteCategory("")).toBe(false);
+  });
+
+  it("exposes the list so the tool description can enumerate it", () => {
+    expect(CALL_NOTE_CATEGORIES).toContain("prodevs");
+    expect(CALL_NOTE_CATEGORIES.length).toBe(4);
+  });
+});
+
+describe("call note tools", () => {
+  it("registers callnote_upsert with the fields the endpoint requires", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const tool = tools.find((t: any) => t.name === "callnote_upsert");
+    expect(tool).toBeDefined();
+    expect(tool!.inputSchema.required).toEqual(
+      expect.arrayContaining(["phone", "category", "details_html"]),
+    );
+    expect((tool!.inputSchema.properties as any).category.enum).toEqual([...CALL_NOTE_CATEGORIES]);
+  });
+
+  it("registers callnote_lookup as a read tool needing only phone", async () => {
+    const { getToolDefinitions } = await import("../handlers.js");
+    const tools = getToolDefinitions();
+    const tool = tools.find((t: any) => t.name === "callnote_lookup");
+    expect(tool).toBeDefined();
+    expect(tool!.inputSchema.required).toContain("phone");
   });
 });

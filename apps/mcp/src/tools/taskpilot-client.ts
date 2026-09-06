@@ -328,4 +328,42 @@ export class TaskPilotClient {
       { relation_type: relationType, issues: issueIds },
     );
   }
+
+  // --- Call notes ---
+  // Workspace-scoped, no project segment. All three endpoints are POST-only
+  // (apps/api/taskpilot/api/urls/call_note.py restricts http_method_names to
+  // ["post"]) and take a body-only request — Dograh's HTTP tool can't
+  // template URL paths. `category` is a fixed enum the server maps to a
+  // hardcoded project via CATEGORY_TO_PROJECT in
+  // apps/api/taskpilot/api/views/call_note.py; there is no project field.
+  async upsertCallNote(data: {
+    phone: string;
+    category: "home_automation" | "export" | "event" | "prodevs";
+    details_html: string;
+    caller_name?: string;
+  }): Promise<{ action: "created" | "appended"; id: string; identifier: string; call_count: number }> {
+    return this.request("POST", `/api/v1/workspaces/${this.workspace}/call-notes/upsert/`, data);
+  }
+
+  /** Legacy/mid-call shape: {phone, direction?, caller_name?}. Always 200. */
+  async lookupCallNote(params: {
+    phone: string;
+    direction?: "inbound" | "outbound";
+    caller_name?: string;
+  }): Promise<{
+    found: boolean;
+    is_returning: boolean;
+    greeting: string;
+    caller_name: string | null;
+    summary: string;
+    matters: Array<{ category: string | null; identifier: string; topic: string | null; last_updated: string }>;
+  }> {
+    return this.request("POST", `/api/v1/workspaces/${this.workspace}/call-notes/lookup/`, params);
+  }
+
+  async callNoteHistory(
+    params: { phone: string; category?: string },
+  ): Promise<{ found: false } | { found: true; history_html: string; identifier?: string; category?: string }> {
+    return this.request("POST", `/api/v1/workspaces/${this.workspace}/call-notes/history/`, params);
+  }
 }
