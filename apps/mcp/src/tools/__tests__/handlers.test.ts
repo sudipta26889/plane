@@ -168,6 +168,7 @@ describe("formatPageSummary", () => {
       id: "p1",
       name: "Q3 planning",
       source: "meetecho",
+      external_id: "abc",
       locked: false,
       archived: false,
       updated_at: "2026-09-01T00:00:00Z",

@@ -49,6 +49,9 @@ export function formatPageSummary(page: any) {
     name: page.name || "",
     // MeetEcho writes most pages; a locally authored one has no external source.
     source: page.external_source || "local",
+    // Without the id, knowing a page came from "meetecho" gives an agent no way
+    // to correlate it back to the record it came from.
+    external_id: page.external_id || null,
     locked: Boolean(page.is_locked),
     archived: Boolean(page.archived_at),
     updated_at: page.updated_at,
@@ -953,7 +956,7 @@ async function handleBulkCancelTasks(args: any, client: TaskPilotClient, _worksp
   };
 }
 
-async function handleListPages(args: any, client: TaskPilotClient, workspace: string) {
+async function handleListPages(args: any, client: TaskPilotClient, _workspace: string) {
   const projects = await client.listProjects();
   const project = args.project_hint
     ? projects.find(
@@ -970,13 +973,20 @@ async function handleListPages(args: any, client: TaskPilotClient, workspace: st
   const targets = project ? [project] : projects;
   const pages: any[] = [];
   for (const target of targets) {
-    const found = await client.listPages(String(target.id));
+    // Without per_page the endpoint returns up to 1000 full page rows per
+    // project (paginator default), so listing across 5 projects would fetch and
+    // serialise most of the 4,807-page corpus to keep 50 of each. listIssues
+    // already bounds itself this way.
+    const found = await client.listPages(String(target.id), { per_page: "50" });
     for (const page of found.slice(0, 50)) {
       pages.push({ ...formatPageSummary(page), project: target.identifier });
     }
   }
 
-  return { pages: pages.slice(0, 100), count: pages.length };
+  const returned = pages.slice(0, 100);
+  // count describes what is in `pages`. Reporting the pre-slice total here read
+  // as "there are 250" while handing back 100.
+  return { pages: returned, count: returned.length, truncated: pages.length > returned.length };
 }
 
 async function handleGetPage(args: any, client: TaskPilotClient, _workspace: string) {

@@ -48,6 +48,13 @@ export function isCriticalAction(mcpTool: string, args: Record<string, any>): bo
   if (mcpTool === "bulk_cancel_tasks") {
     return true;
   }
+  // Archiving removes a page from view — the page equivalent of cancelling a
+  // work item. The A2A registry already marks page.archive approval:true, but
+  // that only gates the A2A path; without this an MCP client calling
+  // page_archive directly would skip the human approval entirely.
+  if (mcpTool === "page_archive") {
+    return true;
+  }
   return false;
 }
 

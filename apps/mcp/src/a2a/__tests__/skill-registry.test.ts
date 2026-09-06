@@ -45,3 +45,16 @@ describe("Skill Registry", () => {
     expect(requiresApproval("nonexistent", {})).toBe(false);
   });
 });
+
+describe("isCriticalAction covers destructive page operations", () => {
+  it("treats archiving a page as critical", () => {
+    // page.archive is approval:true for A2A, but MCP clients call the tool
+    // directly and only isCriticalAction gates that path.
+    expect(isCriticalAction("page_archive", {})).toBe(true);
+  });
+
+  it("leaves non-destructive page tools alone", () => {
+    expect(isCriticalAction("page_update", {})).toBe(false);
+    expect(isCriticalAction("page_create", {})).toBe(false);
+  });
+});
