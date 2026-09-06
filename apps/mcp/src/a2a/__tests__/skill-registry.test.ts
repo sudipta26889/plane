@@ -58,3 +58,20 @@ describe("isCriticalAction covers destructive page operations", () => {
     expect(isCriticalAction("page_create", {})).toBe(false);
   });
 });
+
+describe("intake rejection is gated, acceptance is not", () => {
+  it("treats rejecting an intake item as critical", () => {
+    // Rejecting discards work that was captured because the router could not
+    // place it; accepting merely files it where it already sits.
+    expect(isCriticalAction("intake_triage", { decision: "reject" })).toBe(true);
+  });
+
+  it("leaves acceptance ungated", () => {
+    expect(isCriticalAction("intake_triage", { decision: "accept" })).toBe(false);
+  });
+
+  it("requires approval only for the reject decision", () => {
+    expect(requiresApproval("intake.triage", { decision: "reject" })).toBe(true);
+    expect(requiresApproval("intake.triage", { decision: "accept" })).toBe(false);
+  });
+});
