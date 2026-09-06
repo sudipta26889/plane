@@ -97,6 +97,28 @@ async function initA2aDatabase(client: any): Promise<void> {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS a2a_conversations (
+      id SERIAL PRIMARY KEY,
+      context_id VARCHAR(255) NOT NULL,
+      role VARCHAR(20) NOT NULL,
+      content TEXT,
+      tool_calls JSONB,
+      tool_call_id VARCHAR(255),
+      name VARCHAR(100),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS a2a_memory (
+      id SERIAL PRIMARY KEY,
+      user_id VARCHAR(255) NOT NULL,
+      workspace_slug VARCHAR(255) NOT NULL,
+      fact TEXT NOT NULL,
+      source VARCHAR(100),
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      superseded_at TIMESTAMPTZ,
+      superseded_by INT
+    );
+
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_task_id ON a2a_tasks(task_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_context_id ON a2a_tasks(context_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_client_state ON a2a_tasks(client_id, state);
@@ -106,6 +128,8 @@ async function initA2aDatabase(client: any): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_a2a_approvals_status ON a2a_approvals(status);
     CREATE INDEX IF NOT EXISTS idx_a2a_audit_logs_created ON a2a_audit_logs(created_at);
     CREATE INDEX IF NOT EXISTS idx_a2a_webhook_deliveries_status ON a2a_webhook_deliveries(status, next_retry_at);
+    CREATE INDEX IF NOT EXISTS idx_a2a_conversations_context ON a2a_conversations(context_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_a2a_memory_owner ON a2a_memory(user_id, workspace_slug, superseded_at);
   `);
   console.log("[db] A2A schema initialized");
 }
