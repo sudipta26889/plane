@@ -69,13 +69,21 @@ export function countHitsByProject(hits: QdrantHit[]): Map<string, number> {
   return counts;
 }
 
+// Measured against the live index: genuine neighbours score 0.60-0.93, while a
+// deliberately unrelated query tops out at ~0.35. 0.55 sits between the two.
+// Without this, `share` alone reports relative dominance as confidence — two
+// weak hits in the only project with any history would score 1.0.
+const MIN_NEIGHBOUR_SIMILARITY = 0.55;
+
 /**
  * Decide from neighbour evidence alone, used only when the LLM is unavailable.
  * Confidence is the share of total similarity mass held by the winning project,
  * so it reflects the evidence instead of being asserted. A lone weak hit is not
  * evidence: the winning project itself must be corroborated by at least two
  * of its own neighbours — being counted against every other project's hits
- * would make that check nearly a no-op.
+ * would make that check nearly a no-op. Nor is being uncontested: `share` is
+ * relative dominance, not evidentiary strength, so the winner's own average
+ * score per hit must also clear an absolute floor.
  *
  * Similarity here is Cosine, which ranges over [-1, 1]: a negative score is
  * evidence against a project, not weak evidence for it, so it must not be
@@ -91,10 +99,17 @@ export function decideFromNeighbours(
   if (!top) return null;
 
   const [topProjectId, topScore] = top;
-  if ((hitsByProject.get(topProjectId) || 0) < 2) return null;
+  const winnerHitCount = hitsByProject.get(topProjectId) || 0;
+  if (winnerHitCount < 2) return null;
 
   const total = ranked.reduce((sum, [, score]) => sum + Math.max(score, 0), 0);
   if (total <= 0) return null;
+
+  // `share` below measures relative dominance, not evidentiary strength: a
+  // lone weak winner in an otherwise-empty field would still take 100% of
+  // the share. Require the winner's own average score per hit to clear an
+  // absolute floor too.
+  if (topScore / winnerHitCount < MIN_NEIGHBOUR_SIMILARITY) return null;
 
   const share = Math.min(Math.max(topScore, 0) / total, 1);
   if (share < threshold) return null;

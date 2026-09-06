@@ -83,10 +83,10 @@ describe("decideFromNeighbours", () => {
   it("caps confidence at 1 when a negative score would otherwise inflate the share", () => {
     // Cosine similarity ranges over [-1, 1]. A negative score is evidence
     // against p2, not weak evidence for it, so it must not shrink the
-    // denominator: naively summing raw scores gives total = 0.5 and
-    // share = 1.0 / 0.5 = 2.0, which must never be returned.
+    // denominator: naively summing raw scores gives total = 0.7 and
+    // share = 1.2 / 0.7 ≈ 1.71, which must never be returned.
     const scores = new Map([
-      ["p1", 1.0],
+      ["p1", 1.2],
       ["p2", -0.5],
     ]);
     const hitsByProject = new Map([
@@ -125,6 +125,66 @@ describe("decideFromNeighbours", () => {
 
   it("returns null for an empty map", () => {
     expect(decideFromNeighbours(new Map(), THRESHOLD, new Map())).toBeNull();
+  });
+
+  it("returns null for uncontested but weak evidence (two hits at cosine 0.05, no rival project)", () => {
+    // The finding this guards against: with no other project to dilute it,
+    // share alone would come out to 1.0 for what is effectively noise.
+    const scores = new Map([["p1", 0.1]]);
+    const hitsByProject = new Map([["p1", 2]]);
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
+  });
+
+  it("returns the project when the winner's average score per hit clears the similarity floor", () => {
+    const scores = new Map([["p1", 1.4]]);
+    const hitsByProject = new Map([["p1", 2]]);
+    // avg = 1.4 / 2 = 0.7, above the 0.55 floor; share = 1.4 / 1.4 = 1.
+    const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
+    expect(decision?.projectId).toBe("p1");
+    expect(decision?.confidence).toBeCloseTo(1);
+  });
+
+  it("returns null when the winner's average score per hit sits just below the similarity floor", () => {
+    const scores = new Map([["p1", 1.0]]);
+    const hitsByProject = new Map([["p1", 2]]);
+    // avg = 1.0 / 2 = 0.5, below the 0.55 floor.
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
+  });
+
+  it("accepts a share exactly equal to the threshold, since the code checks '<' not '<='", () => {
+    const scores = new Map([
+      ["p1", 1.4],
+      ["p2", 0.6],
+    ]);
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 1],
+    ]);
+    // avg = 1.4 / 2 = 0.7, clears the floor; share = 1.4 / 2.0 = 0.7 == THRESHOLD.
+    const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
+    expect(decision?.projectId).toBe("p1");
+    expect(decision?.confidence).toBeCloseTo(0.7);
+  });
+
+  it("returns null for all-negative scores via the zero-total guard, with no NaN", () => {
+    const scores = new Map([
+      ["p1", -0.5],
+      ["p2", -0.3],
+    ]);
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 2],
+    ]);
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
+  });
+
+  it("reaches share = 1 when a single project holds all the similarity mass", () => {
+    const scores = new Map([["p1", 1.2]]);
+    const hitsByProject = new Map([["p1", 2]]);
+    // avg = 1.2 / 2 = 0.6, clears the floor; share = 1.2 / 1.2 = 1.
+    const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
+    expect(decision?.projectId).toBe("p1");
+    expect(decision?.confidence).toBeCloseTo(1);
   });
 });
 
