@@ -13,7 +13,17 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive", "intake_triage"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive", "intake_triage", "relation_add"]);
+
+/** Exactly the values IssueRelationCreateSerializer accepts. */
+export const RELATION_TYPES = [
+  "blocking", "blocked_by", "duplicate", "relates_to",
+  "start_before", "start_after", "finish_before", "finish_after",
+] as const;
+
+export function isValidRelationType(type: string): boolean {
+  return (RELATION_TYPES as readonly string[]).includes(type);
+}
 
 /** TaskPilot stores intake status as a small int; agents need the name. */
 export function intakeStatusName(status: number): string {
@@ -489,6 +499,32 @@ const TOOLS = [
         decision: { type: "string", enum: ["accept", "reject"], description: "Triage decision" },
       },
       required: ["project_id", "issue_id", "decision"],
+    },
+  },
+  {
+    name: "relation_list",
+    description: "List a task's relations (blocking, duplicate, relates_to, etc.).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: { type: "string", description: "Task identifier like FOR-AI-42" },
+      },
+      required: ["identifier"],
+    },
+  },
+  {
+    name: "relation_add",
+    description:
+      "Link two tasks with a relation, e.g. to mark one a duplicate of another instead of refusing to create it. " +
+      `Valid relation_type values: ${RELATION_TYPES.join(", ")}.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: { type: "string", description: "Source task identifier like FOR-AI-42" },
+        target_identifier: { type: "string", description: "Task identifier to relate to, e.g. FOR-AI-17" },
+        relation_type: { type: "string", enum: [...RELATION_TYPES], description: "Relation type" },
+      },
+      required: ["identifier", "target_identifier", "relation_type"],
     },
   },
 ];
@@ -1153,6 +1189,37 @@ async function handleTriageIntake(args: any, client: TaskPilotClient, _workspace
   return { issue_id: args.issue_id, status: intakeStatusName(status) };
 }
 
+async function handleListRelations(args: any, client: TaskPilotClient, _workspace: string) {
+  const issue = await client.getIssueByIdentifier(args.identifier);
+  const relations = await client.listRelations(String(issue.project), String(issue.id));
+  return { identifier: args.identifier, relations };
+}
+
+/**
+ * Relations are project-scoped on the *source* item's project — the POST path
+ * carries it. When the two items live in different projects (as TaskPilot's
+ * known triplicate does, spanning two), we still resolve each independently
+ * and never assume they share a project; only the source's project goes in
+ * the URL, and the target's id goes in the body.
+ */
+async function handleAddRelation(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!isValidRelationType(args.relation_type)) {
+    return {
+      error: `relation_type must be one of: ${RELATION_TYPES.join(", ")}`,
+      valid_types: RELATION_TYPES,
+    };
+  }
+  const source = await client.getIssueByIdentifier(args.identifier);
+  const target = await client.getIssueByIdentifier(args.target_identifier);
+  await client.createRelation(String(source.project), String(source.id), args.relation_type, [String(target.id)]);
+  return {
+    identifier: args.identifier,
+    target: args.target_identifier,
+    relation_type: args.relation_type,
+    status: "linked",
+  };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -1180,4 +1247,6 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   page_archive: handleArchivePage,
   intake_list: handleListIntake,
   intake_triage: handleTriageIntake,
+  relation_list: handleListRelations,
+  relation_add: handleAddRelation,
 };

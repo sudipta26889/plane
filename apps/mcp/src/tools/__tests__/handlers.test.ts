@@ -83,10 +83,10 @@ describe("mapStateGroupToSimpleStatus", () => {
 });
 
 describe("all tools registration", () => {
-  it("should register exactly 26 tools", async () => {
+  it("should register exactly 28 tools", async () => {
     const { getToolDefinitions } = await import("../handlers.js");
     const tools = getToolDefinitions();
-    expect(tools).toHaveLength(26);
+    expect(tools).toHaveLength(28);
   });
 
   it("should have unique tool names", async () => {
@@ -224,5 +224,29 @@ describe("intakeStatusName", () => {
 
   it("reports an unknown status rather than guessing", () => {
     expect(intakeStatusName(99)).toBe("unknown(99)");
+  });
+});
+
+import { RELATION_TYPES, isValidRelationType } from "../handlers.js";
+
+describe("relation types", () => {
+  it("accepts every type the API defines", () => {
+    for (const type of [
+      "blocking", "blocked_by", "duplicate", "relates_to",
+      "start_before", "start_after", "finish_before", "finish_after",
+    ]) {
+      expect(isValidRelationType(type)).toBe(true);
+    }
+  });
+
+  it("rejects a type the API would refuse", () => {
+    // Sending an invalid type would fail server-side with an opaque 400.
+    expect(isValidRelationType("duplicates")).toBe(false);
+    expect(isValidRelationType("")).toBe(false);
+  });
+
+  it("exposes the list so the tool description can enumerate it", () => {
+    expect(RELATION_TYPES).toContain("duplicate");
+    expect(RELATION_TYPES.length).toBe(8);
   });
 });

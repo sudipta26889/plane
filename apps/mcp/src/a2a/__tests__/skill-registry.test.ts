@@ -7,9 +7,9 @@ import {
 } from "../skill-registry.js";
 
 describe("Skill Registry", () => {
-  it("maps all 26 A2A skills to MCP tools", () => {
+  it("maps all 28 A2A skills to MCP tools", () => {
     const skills = getAllSkills();
-    expect(skills.length).toBe(26);
+    expect(skills.length).toBe(28);
   });
 
   it("resolves task.create to create_task", () => {

@@ -307,4 +307,25 @@ export class TaskPilotClient {
     );
     return Array.isArray(data) ? data : data.results || data;
   }
+
+  // --- Relations ---
+  async listRelations(projectId: string, issueId: string): Promise<any> {
+    return this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/work-items/${issueId}/relations/`,
+    );
+  }
+
+  async createRelation(
+    projectId: string,
+    issueId: string,
+    relationType: string,
+    issueIds: string[],
+  ): Promise<any> {
+    return this.request(
+      "POST",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/work-items/${issueId}/relations/`,
+      { relation_type: relationType, issues: issueIds },
+    );
+  }
 }
