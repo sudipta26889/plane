@@ -515,6 +515,14 @@ export async function ensureCollection(): Promise<void> {
   const existing = await request("GET", `/collections/${config.qdrantCollection}`);
   if (existing.ok) return;
 
+  // Only a 404 means "not there yet". A 500, 403 or 429 must not be mistaken
+  // for absence — creating on top of an existing collection would mask the
+  // real error, and ensureCollection runs on every sync.
+  if (existing.status !== 404) {
+    const text = await existing.text().catch(() => "");
+    throw new Error(`Qdrant collection check failed (${existing.status}): ${text.slice(0, 200)}`);
+  }
+
   await requestJson("PUT", `/collections/${config.qdrantCollection}`, {
     vectors: { size: config.embeddingDims, distance: "Cosine" },
   });
