@@ -56,35 +56,50 @@ export function scoreNeighbours(hits: QdrantHit[]): Map<string, number> {
   return scores;
 }
 
-/** Count hits that actually carried a project id — used to require corroboration. */
-export function countNeighbours(hits: QdrantHit[]): number {
-  return hits.filter((hit) => !!hit.payload?.project_id).length;
+/** Count hits per project — same truthy-`project_id` predicate as `scoreNeighbours`. */
+export function countHitsByProject(hits: QdrantHit[]): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const hit of hits) {
+    const projectId = hit.payload?.project_id;
+    if (!projectId) continue;
+    counts.set(String(projectId), (counts.get(String(projectId)) || 0) + 1);
+  }
+
+  return counts;
 }
 
 /**
  * Decide from neighbour evidence alone, used only when the LLM is unavailable.
  * Confidence is the share of total similarity mass held by the winning project,
  * so it reflects the evidence instead of being asserted. A lone weak hit is not
- * evidence: corroboration by at least two neighbours is required.
+ * evidence: the winning project itself must be corroborated by at least two
+ * of its own neighbours — being counted against every other project's hits
+ * would make that check nearly a no-op.
+ *
+ * Similarity here is Cosine, which ranges over [-1, 1]: a negative score is
+ * evidence against a project, not weak evidence for it, so it must not be
+ * allowed to shrink the denominator and inflate another project's share.
  */
 export function decideFromNeighbours(
   scores: Map<string, number>,
   threshold: number,
-  hitCount: number,
+  hitsByProject: Map<string, number>,
 ): { projectId: string; confidence: number } | null {
-  if (hitCount < 2) return null;
-
   const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]);
   const [top] = ranked;
   if (!top) return null;
 
-  const total = ranked.reduce((sum, [, score]) => sum + score, 0);
+  const [topProjectId, topScore] = top;
+  if ((hitsByProject.get(topProjectId) || 0) < 2) return null;
+
+  const total = ranked.reduce((sum, [, score]) => sum + Math.max(score, 0), 0);
   if (total <= 0) return null;
 
-  const share = top[1] / total;
+  const share = Math.min(Math.max(topScore, 0) / total, 1);
   if (share < threshold) return null;
 
-  return { projectId: top[0], confidence: share };
+  return { projectId: topProjectId, confidence: share };
 }
 
 function formatEvidence(scores: Map<string, number>, projects: ProjectSummary[]): string {
@@ -141,17 +156,22 @@ export async function routeWorkItem(
   const text = input.description ? `${input.title}\n\n${input.description}` : input.title;
 
   let neighbourScores = new Map<string, number>();
-  let neighbourHitCount = 0;
+  let neighbourHitsByProject = new Map<string, number>();
   let degraded = false;
 
   try {
     const vector = await embed(text);
     const hits = await search(vector, {
       limit: NEIGHBOUR_LIMIT,
-      filter: { must: [{ key: "entity_type", match: { value: "work_item" } }] },
+      filter: {
+        must: [
+          { key: "entity_type", match: { value: "work_item" } },
+          { key: "project_id", match: { any: projects.map((project) => project.id) } },
+        ],
+      },
     });
     neighbourScores = scoreNeighbours(hits);
-    neighbourHitCount = countNeighbours(hits);
+    neighbourHitsByProject = countHitsByProject(hits);
   } catch (err: any) {
     // Vector search is evidence, not the decision. Losing it lowers our
     // ceiling rather than stopping us.
@@ -206,11 +226,15 @@ export async function routeWorkItem(
   const decision = decideFromNeighbours(
     neighbourScores,
     config.routeConfidenceThreshold,
-    neighbourHitCount,
+    neighbourHitsByProject,
   );
-  if (decision) {
+  // Defence in depth: even though the search is already scoped to this
+  // workspace's projects, never hand back a project id we can't confirm
+  // belongs here — mirrors the check the LLM path does on `chosen`.
+  const decidedProject = decision && projects.find((project) => project.id === decision.projectId);
+  if (decision && decidedProject) {
     return {
-      projectId: decision.projectId,
+      projectId: decidedProject.id,
       confidence: decision.confidence,
       reason: "Chosen from similar existing work items; the LLM was unavailable.",
       candidates: projects,

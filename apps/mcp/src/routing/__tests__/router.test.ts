@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { scoreNeighbours, matchHint, decideFromNeighbours } from "../router.js";
+import {
+  scoreNeighbours,
+  matchHint,
+  decideFromNeighbours,
+  countHitsByProject,
+} from "../router.js";
 
 const PROJECTS = [
   { id: "p1", name: "Finance and Bills", identifier: "SUDIPTASCF", description: "finance" },
@@ -46,21 +51,52 @@ describe("scoreNeighbours", () => {
 describe("decideFromNeighbours", () => {
   const THRESHOLD = 0.7;
 
-  it("returns null for a single neighbour, however high its score", () => {
-    // A lone hit is not corroboration, no matter how similar it is.
-    const scores = new Map([["p1", 0.99]]);
-    expect(decideFromNeighbours(scores, THRESHOLD, 1)).toBeNull();
+  it("returns null when the winner has only one hit, even if another project also has one", () => {
+    // Corroboration is per-project: the winner having one hit is not fixed
+    // by some *other* project also having a hit.
+    const scores = new Map([
+      ["p1", 0.95],
+      ["p2", 0.05],
+    ]);
+    const hitsByProject = new Map([
+      ["p1", 1],
+      ["p2", 1],
+    ]);
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
   });
 
-  it("returns the project with a dominant share when corroborated by two hits", () => {
+  it("returns the project with a dominant share when the winner has two hits", () => {
     const scores = new Map([
       ["p1", 1.2],
       ["p2", 0.3],
     ]);
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 1],
+    ]);
     // share = 1.2 / 1.5 = 0.8
-    const decision = decideFromNeighbours(scores, THRESHOLD, 2);
+    const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
     expect(decision?.projectId).toBe("p1");
     expect(decision?.confidence).toBeCloseTo(0.8);
+  });
+
+  it("caps confidence at 1 when a negative score would otherwise inflate the share", () => {
+    // Cosine similarity ranges over [-1, 1]. A negative score is evidence
+    // against p2, not weak evidence for it, so it must not shrink the
+    // denominator: naively summing raw scores gives total = 0.5 and
+    // share = 1.0 / 0.5 = 2.0, which must never be returned.
+    const scores = new Map([
+      ["p1", 1.0],
+      ["p2", -0.5],
+    ]);
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 1],
+    ]);
+    const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
+    expect(decision?.projectId).toBe("p1");
+    expect(decision?.confidence).toBeLessThanOrEqual(1);
+    expect(decision?.confidence).toBeCloseTo(1);
   });
 
   it("returns null when the evidence is split evenly below threshold", () => {
@@ -68,7 +104,11 @@ describe("decideFromNeighbours", () => {
       ["p1", 0.5],
       ["p2", 0.5],
     ]);
-    expect(decideFromNeighbours(scores, THRESHOLD, 2)).toBeNull();
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 2],
+    ]);
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
   });
 
   it("returns null for a zero total score instead of NaN", () => {
@@ -76,10 +116,36 @@ describe("decideFromNeighbours", () => {
       ["p1", 0],
       ["p2", 0],
     ]);
-    expect(decideFromNeighbours(scores, THRESHOLD, 2)).toBeNull();
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 2],
+    ]);
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
   });
 
   it("returns null for an empty map", () => {
-    expect(decideFromNeighbours(new Map(), THRESHOLD, 0)).toBeNull();
+    expect(decideFromNeighbours(new Map(), THRESHOLD, new Map())).toBeNull();
+  });
+});
+
+describe("countHitsByProject", () => {
+  it("counts hits per project", () => {
+    const counts = countHitsByProject([
+      { id: "a", score: 0.9, payload: { project_id: "p1" } },
+      { id: "b", score: 0.8, payload: { project_id: "p1" } },
+      { id: "c", score: 0.5, payload: { project_id: "p2" } },
+    ]);
+
+    expect(counts.get("p1")).toBe(2);
+    expect(counts.get("p2")).toBe(1);
+  });
+
+  it("ignores hits with no project payload", () => {
+    const counts = countHitsByProject([{ id: "a", score: 0.9, payload: {} }]);
+    expect(counts.size).toBe(0);
+  });
+
+  it("returns an empty map for no hits", () => {
+    expect(countHitsByProject([]).size).toBe(0);
   });
 });
