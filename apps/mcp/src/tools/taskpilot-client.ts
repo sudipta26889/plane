@@ -259,6 +259,29 @@ export class TaskPilotClient {
   }
 
   // --- Pages ---
+  /**
+   * One page of pages, preserving the cursor envelope. listPages discards it,
+   * which left everything past the first page unreachable — this instance has
+   * 4,807 pages.
+   */
+  async listPagesPage(
+    projectId: string,
+    params?: Record<string, string>,
+  ): Promise<{ results: any[]; nextCursor: string | null; hasMore: boolean }> {
+    const qs = "?" + new URLSearchParams({ per_page: "50", ...(params || {}) }).toString();
+    const data = await this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${qs}`,
+    );
+
+    if (Array.isArray(data)) return { results: data, nextCursor: null, hasMore: false };
+    return {
+      results: data.results || [],
+      nextCursor: data.next_cursor ?? null,
+      hasMore: Boolean(data.next_page_results),
+    };
+  }
+
   async listPages(projectId: string, params?: Record<string, string>): Promise<any[]> {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
     const data = await this.request(
@@ -303,13 +326,6 @@ export class TaskPilotClient {
     );
   }
 
-  async listPageVersions(projectId: string, pageId: string): Promise<any[]> {
-    const data = await this.request(
-      "GET",
-      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${pageId}/versions/`,
-    );
-    return Array.isArray(data) ? data : data.results || data;
-  }
 
   // --- Relations ---
   async listRelations(projectId: string, issueId: string): Promise<any> {
@@ -364,9 +380,4 @@ export class TaskPilotClient {
     return this.request("POST", `/api/v1/workspaces/${this.workspace}/call-notes/lookup/`, params);
   }
 
-  async callNoteHistory(
-    params: { phone: string; category?: string },
-  ): Promise<{ found: false } | { found: true; history_html: string; identifier?: string; category?: string }> {
-    return this.request("POST", `/api/v1/workspaces/${this.workspace}/call-notes/history/`, params);
-  }
 }

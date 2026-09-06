@@ -153,7 +153,9 @@ export async function executeA2aTask(
 
     // Map A2A input to MCP args and call handler
     const mcpArgs = mapSkillInputToMcpArgs(skill, input);
-    const result = await executeToolCall(skillDef.mcpTool, mcpArgs, auth);
+    // The A2A path already ran its own approval flow before reaching here (the
+    // task sat in auth_required until a human approved), so do not ask again.
+    const result = await executeToolCall(skillDef.mcpTool, mcpArgs, auth, true);
 
     // Success
     await storeResult(taskId, result);

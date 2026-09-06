@@ -89,3 +89,42 @@ describe("intake rejection is gated, acceptance is not", () => {
     expect(requiresApproval("intake.triage", { decision: "accept" })).toBe(false);
   });
 });
+
+describe("the two approval gates cannot disagree", () => {
+  it("every skill isCriticalAction gates is also gated on the A2A path", () => {
+    // executeToolCall now trusts the A2A path's own approval and skips its own.
+    // That is only safe while requiresApproval (A2A) fires wherever
+    // isCriticalAction (MCP) does. If a future tool is added to
+    // isCriticalAction without an approval flag in the registry, the A2A path
+    // would execute it with no human gate at all — this test fails first.
+    const probes = [
+      { skill: "task.move", args: { state: "Cancelled" } },
+      { skill: "task.bulk_cancel", args: {} },
+      { skill: "page.archive", args: {} },
+      { skill: "intake.triage", args: { decision: "reject" } },
+    ];
+
+    for (const probe of probes) {
+      const definition = getSkillDefinition(probe.skill)!;
+      expect(definition, `${probe.skill} is not registered`).toBeDefined();
+      expect(
+        isCriticalAction(definition.mcpTool, probe.args),
+        `${definition.mcpTool} is critical on the MCP path`,
+      ).toBe(true);
+      expect(
+        requiresApproval(probe.skill, probe.args),
+        `${probe.skill} must also be gated on the A2A path`,
+      ).toBe(true);
+    }
+  });
+
+  it("every registry skill marked for approval is critical on the MCP path too", () => {
+    for (const skill of getAllSkills()) {
+      if (skill.approval !== true) continue;
+      expect(
+        isCriticalAction(skill.mcpTool, {}),
+        `${skill.mcpTool} is approval:true but isCriticalAction ignores it, so MCP clients bypass the human gate`,
+      ).toBe(true);
+    }
+  });
+});

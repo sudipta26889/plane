@@ -48,11 +48,19 @@ async function main() {
   const token = await getOrCreateApiToken(owner.rows[0].member_id, workspace);
   const client = new TaskPilotClient(workspace, token);
 
+  // Ground truth is where LIVE work is filed. Cancelled items are excluded on
+  // purpose: this instance has eight cancelled ops/finance tickets sitting in
+  // "Groceries and Shopping", and scoring the router wrong for declining to
+  // reproduce a filing that was already abandoned measures the backlog's
+  // history, not the router. Triage items are excluded for the same reason —
+  // they are precisely the ones nothing could place.
   const items = await db.query(
     `SELECT i.name, i.description_stripped, i.project_id, p.identifier
      FROM issues i
      JOIN projects p ON p.id = i.project_id
+     LEFT JOIN states s ON s.id = i.state_id
      WHERE i.deleted_at IS NULL AND i.workspace_id = $1
+       AND COALESCE(s.group, '') NOT IN ('cancelled', 'triage')
      ORDER BY random()
      LIMIT $2`,
     [ws.rows[0].id, sampleSize],

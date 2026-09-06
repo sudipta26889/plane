@@ -35,6 +35,9 @@ export function isValidCallNoteCategory(category: string): boolean {
 }
 
 /** TaskPilot stores intake status as a small int; agents need the name. */
+/** IntakeIssue.status for an item nobody has triaged yet (intake.py:43). */
+export const INTAKE_PENDING = -2;
+
 export function intakeStatusName(status: number): string {
   switch (status) {
     case -2: return "pending";
@@ -111,6 +114,15 @@ export async function executeToolCall(
   name: string,
   args: Record<string, any>,
   auth: AuthContext,
+  /**
+   * Set by the A2A executor when the human already approved this exact action
+   * through the A2A task's own auth_required flow. Without it the approval is
+   * requested twice for one action — once by the protocol handler before the
+   * task runs, then again here when the approved task executes — and if the
+   * second request expires the task fails with "waiting for approval" after
+   * the human has already approved.
+   */
+  approvalAlreadyGranted = false,
 ): Promise<any> {
   if (WRITE_TOOLS.has(name) && !auth.scopes.includes("taskpilot:write")) {
     throw new Error(`Tool '${name}' requires 'taskpilot:write' scope`);
@@ -125,7 +137,7 @@ export async function executeToolCall(
   }
 
   // DharaHIL HITL check for critical actions (shared between MCP and A2A)
-  if (config.dharahilEnabled && isCriticalAction(name, args)) {
+  if (config.dharahilEnabled && !approvalAlreadyGranted && isCriticalAction(name, args)) {
     const decision = await runApprovalLoop({
       toolName: name,
       toolArgs: args,
@@ -433,6 +445,10 @@ const TOOLS = [
       type: "object",
       properties: {
         project_hint: { type: "string", description: "Project name or identifier to limit to (optional)" },
+        cursor: {
+          type: "string",
+          description: "next_cursor from a previous call, to page further. Requires project_hint, since a cursor is per-project.",
+        },
       },
     },
   },
@@ -455,7 +471,7 @@ const TOOLS = [
       type: "object",
       properties: {
         title: { type: "string", description: "Page title" },
-        content: { type: "string", description: "Page content (optional)" },
+        content: { type: "string", description: "Page content as HTML (optional)" },
         project_hint: { type: "string", description: "Project name or identifier to route to (optional)" },
       },
       required: ["title"],
@@ -469,7 +485,7 @@ const TOOLS = [
       properties: {
         project_id: { type: "string", description: "Project UUID" },
         page_id: { type: "string", description: "Page UUID" },
-        content: { type: "string", description: "New page content" },
+        content: { type: "string", description: "New page content as HTML" },
         force: { type: "boolean", description: "Edit an externally-synced page anyway. Default false." },
       },
       required: ["project_id", "page_id", "content"],
@@ -497,6 +513,10 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
+        include_triaged: {
+          type: "boolean",
+          description: "Also return items already accepted or rejected. Default false.",
+        },
         project: { type: "string", description: "Project name or identifier (optional — defaults to the workspace's configured intake project)" },
       },
     },
@@ -701,7 +721,10 @@ async function handleFindTasks(args: any, client: TaskPilotClient, _workspace: s
       });
     }
   }
-  return { tasks: results.slice(0, 20), count: results.length };
+  // count describes what is in `tasks`; the pre-slice total went out as a
+  // count of items the caller never received.
+  const returned = results.slice(0, 20);
+  return { tasks: returned, count: returned.length, truncated: results.length > returned.length };
 }
 
 async function handleListProjects(_args: any, client: TaskPilotClient, _workspace: string) {
@@ -1088,12 +1111,19 @@ async function handleListPages(args: any, client: TaskPilotClient, _workspace: s
 
   const targets = project ? [project] : projects;
   const pages: any[] = [];
+  // A cursor only means anything against one project's sequence.
+  let nextCursor: string | null = null;
   for (const target of targets) {
-    // Without per_page the endpoint returns up to 1000 full page rows per
-    // project (paginator default), so listing across 5 projects would fetch and
-    // serialise most of the 4,807-page corpus to keep 50 of each. listIssues
-    // already bounds itself this way.
-    const found = await client.listPages(String(target.id), { per_page: "50" });
+    // Bounded per project, and the cursor is carried back out so pages past
+    // the first are reachable — without it the other 4,700 were not.
+    const page = await client.listPagesPage(String(target.id), {
+      per_page: "50",
+      ...(args.cursor && targets.length === 1 ? { cursor: args.cursor } : {}),
+    });
+    const found = page.results;
+    if (targets.length === 1) {
+      nextCursor = page.hasMore ? page.nextCursor : null;
+    }
     for (const page of found.slice(0, 50)) {
       pages.push({ ...formatPageSummary(page), project: target.identifier });
     }
@@ -1102,7 +1132,12 @@ async function handleListPages(args: any, client: TaskPilotClient, _workspace: s
   const returned = pages.slice(0, 100);
   // count describes what is in `pages`. Reporting the pre-slice total here read
   // as "there are 250" while handing back 100.
-  return { pages: returned, count: returned.length, truncated: pages.length > returned.length };
+  return {
+    pages: returned,
+    count: returned.length,
+    truncated: pages.length > returned.length,
+    ...(nextCursor ? { next_cursor: nextCursor } : {}),
+  };
 }
 
 async function handleGetPage(args: any, client: TaskPilotClient, _workspace: string) {
@@ -1155,7 +1190,11 @@ async function handleCreatePage(args: any, client: TaskPilotClient, workspace: s
   const project = decision.candidates.find((c) => c.id === decision.projectId);
   const page = await client.createPage(decision.projectId, {
     name: args.title,
-    ...(args.content ? { description_html: `<p>${args.content}</p>` } : {}),
+    // Pass content through as given, matching page_update. Wrapping it in <p>
+    // here meant an agent sending "<h1>T</h1><p>body</p>" got invalid nesting
+    // on create but the exact string on update, so a get -> edit -> update
+    // round trip could not reproduce what create produced.
+    ...(args.content ? { description_html: args.content } : {}),
   });
 
   return {
@@ -1225,15 +1264,23 @@ async function handleListIntake(args: any, client: TaskPilotClient, workspace: s
   }
 
   const items = await client.listIntakeIssues(projectId);
+
+  // The API's list filters only on snoozed_till, so accepted and rejected rows
+  // come back alongside pending ones — contradicting what this tool promises.
+  // include_triaged is there for auditing what was already decided.
+  const pending = args.include_triaged
+    ? items
+    : items.filter((item: any) => Number(item.status) === INTAKE_PENDING);
+
   return {
-    items: items.map((item: any) => ({
+    items: pending.map((item: any) => ({
       issue_id: item.issue,
       title: item.issue_detail?.name || "",
       status: intakeStatusName(item.status),
       priority: item.issue_detail?.priority || "",
       created_at: item.created_at,
     })),
-    count: items.length,
+    count: pending.length,
   };
 }
 
