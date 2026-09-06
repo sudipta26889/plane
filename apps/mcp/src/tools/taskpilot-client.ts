@@ -127,10 +127,13 @@ export class TaskPilotClient {
     );
   }
 
-  async listIntakeIssues(projectId: string): Promise<any[]> {
+  async listIntakeIssues(projectId: string, params?: Record<string, string>): Promise<any[]> {
+    // Without per_page the paginator returns up to 1000 rows, each with a fully
+    // expanded issue_detail — the same defect already fixed for pages.
+    const qs = "?" + new URLSearchParams({ per_page: "50", ...(params || {}) }).toString();
     const data = await this.request(
       "GET",
-      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/intake-issues/`,
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/intake-issues/${qs}`,
     );
     return Array.isArray(data) ? data : data.results || data;
   }

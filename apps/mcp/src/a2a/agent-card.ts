@@ -2,7 +2,7 @@ import { getAllSkills } from "./skill-registry.js";
 
 const SCOPES = {
   "taskpilot:read": "Read projects, tasks, members, labels, cycles",
-  "taskpilot:write": "Create/update/move tasks, assign, label",
+  "taskpilot:write": "Create/update/move tasks, assign, label, write and archive pages, triage intake, link work items",
 };
 
 export function buildAgentCard(baseUrl: string) {
@@ -82,7 +82,12 @@ export function buildLlmsTxt(baseUrl: string): string {
 
   const formatSkillGroup = (group: typeof skills) =>
     group.map((s) => {
-      const approval = s.approval === "conditional" ? " - REQUIRES HUMAN APPROVAL for cancellation" : "";
+      const approval =
+        s.approval === true
+          ? " - ALWAYS REQUIRES HUMAN APPROVAL"
+          : s.approval === "conditional"
+            ? " - REQUIRES HUMAN APPROVAL for its destructive form (cancelling, rejecting)"
+            : "";
       return `- **${s.name}**: ${s.description} (scope: ${s.scope})${approval}`;
     }).join("\n");
 
@@ -260,7 +265,7 @@ Webhooks deliver push notifications for task state changes:
 
 ## Human-in-the-Loop Approvals
 
-Some actions require human approval (currently: cancelling a task via task.move):
+Some actions require human approval — cancelling a task via task.move, task.bulk_cancel, archiving a page via page.archive, and rejecting an item via intake.triage:
 1. Task enters **auth_required** state
 2. Human receives notification via Slack/Telegram (DharaHIL gateway)
 3. Human can: APPROVE (execute), REJECT (deny), or REVISE (request changes)
@@ -270,7 +275,7 @@ Some actions require human approval (currently: cancelling a task via task.move)
 ## OAuth Scopes
 
 - taskpilot:read — Read projects, tasks, members, labels, cycles
-- taskpilot:write — Create/update/move tasks, assign, label
+- taskpilot:write — Create/update/move tasks, assign, label, write and archive pages, triage intake, link work items
 
 ## Error Codes
 

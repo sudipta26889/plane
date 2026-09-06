@@ -293,3 +293,16 @@ describe("call note tools", () => {
     expect(tool!.inputSchema.required).toContain("phone");
   });
 });
+
+describe("the synced-page guard applies to archive, not just update", () => {
+  it("refuses to archive an externally-synced page", () => {
+    // Archive is the most destructive page operation: the API archives the
+    // whole descendant subtree and performs no is_locked check of its own.
+    const verdict = canAgentEditPage({ id: "p1", external_source: "meetecho" }, false);
+    expect(verdict.allowed).toBe(false);
+  });
+
+  it("refuses to archive a locked page even when forced", () => {
+    expect(canAgentEditPage({ id: "p2", is_locked: true }, true).allowed).toBe(false);
+  });
+});

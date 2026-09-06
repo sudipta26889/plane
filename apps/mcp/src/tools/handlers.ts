@@ -483,6 +483,10 @@ const TOOLS = [
       properties: {
         project_id: { type: "string", description: "Project UUID" },
         page_id: { type: "string", description: "Page UUID" },
+        force: {
+          type: "boolean",
+          description: "Archive even if the page is synced from an external system. Default false.",
+        },
       },
       required: ["project_id", "page_id"],
     },
@@ -1179,8 +1183,25 @@ async function handleArchivePage(args: any, client: TaskPilotClient, _workspace:
   if (!args.project_id || !args.page_id) {
     return { error: "project_id and page_id are required" };
   }
+
+  // Archive is the MOST destructive page operation, not the least: the API
+  // archives the page and every descendant under it, and — unlike the page and
+  // description PATCH endpoints — performs no is_locked check of its own. So
+  // this path needs the guard more than update does, not less.
+  const page = await client.getPage(args.project_id, args.page_id);
+  const verdict = canAgentEditPage(page, Boolean(args.force));
+  if (!verdict.allowed) return { error: verdict.reason };
+
   await client.archivePage(args.project_id, args.page_id);
-  return { id: args.page_id, status: "archived" };
+
+  // Name and provenance go in the result so the human approval prompt shows
+  // WHAT is being archived, not just two opaque UUIDs.
+  return {
+    id: args.page_id,
+    name: page.name || "",
+    source: page.external_source || "local",
+    status: "archived",
+  };
 }
 
 async function handleListIntake(args: any, client: TaskPilotClient, workspace: string) {
@@ -1226,7 +1247,19 @@ async function handleTriageIntake(args: any, client: TaskPilotClient, _workspace
   if (status === undefined) {
     return { error: `decision must be 'accept' or 'reject', got '${args.decision}'` };
   }
-  await client.updateIntakeIssue(args.project_id, args.issue_id, { status });
+  // The API applies the status change only for roles above MEMBER, and
+  // otherwise returns 200 with the row unchanged. Reporting success on that
+  // would tell the caller the queue was cleared when it was not.
+  const updated = await client.updateIntakeIssue(args.project_id, args.issue_id, { status });
+  const applied = updated?.status;
+
+  if (applied !== undefined && Number(applied) !== status) {
+    return {
+      error: `Triage did not apply — the item is still '${intakeStatusName(Number(applied))}'. This usually means the account lacks the project role required to triage.`,
+      issue_id: args.issue_id,
+    };
+  }
+
   return { issue_id: args.issue_id, status: intakeStatusName(status) };
 }
 
@@ -1250,9 +1283,27 @@ async function handleAddRelation(args: any, client: TaskPilotClient, _workspace:
       valid_types: RELATION_TYPES,
     };
   }
+  if (!args.identifier || !args.target_identifier) {
+    return { error: "identifier and target_identifier are required" };
+  }
+
   const source = await client.getIssueByIdentifier(args.identifier);
   const target = await client.getIssueByIdentifier(args.target_identifier);
-  await client.createRelation(String(source.project), String(source.id), args.relation_type, [String(target.id)]);
+  const created = await client.createRelation(
+    String(source.project),
+    String(source.id),
+    args.relation_type,
+    [String(target.id)],
+  );
+
+  // The API filters the requested ids by workspace and bulk-creates whatever
+  // survives, returning 201 with an empty list when nothing did. Reporting
+  // "linked" on that would claim a link that does not exist.
+  const linked = Array.isArray(created) ? created : created?.results;
+  if (Array.isArray(linked) && linked.length === 0) {
+    return { error: `No relation was created — ${args.target_identifier} did not resolve in this workspace.` };
+  }
+
   return {
     identifier: args.identifier,
     target: args.target_identifier,
