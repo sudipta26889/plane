@@ -113,6 +113,7 @@ build/
 .react-router/
 temp/
 scripts/
+!apps/mcp/scripts/
 secrets/
 docs/superpowers/.idx
 .husky

@@ -3,8 +3,22 @@ import {
   validateJsonRpcRequest,
   canonicalMethod,
   normalizeMessageParams,
+  extractMessageText,
   A2A_METHODS,
 } from "../protocol-handler.js";
+
+describe("extractMessageText", () => {
+  it("joins every text part and ignores non-text parts", () => {
+    expect(
+      extractMessageText({ parts: [{ text: "one" }, { data: { skill: "x" } }, { text: "two" }] }),
+    ).toBe("one\ntwo");
+  });
+
+  it("returns an empty string when there is no text", () => {
+    expect(extractMessageText({ parts: [{ data: {} }] })).toBe("");
+    expect(extractMessageText(undefined)).toBe("");
+  });
+});
 
 describe("Protocol Handler", () => {
   it("validates a correct JSON-RPC request", () => {
@@ -40,6 +54,14 @@ describe("Protocol Handler", () => {
     expect(canonicalMethod("context/get")).toBe("context.get");
   });
 
+  it("accepts A2A v1.0 gRPC method names", () => {
+    // OpenClaw's built-in a2a channel sends these, not the slash form.
+    expect(canonicalMethod("SendMessage")).toBe("message.send");
+    expect(canonicalMethod("GetTask")).toBe("task.get");
+    expect(canonicalMethod("ListTasks")).toBe("task.list");
+    expect(canonicalMethod("CancelTask")).toBe("task.cancel");
+  });
+
   it("leaves dot-form and unknown methods alone", () => {
     expect(canonicalMethod("message.send")).toBe("message.send");
     expect(canonicalMethod("initialize")).toBe("initialize");
@@ -69,6 +91,34 @@ describe("Protocol Handler", () => {
     expect(normalized.skill).toBe("task.create");
     expect(normalized.input).toEqual({ title: "Fix login" });
     expect(normalized.idempotencyKey).toBe("msg-1");
+  });
+
+  it("reads a v1.0 data part, which carries no kind tag", () => {
+    // A2A v1.0 parts are bare {text} / {data}; v0.3 tags them with kind.
+    const normalized = normalizeMessageParams({
+      message: {
+        messageId: "msg-2",
+        role: "ROLE_USER",
+        contextId: "ctx-oc-taskpilot",
+        parts: [
+          { text: "file this please" },
+          { data: { skill: "task.create", input: { title: "Renew domain" } } },
+        ],
+      },
+    });
+    expect(normalized.skill).toBe("task.create");
+    expect(normalized.input).toEqual({ title: "Renew domain" });
+    expect(normalized.contextId).toBe("ctx-oc-taskpilot");
+    expect(normalized.text).toBe("file this please");
+  });
+
+  it("surfaces free text when a message carries no skill", () => {
+    // Text alone cannot name a skill, but the caller needs to see what arrived.
+    const normalized = normalizeMessageParams({
+      message: { messageId: "m", contextId: "c", parts: [{ text: "what is due today?" }] },
+    });
+    expect(normalized.skill).toBeUndefined();
+    expect(normalized.text).toBe("what is due today?");
   });
 
   it("passes flat params through untouched", () => {
