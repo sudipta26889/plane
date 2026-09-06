@@ -1145,9 +1145,19 @@ export async function routeWorkItem(
 
   try {
     const vector = await embed(text);
+    // Scope to this workspace's projects. taskpilot_vector_db is ONE collection
+    // shared by every workspace, so an unscoped search returns neighbours from
+    // other tenants — and the neighbours fallback would hand back their project
+    // ids. Filter on project_id, not workspace_id: `input.workspace` is a slug
+    // and the payload stores a UUID, so that comparison would match nothing.
     const hits = await search(vector, {
       limit: NEIGHBOUR_LIMIT,
-      filter: { must: [{ key: "entity_type", match: { value: "work_item" } }] },
+      filter: {
+        must: [
+          { key: "entity_type", match: { value: "work_item" } },
+          { key: "project_id", match: { any: projects.map((project) => project.id) } },
+        ],
+      },
     });
     neighbourScores = scoreNeighbours(hits);
   } catch (err: any) {
@@ -1200,18 +1210,13 @@ export async function routeWorkItem(
     console.warn(`[router] LLM routing failed: ${err.message}`);
   }
 
-  // No LLM. Neighbours alone decide only if they are overwhelming.
-  const ranked = [...neighbourScores.entries()].sort((a, b) => b[1] - a[1]);
-  const [top, second] = ranked;
-  if (top && (!second || top[1] > second[1] * 2)) {
-    return {
-      projectId: top[0],
-      confidence: config.routeConfidenceThreshold,
-      reason: "Chosen from similar existing work items; the LLM was unavailable.",
-      candidates: projects,
-      source: "neighbours",
-    };
-  }
+  // No LLM. Neighbours alone decide only on corroborated, dominant evidence.
+  // Do NOT write `!second || top > second * 2`: with a single neighbour that is
+  // unconditionally true, so one arbitrarily weak hit would win while reporting
+  // a confidence never derived from it. Require the WINNING project to have at
+  // least two of its own hits, derive confidence from its share of similarity
+  // mass, floor negative cosine scores at 0 and clamp the share into [0, 1].
+  // See decideFromNeighbours in the implementation.
 
   return {
     projectId: null,
