@@ -45,5 +45,13 @@ export async function embedBatch(texts: string[]): Promise<number[][]> {
 
   const data = await post("/batch", { inputs: texts.map((text) => ({ text })) });
   const embeddings: number[][] = data.embeddings || [];
+
+  if (embeddings.length !== texts.length) {
+    throw new Error(
+      `Embedding server returned ${embeddings.length} vectors for ${texts.length} inputs. ` +
+        `Malformed or truncated response.`,
+    );
+  }
+
   return embeddings.map(assertDims);
 }

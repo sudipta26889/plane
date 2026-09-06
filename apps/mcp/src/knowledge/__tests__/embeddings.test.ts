@@ -56,4 +56,13 @@ describe("embedBatch", () => {
     expect(await embedBatch([])).toEqual([]);
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it("throws when the response has fewer embeddings than inputs", async () => {
+    // Simulate a truncated or malformed response
+    stubFetch({
+      embeddings: [new Array(1024).fill(0.1)],
+      dimensions: 1024,
+    });
+    await expect(embedBatch(["one", "two", "three"])).rejects.toThrow(/1 vectors for 3 inputs/);
+  });
 });
