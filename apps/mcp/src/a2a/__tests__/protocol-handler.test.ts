@@ -4,6 +4,7 @@ import {
   canonicalMethod,
   normalizeMessageParams,
   extractMessageText,
+  handleA2aRequest,
   A2A_METHODS,
 } from "../protocol-handler.js";
 
@@ -60,6 +61,11 @@ describe("Protocol Handler", () => {
     expect(canonicalMethod("GetTask")).toBe("task.get");
     expect(canonicalMethod("ListTasks")).toBe("task.list");
     expect(canonicalMethod("CancelTask")).toBe("task.cancel");
+    expect(canonicalMethod("GetAgentCard")).toBe("agent.getCard");
+  });
+
+  it("accepts the older tasks/send spelling", () => {
+    expect(canonicalMethod("tasks/send")).toBe("message.send");
   });
 
   it("leaves dot-form and unknown methods alone", () => {
@@ -124,6 +130,17 @@ describe("Protocol Handler", () => {
   it("passes flat params through untouched", () => {
     const flat = { contextId: "ctx-1", skill: "task.get", input: { identifier: "WEB-1" } };
     expect(normalizeMessageParams(flat)).toBe(flat);
+  });
+
+  it("serves the agent card over JSON-RPC without auth", async () => {
+    const response: any = await handleA2aRequest(
+      { jsonrpc: "2.0", id: 1, method: "GetAgentCard" },
+      null,
+      "127.0.0.1",
+    );
+    expect(response.error).toBeUndefined();
+    expect(response.result.name).toBe("TaskPilot");
+    expect(response.result.supportedInterfaces?.[0]?.protocolBinding).toBe("JSONRPC");
   });
 
   it("defines all A2A methods", () => {

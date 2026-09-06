@@ -11,6 +11,8 @@ import { buildApprovalRequest, submitApproval } from "./dharahil.js";
 import { logAuditEvent } from "./audit-log.js";
 import { queueWebhookDeliveries } from "./webhooks.js";
 import { hasRequiredScope } from "./auth.js";
+import { buildAgentCard } from "./agent-card.js";
+import { config } from "../config.js";
 import { isTerminalState, A2A_ERROR_CODES } from "./types.js";
 import type { AuthContext } from "./types.js";
 
@@ -21,6 +23,7 @@ export const A2A_METHODS = [
   "task.list",
   "task.cancel",
   "context.get",
+  "agent.getCard",
 ] as const;
 
 export type A2aMethod = (typeof A2A_METHODS)[number];
@@ -36,11 +39,15 @@ const METHOD_ALIASES: Record<string, A2aMethod> = {
   "tasks/list": "task.list",
   "tasks/cancel": "task.cancel",
   "context/get": "context.get",
+  // A2A v0.2 spelling, still emitted by some clients
+  "tasks/send": "message.send",
   // A2A v1.0 gRPC method names
   SendMessage: "message.send",
   GetTask: "task.get",
   ListTasks: "task.list",
   CancelTask: "task.cancel",
+  GetAgentCard: "agent.getCard",
+  "agent/getAuthenticatedExtendedCard": "agent.getCard",
 };
 
 export function canonicalMethod(method: string): string {
@@ -128,6 +135,12 @@ export function normalizeMessageParams(params: any) {
     idempotencyKey: params.idempotencyKey ?? message.messageId,
     text: extractMessageText(message),
   };
+}
+
+function handleGetAgentCard(body: any) {
+  // The card is already public over GET /.well-known/agent-card.json, so
+  // serving it here needs no auth either.
+  return jsonRpcResult(body.id, buildAgentCard(config.baseUrl));
 }
 
 async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string) {
@@ -405,10 +418,10 @@ export async function handleA2aRequest(
 
   const method = body.method as string;
 
-  // initialize does not require auth
-  if (method === "initialize") {
+  // Neither initialize nor the agent card requires auth.
+  if (method === "initialize" || method === "agent.getCard") {
     try {
-      return handleInitialize(body);
+      return method === "agent.getCard" ? handleGetAgentCard(body) : handleInitialize(body);
     } catch (err: any) {
       return jsonRpcError(body.id, A2A_ERROR_CODES.INTERNAL_ERROR, err.message);
     }
