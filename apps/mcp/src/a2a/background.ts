@@ -1,7 +1,9 @@
 import { config } from "../config.js";
 import { db } from "../db.js";
-import { interpretDecision, applyRevisionInstructions, buildApprovalRequest, submitApproval } from "./dharahil.js";
-import { transitionState, executeA2aTask } from "./task-executor.js";
+import { runAgent } from "../agent/loop.js";
+import { clearRunState, loadRunState } from "../agent/state.js";
+import { interpretDecision, applyRevisionInstructions } from "./dharahil.js";
+import { transitionState, executeA2aTask, settleAgentRun } from "./task-executor.js";
 import { deliverWebhook } from "./webhooks.js";
 import { logAuditEvent } from "./audit-log.js";
 import { sseManager } from "./sse.js";
@@ -18,7 +20,7 @@ export async function pollHitlDecisions() {
   try {
     // Find tasks awaiting approval
     const tasks = await db.query(
-      `SELECT t.task_id, t.skill, t.input, t.user_id, t.workspace_slug, t.client_id,
+      `SELECT t.task_id, t.context_id, t.skill, t.input, t.user_id, t.workspace_slug, t.client_id,
               a.dharahil_request_id, a.expires_at
        FROM a2a_tasks t
        JOIN a2a_approvals a ON t.task_id = a.task_id
@@ -28,6 +30,7 @@ export async function pollHitlDecisions() {
     for (const task of tasks.rows) {
       // Check if expired
       if (new Date(task.expires_at) < new Date()) {
+        await clearRunState(task.task_id);
         await transitionState(task.task_id, "rejected", "Approval expired");
         await db.query(
           `UPDATE a2a_approvals SET status = 'expired', responded_at = NOW() WHERE task_id = $1`,
@@ -64,12 +67,43 @@ export async function pollHitlDecisions() {
 
           const auth = { userId: task.user_id, workspaceSlug: task.workspace_slug, clientId: task.client_id, scopes: ["taskpilot:read", "taskpilot:write"] };
           const input = typeof task.input === "string" ? JSON.parse(task.input) : task.input;
-          await executeA2aTask(task.task_id, task.skill, input, auth);
+
+          // A saved transcript means this is an agent run, suspended mid-loop
+          // on the call the human just approved. Hand that call back to the
+          // loop as `resumeFrom` so it executes pre-approved — asking a second
+          // time is how an approved write gets lost to an expired request.
+          const runState = await loadRunState(task.task_id);
+          if (runState) {
+            const result = await runAgent({
+              text: input?.text ?? "",
+              contextId: task.context_id,
+              auth,
+              taskId: task.task_id,
+              resumeFrom: runState,
+            });
+            await settleAgentRun(task.task_id, task.context_id, result, auth);
+          } else {
+            await executeA2aTask(task.task_id, task.skill, input, auth);
+          }
 
           await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.approved", taskId: task.task_id, skill: task.skill, success: true });
         } else if (decision.shouldRevise) {
           // Revised — use LLM to interpret instructions, modify args, re-execute
           console.log(`[a2a] REVISE requested for ${task.task_id}: "${decision.reviseInput}"`);
+
+          // ponytail: revising an agent run means rewriting the approved call's
+          // arguments inside the saved transcript, which nothing does yet.
+          // Reject rather than resume with arguments no human approved.
+          if (await loadRunState(task.task_id)) {
+            await clearRunState(task.task_id);
+            await db.query(
+              `UPDATE a2a_approvals SET status = 'rejected', responded_at = NOW() WHERE task_id = $1`,
+              [task.task_id]
+            );
+            await transitionState(task.task_id, "rejected", `Revision is not supported for agent runs: ${decision.reviseInput}`);
+            await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: false, errorMessage: "Revision is not supported for agent runs" });
+            continue;
+          }
 
           try {
             const originalInput = typeof task.input === "string" ? JSON.parse(task.input) : task.input;
@@ -109,7 +143,8 @@ export async function pollHitlDecisions() {
             await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: false, errorMessage: err.message });
           }
         } else {
-          // Rejected
+          // Rejected — the suspended write is dead, so is its transcript.
+          await clearRunState(task.task_id);
           await db.query(
             `UPDATE a2a_approvals SET status = 'rejected', responded_at = NOW() WHERE task_id = $1`,
             [task.task_id]
@@ -184,6 +219,10 @@ export async function cleanupOldData() {
     await db.query(`DELETE FROM a2a_approvals WHERE task_id IN (SELECT task_id FROM a2a_tasks WHERE state IN ('completed','failed','canceled','rejected') AND created_at < NOW() - INTERVAL '90 days')`);
     await db.query(`DELETE FROM a2a_tasks WHERE state IN ('completed','failed','canceled','rejected') AND created_at < NOW() - INTERVAL '90 days'`);
     await db.query(`DELETE FROM a2a_audit_logs WHERE created_at < NOW() - INTERVAL '90 days'`);
+
+    // A suspended agent run whose approval nobody answered in a week is dead;
+    // DharaHIL TTLs are hours. Without this the transcripts accumulate forever.
+    await db.query(`DELETE FROM a2a_agent_runs WHERE updated_at < NOW() - INTERVAL '7 days'`);
 
     // 30-day retention for webhook deliveries
     await db.query(`DELETE FROM a2a_webhook_deliveries WHERE created_at < NOW() - INTERVAL '30 days'`);
