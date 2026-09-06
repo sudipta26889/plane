@@ -46,8 +46,10 @@ router.post("/a2a", async (req: Request, res: Response) => {
 
   const ipAddress = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "unknown";
 
-  // initialize does not require auth
-  if (body.method === "initialize") {
+  // Neither initialize nor the agent card requires auth. validateJsonRpcRequest
+  // above has already canonicalised aliases, so GetAgentCard arrives here as
+  // agent.getCard; the card is public over the well-known GET regardless.
+  if (body.method === "initialize" || body.method === "agent.getCard") {
     const response = await handleA2aRequest(body, null, ipAddress);
     res.json(response);
     return;
