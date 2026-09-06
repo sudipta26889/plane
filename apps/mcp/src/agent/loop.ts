@@ -41,6 +41,15 @@ Work one step at a time: call a tool, read its result, then decide what to do ne
 
 Only the tools you were given exist. When you have enough to answer, reply in plain text with no tool call. Be concise and factual; if a step failed, say so rather than papering over it.`;
 
+/** Order-independent serialisation, so argument order cannot disguise a repeat. */
+function stableArgs(args: Record<string, any>): string {
+  return JSON.stringify(
+    Object.keys(args)
+      .sort()
+      .reduce<Record<string, any>>((acc, key) => ((acc[key] = args[key]), acc), {}),
+  );
+}
+
 function toolMessage(toolCallId: string, content: string): ChatMessage {
   return { role: "tool", tool_call_id: toolCallId, content };
 }
@@ -182,6 +191,10 @@ export async function runAgent(input: {
       return result;
     };
 
+    // Signatures of calls already made this run. Survives a resume through the
+    // replayed transcript below, so an approved run does not repeat earlier steps.
+    const attempted = new Set<string>();
+
     while (true) {
       for (const call of pending) {
         const name = call.function.name;
@@ -230,6 +243,23 @@ export async function runAgent(input: {
           await saveRunState(input.taskId, { messages, iteration, pendingToolCall: toolCall });
           return { status: "needs_approval", toolCall };
         }
+
+        // Observed live: asked for a page that did not exist in its workspace,
+        // the model called page_list six times with the same arguments and
+        // burned the whole iteration budget. Re-running an identical call
+        // cannot produce a new answer, so say so instead of spending a step.
+        const signature = `${name}:${stableArgs(args)}`;
+        if (!preApproved && attempted.has(signature)) {
+          messages.push(
+            toolMessage(
+              call.id,
+              `Error: you already called ${name} with exactly these arguments and got the result above. ` +
+                `Repeating it will return the same thing. Try different arguments, a different tool, or answer with what you have.`,
+            ),
+          );
+          continue;
+        }
+        attempted.add(signature);
 
         try {
           // Always through executeToolCall: it owns the scope check, the

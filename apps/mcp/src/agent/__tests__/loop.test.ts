@@ -420,3 +420,47 @@ describe("runAgent: conversation memory", () => {
     expect(recordedTurns[1]!.message.content).toBe("Nothing to do.");
   });
 });
+
+describe("repeated identical tool calls", () => {
+  it("refuses to re-run a call it already made with the same arguments", async () => {
+    // Observed live: asked for a page outside its workspace, the model called
+    // page_list six times with identical arguments and burned the whole
+    // iteration budget. An identical call cannot return anything new.
+    createMock
+      .mockResolvedValueOnce(callsResponse([{ id: "c1", name: "page_list", args: { project_hint: "PKM" } }]))
+      .mockResolvedValueOnce(callsResponse([{ id: "c2", name: "page_list", args: { project_hint: "PKM" } }]))
+      .mockResolvedValueOnce(answerResponse("Nothing found."));
+    executeToolCallMock.mockResolvedValue({ pages: [], count: 0 });
+
+    const result = await run({ text: "find the Siddhartha page" });
+
+    expect(result.status).toBe("completed");
+    // Asked twice, executed once.
+    expect(executeToolCallMock).toHaveBeenCalledTimes(1);
+    // And the model was told why, so it can change approach.
+    const secondReply = messagesOnCall(3).find((m: any) => m.tool_call_id === "c2");
+    expect(secondReply.content).toContain("already called");
+  });
+
+  it("still allows the same tool with different arguments", async () => {
+    createMock
+      .mockResolvedValueOnce(callsResponse([{ id: "c1", name: "page_list", args: { project_hint: "PKM Notes" } }]))
+      .mockResolvedValueOnce(callsResponse([{ id: "c2", name: "page_list", args: { project_hint: "PKM Sources" } }]))
+      .mockResolvedValueOnce(answerResponse("Checked both."));
+    executeToolCallMock.mockResolvedValue({ pages: [], count: 0 });
+
+    await run({ text: "check both projects" });
+    expect(executeToolCallMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("treats argument order as the same call", async () => {
+    createMock
+      .mockResolvedValueOnce(callsResponse([{ id: "c1", name: "find_tasks", args: { query: "a", project_hint: "b" } }]))
+      .mockResolvedValueOnce(callsResponse([{ id: "c2", name: "find_tasks", args: { project_hint: "b", query: "a" } }]))
+      .mockResolvedValueOnce(answerResponse("done"));
+    executeToolCallMock.mockResolvedValue({ tasks: [] });
+
+    await run({ text: "search" });
+    expect(executeToolCallMock).toHaveBeenCalledTimes(1);
+  });
+});
