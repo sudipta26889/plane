@@ -27,6 +27,7 @@ const SKILL_REGISTRY: Record<string, SkillDefinition> = {
   "project.list_tasks":   { name: "project.list_tasks",   mcpTool: "list_tasks",       scope: "taskpilot:read",  approval: false, description: "List tasks with filters" },
   "task.bulk_cancel":     { name: "task.bulk_cancel",     mcpTool: "bulk_cancel_tasks", scope: "taskpilot:write", approval: true,  description: "Cancel multiple tasks at once (requires human approval). No delete exists — use this instead." },
   "page.list":            { name: "page.list",            mcpTool: "page_list",        scope: "taskpilot:read",  approval: false, description: "List pages (documents) in a project or across projects" },
+  "page.search":          { name: "page.search",          mcpTool: "page_search",      scope: "taskpilot:read",  approval: false, description: "Find pages by topic using semantic search" },
   "page.get":             { name: "page.get",             mcpTool: "page_get",         scope: "taskpilot:read",  approval: false, description: "Get one page including its content" },
   "page.create":          { name: "page.create",          mcpTool: "page_create",      scope: "taskpilot:write", approval: false, description: "Create a page, routed to the right project" },
   "page.update":          { name: "page.update",          mcpTool: "page_update",      scope: "taskpilot:write", approval: false, description: "Replace a page's content. Refuses externally-synced pages unless forced" },

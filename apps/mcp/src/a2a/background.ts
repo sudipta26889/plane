@@ -7,7 +7,7 @@ import { transitionState, executeA2aTask, settleAgentRun } from "./task-executor
 import { deliverWebhook } from "./webhooks.js";
 import { logAuditEvent } from "./audit-log.js";
 import { sseManager } from "./sse.js";
-import { syncWorkItems } from "../knowledge/index-sync.js";
+import { syncWorkItems, syncPages } from "../knowledge/index-sync.js";
 import { embed } from "../knowledge/embeddings.js";
 
 /**
@@ -261,11 +261,19 @@ export async function syncKnowledgeIndex() {
 
   syncInFlight = true;
   try {
-    const { embedded, skipped } = await syncWorkItems();
-    lastSyncError = null;
-    if (embedded > 0) {
-      console.log(`[knowledge] Indexed ${embedded} work items (${skipped} unchanged)`);
+    const items = await syncWorkItems();
+    if (items.embedded > 0) {
+      console.log(`[knowledge] Indexed ${items.embedded} work items (${items.skipped} unchanged)`);
     }
+
+    // Pages are the larger corpus — 5,908 of them — so they follow work items
+    // rather than competing with them for the CPU-bound embedder.
+    const pages = await syncPages();
+    if (pages.embedded > 0) {
+      console.log(`[knowledge] Indexed ${pages.embedded} pages (${pages.skipped} unchanged)`);
+    }
+
+    lastSyncError = null;
   } catch (err: any) {
     lastSyncError = err?.message ? String(err.message).slice(0, 200) : "unknown error";
     console.error(`[knowledge] Index sync failed: ${lastSyncError}`);

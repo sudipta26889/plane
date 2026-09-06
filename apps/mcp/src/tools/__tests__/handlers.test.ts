@@ -83,10 +83,10 @@ describe("mapStateGroupToSimpleStatus", () => {
 });
 
 describe("all tools registration", () => {
-  it("should register exactly 30 tools", async () => {
+  it("should register exactly 31 tools", async () => {
     const { getToolDefinitions } = await import("../handlers.js");
     const tools = getToolDefinitions();
-    expect(tools).toHaveLength(30);
+    expect(tools).toHaveLength(31);
   });
 
   it("should have unique tool names", async () => {

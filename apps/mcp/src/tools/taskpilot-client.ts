@@ -267,18 +267,24 @@ export class TaskPilotClient {
   async listPagesPage(
     projectId: string,
     params?: Record<string, string>,
-  ): Promise<{ results: any[]; nextCursor: string | null; hasMore: boolean }> {
+  ): Promise<{ results: any[]; nextCursor: string | null; hasMore: boolean; total: number | null }> {
     const qs = "?" + new URLSearchParams({ per_page: "50", ...(params || {}) }).toString();
     const data = await this.request(
       "GET",
       `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${qs}`,
     );
 
-    if (Array.isArray(data)) return { results: data, nextCursor: null, hasMore: false };
+    if (Array.isArray(data)) {
+      return { results: data, nextCursor: null, hasMore: false, total: data.length };
+    }
     return {
       results: data.results || [],
       nextCursor: data.next_cursor ?? null,
       hasMore: Boolean(data.next_page_results),
+      // The paginator already reports the true total on every page. Counting by
+      // walking the cursor would be both slow and wrong — the agent answered
+      // "dozens of pages" for a project holding 4,487 because this was dropped.
+      total: typeof data.total_count === "number" ? data.total_count : null,
     };
   }
 

@@ -1,6 +1,7 @@
 import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
 import { routeWorkItem } from "../routing/router.js";
 import { findDuplicate } from "../routing/dedupe.js";
+import { searchPages } from "../knowledge/page-search.js";
 import { buildIndexText } from "../knowledge/index-sync.js";
 import { isCriticalAction, getWriteTools, requiresHumanApproval, isExternalPeer } from "../a2a/skill-registry.js";
 import { runApprovalLoop } from "../a2a/dharahil.js";
@@ -501,6 +502,18 @@ const TOOLS = [
           description: "next_cursor from a previous call, to page further. Requires project_hint, since a cursor is per-project.",
         },
       },
+    },
+  },
+  {
+    name: "page_search",
+    description: "Find pages by what they are about, using semantic search. Use this instead of page_list when looking for a page by topic rather than paging through them.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "What the page is about" },
+        limit: { type: "number", description: "Maximum matches to return (default 10, max 25)" },
+      },
+      required: ["query"],
     },
   },
   {
@@ -1164,6 +1177,9 @@ async function handleListPages(args: any, client: TaskPilotClient, _workspace: s
   const pages: any[] = [];
   // A cursor only means anything against one project's sequence.
   let nextCursor: string | null = null;
+  // The API's own total, not a count of what we fetched — those differ by three
+  // orders of magnitude on a project like PKM Sources.
+  let totalAcrossProjects = 0;
   for (const target of targets) {
     // Bounded per project, and the cursor is carried back out so pages past
     // the first are reachable — without it the other 4,700 were not.
@@ -1172,6 +1188,7 @@ async function handleListPages(args: any, client: TaskPilotClient, _workspace: s
       ...(args.cursor && targets.length === 1 ? { cursor: args.cursor } : {}),
     });
     const found = page.results;
+    if (page.total !== null) totalAcrossProjects += page.total;
     if (targets.length === 1) {
       nextCursor = page.hasMore ? page.nextCursor : null;
     }
@@ -1186,8 +1203,33 @@ async function handleListPages(args: any, client: TaskPilotClient, _workspace: s
   return {
     pages: returned,
     count: returned.length,
-    truncated: pages.length > returned.length,
+    // How many exist, as opposed to how many are in this response.
+    total_available: totalAcrossProjects,
+    truncated: totalAcrossProjects > returned.length,
     ...(nextCursor ? { next_cursor: nextCursor } : {}),
+  };
+}
+
+async function handleSearchPages(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.query) return { error: "query is required" };
+
+  const projects = await client.listProjects();
+  const matches = await searchPages(args.query, {
+    projectIds: projects.map((p: any) => String(p.id)),
+    limit: Math.min(Number(args.limit) || 10, 25),
+  });
+
+  const byId = new Map(projects.map((p: any) => [String(p.id), p]));
+  return {
+    pages: matches.map((m) => ({
+      id: m.page_id,
+      name: m.name,
+      source: m.source,
+      project: (byId.get(m.project_id) as any)?.identifier || "",
+      project_id: m.project_id,
+      score: Number(m.score.toFixed(3)),
+    })),
+    count: matches.length,
   };
 }
 
@@ -1455,6 +1497,7 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   get_task_summary: handleGetTaskSummary,
   bulk_cancel_tasks: handleBulkCancelTasks,
   page_list: handleListPages,
+  page_search: handleSearchPages,
   page_get: handleGetPage,
   page_create: handleCreatePage,
   page_update: handleUpdatePage,

@@ -31,6 +31,87 @@ export function contentHash(text: string): string {
  * Embed work items that are new or whose text changed, and upsert them.
  * Returns counts so the caller can log progress; safe to run repeatedly.
  */
+/**
+ * Index pages for semantic search.
+ *
+ * Deliberately indexed here rather than reusing meetecho_vector_db_pkm, whose
+ * 6,364 vectors cover the same content: that payload carries node_id and
+ * source_system but NO project_id, so a search could not be scoped to the
+ * caller's own projects at the vector store — only filtered afterwards, which
+ * is the weaker guarantee. It is also chunked, so hits are fragments rather
+ * than pages. Our own points carry the same tenancy key as work items.
+ */
+export async function syncPages(): Promise<{ embedded: number; skipped: number; removed: number }> {
+  await ensureCollection();
+
+  let embedded = 0;
+  let skipped = 0;
+  const live = new Set<string>();
+  let after = "00000000-0000-0000-0000-000000000000";
+
+  for (;;) {
+    const rows = await db.query(
+      `SELECT pg.id, pg.name, pg.description_stripped, pg.workspace_id,
+              pg.external_source, pp.project_id
+       FROM pages pg
+       JOIN project_pages pp ON pp.page_id = pg.id
+       WHERE pg.deleted_at IS NULL AND pg.archived_at IS NULL AND pg.id > $1
+       ORDER BY pg.id
+       LIMIT $2`,
+      [after, PAGE_SIZE],
+    );
+
+    if (rows.rows.length === 0) break;
+    after = String(rows.rows[rows.rows.length - 1].id);
+    for (const row of rows.rows) live.add(String(row.id));
+
+    const stored = await retrievePayloads(rows.rows.map((row: any) => String(row.id)));
+    const pending: { id: string; text: string; payload: Record<string, unknown> }[] = [];
+
+    for (const row of rows.rows) {
+      const text = buildIndexText(row);
+      const hash = contentHash([text, row.project_id, row.external_source || ""].join("\u0000"));
+
+      if (stored.get(String(row.id))?.content_hash === hash) {
+        skipped++;
+        continue;
+      }
+
+      pending.push({
+        id: String(row.id),
+        text,
+        payload: {
+          entity_type: "page",
+          page_id: String(row.id),
+          project_id: String(row.project_id),
+          workspace_id: String(row.workspace_id),
+          name: row.name || "",
+          source: row.external_source || "local",
+          content_hash: hash,
+        },
+      });
+    }
+
+    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+      const batch = pending.slice(i, i + BATCH_SIZE);
+      const vectors = await embedBatch(batch.map((item) => item.text));
+      await upsertPoints(
+        batch.map((item, index) => ({ id: item.id, vector: vectors[index]!, payload: item.payload })),
+      );
+      embedded += batch.length;
+    }
+  }
+
+  const indexed = await scrollPointIds({ must: [{ key: "entity_type", match: { value: "page" } }] });
+  const stale = [...indexed].filter((id) => !live.has(id));
+  if (stale.length > 0) {
+    await deletePoints(stale);
+    console.log(`[knowledge] Removed ${stale.length} points for deleted or archived pages`);
+  }
+
+  return { embedded, skipped, removed: stale.length };
+}
+
 export async function syncWorkItems(): Promise<{ embedded: number; skipped: number; removed: number }> {
   await ensureCollection();
 
