@@ -597,9 +597,9 @@ git commit -m "feat(a2a): add Qdrant REST client"
 - Produces:
   - `buildIndexText(row: { name: string; description_stripped: string | null }): string`
   - `contentHash(text: string): string`
-  - `syncWorkItems(limit?: number): Promise<{ embedded: number; skipped: number }>`
+  - `syncWorkItems(): Promise<{ embedded: number; skipped: number }>` — pages through every non-deleted work item via keyset pagination, so growth past any single page still gets indexed.
 
-Sync is incremental by content hash: rows whose text has not changed since the stored point was written are skipped, so MeetEcho-style churn does not re-embed unchanged work.
+Sync is incremental by content hash: rows whose text has not changed since the stored point was written are skipped, so MeetEcho-style churn does not re-embed unchanged work. It pages over the entire corpus rather than capping at a fixed row count — a cap would silently stop indexing older items as the corpus grew, with nothing to signal the gap.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -660,6 +660,10 @@ const MAX_INDEX_CHARS = 4096;
 // enough that a failure loses little work.
 const BATCH_SIZE = 64;
 
+// Rows fetched per keyset page. Independent of BATCH_SIZE: this bounds the
+// SQL result and the Qdrant payload lookup, not the embedding call.
+const PAGE_SIZE = 500;
+
 export function buildIndexText(row: { name: string; description_stripped: string | null }): string {
   const description = (row.description_stripped || "").trim();
   const text = description ? `${row.name}\n\n${description}` : row.name;
@@ -674,65 +678,75 @@ export function contentHash(text: string): string {
  * Embed work items that are new or whose text changed, and upsert them.
  * Returns counts so the caller can log progress; safe to run repeatedly.
  */
-export async function syncWorkItems(limit = 500): Promise<{ embedded: number; skipped: number }> {
+export async function syncWorkItems(): Promise<{ embedded: number; skipped: number }> {
   await ensureCollection();
 
-  const rows = await db.query(
-    `SELECT i.id, i.name, i.description_stripped, i.project_id, i.workspace_id,
-            i.sequence_id, p.identifier AS project_identifier, s.group AS state_group
-     FROM issues i
-     JOIN projects p ON p.id = i.project_id
-     LEFT JOIN states s ON s.id = i.state_id
-     WHERE i.deleted_at IS NULL
-     ORDER BY i.updated_at DESC
-     LIMIT $1`,
-    [limit],
-  );
-
-  // One bulk lookup, so an unchanged corpus costs a single Qdrant call and
-  // no embedding calls at all.
-  const stored = await retrievePayloads(rows.rows.map((row: any) => String(row.id)));
-
-  const pending: { id: string; text: string; payload: Record<string, unknown> }[] = [];
+  let embedded = 0;
   let skipped = 0;
+  let after = "00000000-0000-0000-0000-000000000000";
 
-  for (const row of rows.rows) {
-    const text = buildIndexText(row);
-    const hash = contentHash(text);
+  // Keyset pagination over the whole corpus. A fixed LIMIT would silently
+  // stop indexing the oldest items once the corpus outgrew it, and nothing
+  // would report the gap — routing would just quietly stop seeing them.
+  for (;;) {
+    const rows = await db.query(
+      `SELECT i.id, i.name, i.description_stripped, i.project_id, i.workspace_id,
+              i.sequence_id, p.identifier AS project_identifier, s.group AS state_group
+       FROM issues i
+       JOIN projects p ON p.id = i.project_id
+       LEFT JOIN states s ON s.id = i.state_id
+       WHERE i.deleted_at IS NULL AND i.id > $1
+       ORDER BY i.id
+       LIMIT $2`,
+      [after, PAGE_SIZE],
+    );
 
-    if (stored.get(String(row.id))?.content_hash === hash) {
-      skipped++;
-      continue;
+    if (rows.rows.length === 0) break;
+    after = String(rows.rows[rows.rows.length - 1].id);
+
+    // One bulk lookup per page, so an unchanged corpus costs one Qdrant call
+    // per page and no embedding calls at all.
+    const stored = await retrievePayloads(rows.rows.map((row: any) => String(row.id)));
+
+    const pending: { id: string; text: string; payload: Record<string, unknown> }[] = [];
+
+    for (const row of rows.rows) {
+      const text = buildIndexText(row);
+      const hash = contentHash(text);
+
+      if (stored.get(String(row.id))?.content_hash === hash) {
+        skipped++;
+        continue;
+      }
+
+      pending.push({
+        id: String(row.id),
+        text,
+        payload: {
+          entity_type: "work_item",
+          issue_id: String(row.id),
+          project_id: String(row.project_id),
+          workspace_id: String(row.workspace_id),
+          identifier: `${row.project_identifier}-${row.sequence_id}`,
+          state_group: row.state_group || "",
+          content_hash: hash,
+        },
+      });
     }
 
-    pending.push({
-      id: String(row.id),
-      text,
-      payload: {
-        entity_type: "work_item",
-        issue_id: String(row.id),
-        project_id: String(row.project_id),
-        workspace_id: String(row.workspace_id),
-        identifier: `${row.project_identifier}-${row.sequence_id}`,
-        state_group: row.state_group || "",
-        content_hash: hash,
-      },
-    });
-  }
+    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+      const batch = pending.slice(i, i + BATCH_SIZE);
+      const vectors = await embedBatch(batch.map((item) => item.text));
 
-  let embedded = 0;
-  for (let i = 0; i < pending.length; i += BATCH_SIZE) {
-    const batch = pending.slice(i, i + BATCH_SIZE);
-    const vectors = await embedBatch(batch.map((item) => item.text));
-
-    await upsertPoints(
-      batch.map((item, index) => ({
-        id: item.id,
-        vector: vectors[index]!,
-        payload: item.payload,
-      })),
-    );
-    embedded += batch.length;
+      await upsertPoints(
+        batch.map((item, index) => ({
+          id: item.id,
+          vector: vectors[index]!,
+          payload: item.payload,
+        })),
+      );
+      embedded += batch.length;
+    }
   }
 
   return { embedded, skipped };
