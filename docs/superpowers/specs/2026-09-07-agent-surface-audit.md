@@ -233,3 +233,46 @@ negative control both present.
 3. **No durable memory** on any path.
 4. **No validity intervals** — the store cannot say when a fact stopped being
    true.
+
+---
+
+## Phase 5 — After the ReAct agent (same day)
+
+The audit's headline finding was that no path was agentic: one message mapped to
+exactly one tool call, which is why 7 of 30 advertised skills were unreachable.
+A bounded ReAct loop over native tool calling now exists. Re-measured:
+
+**Chaining — VERIFIED live.** *"find the page called Siddhartha in PKM Notes and
+summarise what it contains"* — refused outright before — now returns
+`toolsUsed: ['page_list', 'list_projects', 'page_get']` and a summary. The
+agent discovered a page UUID at runtime and used it, which is precisely what
+plain text could not supply.
+
+**Reachability — 7/7 recovered.** Every skill the audit proved unreachable now
+plans a correct first step: `list_members` for assign/unassign, `list_cycles`
+for the sprint, `page_list` for the page operations, `intake_list` for triage.
+
+**Conversation memory — VERIFIED.** A second turn reading only *"which of them
+has the most pages?"* resolved the pronoun against the previous turn's answer.
+
+**Durable memory — now a real service.** The local facts table was replaced by
+longmemory-hydrograph over MCP, which models supersession and contradiction —
+closing the "cannot express that a fact stopped being true" gap this audit
+opened. There is no local fallback, deliberately: `/health` probes it, so an
+outage is visible rather than looking like an empty memory.
+
+**A defect the loop introduced, found by running it.** Asked for a page outside
+its workspace, the agent called `page_list` six times with identical arguments
+and spent the whole iteration budget. The bound stopped it honestly, but the
+budget was gone. The loop now refuses an identical repeat and tells the model
+why. Fixed and covered by tests.
+
+### Still open after Phase 5
+
+1. **Page counting is wrong at scale.** `page_list` caps at 50 per project, so
+   the agent answered "dozens of pages" for a project holding 3,394. It can
+   find pages; it cannot count them.
+2. **No semantic search over pages** — the index holds work items only
+   (`work_item = 440`, `page = 0`).
+3. **Revise-after-approval is refused** for agent runs rather than applied;
+   rewriting approved arguments inside a saved transcript is unbuilt.
