@@ -83,10 +83,10 @@ describe("mapStateGroupToSimpleStatus", () => {
 });
 
 describe("all tools registration", () => {
-  it("should register exactly 24 tools", async () => {
+  it("should register exactly 26 tools", async () => {
     const { getToolDefinitions } = await import("../handlers.js");
     const tools = getToolDefinitions();
-    expect(tools).toHaveLength(24);
+    expect(tools).toHaveLength(26);
   });
 
   it("should have unique tool names", async () => {
@@ -208,5 +208,21 @@ describe("canAgentEditPage", () => {
   it("refuses a locked page even when forced", () => {
     // is_locked is an explicit human decision, not a sync artifact.
     expect(canAgentEditPage({ id: "p3", is_locked: true }, true).allowed).toBe(false);
+  });
+});
+
+import { intakeStatusName } from "../handlers.js";
+
+describe("intakeStatusName", () => {
+  it("maps TaskPilot's numeric intake status to a name", () => {
+    expect(intakeStatusName(-2)).toBe("pending");
+    expect(intakeStatusName(-1)).toBe("rejected");
+    expect(intakeStatusName(0)).toBe("snoozed");
+    expect(intakeStatusName(1)).toBe("accepted");
+    expect(intakeStatusName(2)).toBe("duplicate");
+  });
+
+  it("reports an unknown status rather than guessing", () => {
+    expect(intakeStatusName(99)).toBe("unknown(99)");
   });
 });

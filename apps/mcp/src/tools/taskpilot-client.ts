@@ -127,6 +127,23 @@ export class TaskPilotClient {
     );
   }
 
+  async listIntakeIssues(projectId: string): Promise<any[]> {
+    const data = await this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/intake-issues/`,
+    );
+    return Array.isArray(data) ? data : data.results || data;
+  }
+
+  /** issueId is the underlying Issue's id, not the intake row's own id — the API keys the route that way. */
+  async updateIntakeIssue(projectId: string, issueId: string, data: any): Promise<any> {
+    return this.request(
+      "PATCH",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/intake-issues/${issueId}/`,
+      data,
+    );
+  }
+
   async getIssue(projectId: string, issueId: string): Promise<any> {
     return this.request("GET", `/api/v1/workspaces/${this.workspace}/projects/${projectId}/issues/${issueId}/`);
   }

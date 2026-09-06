@@ -8,7 +8,7 @@ describe("Agent Card", () => {
     expect(card.protocol).toBe("a2a");
     expect(card.protocolVersion).toBe("0.3");
     expect(card.url).toBe("https://mcp.taskpilot.sudiptadhara.in/a2a");
-    expect(card.skills.length).toBe(24);
+    expect(card.skills.length).toBe(26);
     expect(card.capabilities.streaming).toBe(true);
     expect(card.capabilities.webhooks).toBe(true);
     expect(card.capabilities.humanInTheLoop).toBe(true);

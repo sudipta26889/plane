@@ -13,7 +13,19 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive", "intake_triage"]);
+
+/** TaskPilot stores intake status as a small int; agents need the name. */
+export function intakeStatusName(status: number): string {
+  switch (status) {
+    case -2: return "pending";
+    case -1: return "rejected";
+    case 0: return "snoozed";
+    case 1: return "accepted";
+    case 2: return "duplicate";
+    default: return `unknown(${status})`;
+  }
+}
 
 /** Resolve state UUID to name using a states lookup map */
 function resolveStateName(stateId: string | undefined, statesMap: Map<string, string>): string {
@@ -454,6 +466,29 @@ const TOOLS = [
         page_id: { type: "string", description: "Page UUID" },
       },
       required: ["project_id", "page_id"],
+    },
+  },
+  {
+    name: "intake_list",
+    description: "List work items sitting in a project's Intake queue — items the router couldn't confidently place, waiting for a human or agent to triage.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: { type: "string", description: "Project name or identifier (optional — defaults to the workspace's configured intake project)" },
+      },
+    },
+  },
+  {
+    name: "intake_triage",
+    description: "Accept or reject a queued intake item. Accepting moves the task out of Triage into the project's default state; rejecting marks it Rejected.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_id: { type: "string", description: "Project UUID" },
+        issue_id: { type: "string", description: "Issue UUID, from intake_list" },
+        decision: { type: "string", enum: ["accept", "reject"], description: "Triage decision" },
+      },
+      required: ["project_id", "issue_id", "decision"],
     },
   },
 ];
@@ -1071,6 +1106,53 @@ async function handleArchivePage(args: any, client: TaskPilotClient, _workspace:
   return { id: args.page_id, status: "archived" };
 }
 
+async function handleListIntake(args: any, client: TaskPilotClient, workspace: string) {
+  const projects = await client.listProjects();
+  let projectId: string | null = null;
+
+  if (args.project) {
+    const match = projects.find(
+      (p: any) =>
+        p.name?.toLowerCase() === args.project.toLowerCase() ||
+        p.identifier?.toLowerCase() === args.project.toLowerCase(),
+    );
+    if (!match) return { error: `Project '${args.project}' not found` };
+    projectId = String(match.id);
+  } else {
+    projectId = resolveIntakeProject(workspace, projects, config.intakeProjects);
+  }
+
+  if (!projectId) {
+    return { error: "No project specified and no intake project configured for this workspace. Pass project, or set A2A_INTAKE_PROJECTS." };
+  }
+
+  const items = await client.listIntakeIssues(projectId);
+  return {
+    items: items.map((item: any) => ({
+      issue_id: item.issue,
+      title: item.issue_detail?.name || "",
+      status: intakeStatusName(item.status),
+      priority: item.issue_detail?.priority || "",
+      created_at: item.created_at,
+    })),
+    count: items.length,
+  };
+}
+
+const INTAKE_DECISION_STATUS: Record<string, number> = { accept: 1, reject: -1 };
+
+async function handleTriageIntake(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.project_id || !args.issue_id || !args.decision) {
+    return { error: "project_id, issue_id and decision are required" };
+  }
+  const status = INTAKE_DECISION_STATUS[args.decision];
+  if (status === undefined) {
+    return { error: `decision must be 'accept' or 'reject', got '${args.decision}'` };
+  }
+  await client.updateIntakeIssue(args.project_id, args.issue_id, { status });
+  return { issue_id: args.issue_id, status: intakeStatusName(status) };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -1096,4 +1178,6 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   page_create: handleCreatePage,
   page_update: handleUpdatePage,
   page_archive: handleArchivePage,
+  intake_list: handleListIntake,
+  intake_triage: handleTriageIntake,
 };

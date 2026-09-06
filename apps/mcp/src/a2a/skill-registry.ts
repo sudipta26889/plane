@@ -31,6 +31,8 @@ const SKILL_REGISTRY: Record<string, SkillDefinition> = {
   "page.create":          { name: "page.create",          mcpTool: "page_create",      scope: "taskpilot:write", approval: false, description: "Create a page, routed to the right project" },
   "page.update":          { name: "page.update",          mcpTool: "page_update",      scope: "taskpilot:write", approval: false, description: "Replace a page's content. Refuses externally-synced pages unless forced" },
   "page.archive":         { name: "page.archive",         mcpTool: "page_archive",     scope: "taskpilot:write", approval: true,  description: "Archive a page (requires human approval)" },
+  "intake.list":          { name: "intake.list",          mcpTool: "intake_list",      scope: "taskpilot:read",  approval: false, description: "List work items in a project's intake (triage) queue" },
+  "intake.triage":        { name: "intake.triage",        mcpTool: "intake_triage",    scope: "taskpilot:write", approval: false, description: "Accept or reject a queued intake item" },
 };
 
 export function getSkillDefinition(skillName: string): SkillDefinition | undefined {
