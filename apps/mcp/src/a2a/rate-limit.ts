@@ -44,6 +44,13 @@ let redisClient: Redis | null = null;
 function getRedis(): Redis {
   if (!redisClient) {
     redisClient = new Redis(config.redisUrl);
+    // ioredis emits 'error' on connection drops, and an EventEmitter 'error'
+    // with no listener crashes the process. This client sits on the
+    // authenticated path of every A2A call, so without this a Redis blip takes
+    // the server down rather than degrading it.
+    redisClient.on("error", (err) => {
+      console.warn("[rate-limit] Redis error:", err.message);
+    });
   }
   return redisClient;
 }

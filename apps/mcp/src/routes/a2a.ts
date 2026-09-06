@@ -72,9 +72,18 @@ router.post("/a2a", async (req: Request, res: Response) => {
     return;
   }
 
-  // Check rate limit
+  // Check rate limit. If Redis is unreachable the check itself throws, and an
+  // unguarded await here rejects the handler so the caller never gets a
+  // response at all. Fail open: rate limiting protects against abuse, but a
+  // cache outage must not become an outage of the whole A2A surface.
   const isTaskCreate = body.method === "message.send";
-  const rateLimitResult = await checkRateLimit(auth.clientId, auth.userId, ipAddress, isTaskCreate);
+  let rateLimitResult;
+  try {
+    rateLimitResult = await checkRateLimit(auth.clientId, auth.userId, ipAddress, isTaskCreate);
+  } catch (err: any) {
+    console.error(`[a2a] Rate limit check failed, allowing request: ${err.message}`);
+    rateLimitResult = { allowed: true, limit: 0, remaining: 0, resetAt: 0 };
+  }
 
   // Set rate limit headers
   const rlHeaders = buildRateLimitHeaders(rateLimitResult);

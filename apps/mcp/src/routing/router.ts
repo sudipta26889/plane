@@ -212,6 +212,13 @@ export async function routeWorkItem(
           { key: "entity_type", match: { value: "work_item" } },
           { key: "project_id", match: { any: projects.map((project) => project.id) } },
         ],
+        // Items sitting in Intake are exactly the ones we could NOT place. If
+        // they counted as evidence, every uncertain item filed to the intake
+        // project would argue that the next similar item belongs there too,
+        // and the fallback would progressively teach the router to stop
+        // falling back — invisibly, since the eval treats an item's current
+        // project as ground truth.
+        must_not: [{ key: "state_group", match: { value: "triage" } }],
       },
     });
     neighbourHits = hits;

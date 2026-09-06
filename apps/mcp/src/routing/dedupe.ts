@@ -45,6 +45,10 @@ export async function findDuplicate(
     const vector = await embed(text);
     const hits = await search(vector, {
       limit: CANDIDATE_LIMIT,
+      // Deliberately WITHOUT the router's must_not on triage: an item parked in
+      // Intake is still a real item you should not duplicate, even though it is
+      // not evidence about where work belongs. The two searches want opposite
+      // things from the same rows.
       filter: {
         must: [
           { key: "entity_type", match: { value: "work_item" } },

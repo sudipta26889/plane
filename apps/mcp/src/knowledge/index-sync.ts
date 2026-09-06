@@ -69,7 +69,13 @@ export async function syncWorkItems(): Promise<{ embedded: number; skipped: numb
 
     for (const row of rows.rows) {
       const text = buildIndexText(row);
-      const hash = contentHash(text);
+      // The hash must cover every payload field, not just the text. state_group
+      // and project_id are read back as routing evidence and as the tenancy
+      // scope, so an item moved to another project — or triaged and then
+      // accepted — must re-sync even though its wording never changed.
+      const hash = contentHash(
+        [text, row.project_id, row.state_group || "", row.project_identifier, row.sequence_id].join("\u0000"),
+      );
 
       if (stored.get(String(row.id))?.content_hash === hash) {
         skipped++;
