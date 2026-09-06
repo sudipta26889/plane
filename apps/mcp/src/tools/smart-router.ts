@@ -1,30 +1,6 @@
-import Redis from "ioredis";
 import crypto from "node:crypto";
 import { config } from "../config.js";
 import { db } from "../db.js";
-
-let redis: Redis | null = null;
-
-function getRedis(): Redis {
-  if (!redis) {
-    redis = new Redis(config.redisUrl, { lazyConnect: true });
-    // ioredis emits 'error' on later connection drops, not just the initial
-    // connect. An EventEmitter 'error' with no listener crashes the process —
-    // which would turn a cache blip into an outage.
-    redis.on("error", (err) => {
-      console.warn("[smart-router] Redis error, running uncached:", err.message);
-    });
-    redis.connect().catch((err) => {
-      console.warn("[smart-router] Redis connection failed, routing without cache:", err.message);
-      redis = null;
-    });
-  }
-  return redis!;
-}
-
-const ROUTING_SYSTEM_PROMPT = `You are a task router. Given projects and a task, return ONLY the matching project ID. Return the COMPLETE UUID including hyphens. Nothing else.`;
-
-const CACHE_TTL = 7 * 24 * 60 * 60; // 7 days
 
 // --- LLM config from instance_configurations (same DB as Django) ---
 
