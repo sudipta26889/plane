@@ -56,6 +56,37 @@ export function scoreNeighbours(hits: QdrantHit[]): Map<string, number> {
   return scores;
 }
 
+/** Count hits that actually carried a project id — used to require corroboration. */
+export function countNeighbours(hits: QdrantHit[]): number {
+  return hits.filter((hit) => !!hit.payload?.project_id).length;
+}
+
+/**
+ * Decide from neighbour evidence alone, used only when the LLM is unavailable.
+ * Confidence is the share of total similarity mass held by the winning project,
+ * so it reflects the evidence instead of being asserted. A lone weak hit is not
+ * evidence: corroboration by at least two neighbours is required.
+ */
+export function decideFromNeighbours(
+  scores: Map<string, number>,
+  threshold: number,
+  hitCount: number,
+): { projectId: string; confidence: number } | null {
+  if (hitCount < 2) return null;
+
+  const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1]);
+  const [top] = ranked;
+  if (!top) return null;
+
+  const total = ranked.reduce((sum, [, score]) => sum + score, 0);
+  if (total <= 0) return null;
+
+  const share = top[1] / total;
+  if (share < threshold) return null;
+
+  return { projectId: top[0], confidence: share };
+}
+
 function formatEvidence(scores: Map<string, number>, projects: ProjectSummary[]): string {
   if (scores.size === 0) return "No similar existing work items were found.";
 
@@ -110,6 +141,7 @@ export async function routeWorkItem(
   const text = input.description ? `${input.title}\n\n${input.description}` : input.title;
 
   let neighbourScores = new Map<string, number>();
+  let neighbourHitCount = 0;
   let degraded = false;
 
   try {
@@ -119,6 +151,7 @@ export async function routeWorkItem(
       filter: { must: [{ key: "entity_type", match: { value: "work_item" } }] },
     });
     neighbourScores = scoreNeighbours(hits);
+    neighbourHitCount = countNeighbours(hits);
   } catch (err: any) {
     // Vector search is evidence, not the decision. Losing it lowers our
     // ceiling rather than stopping us.
@@ -156,7 +189,7 @@ export async function routeWorkItem(
     // Without neighbour evidence we cap what the model is allowed to claim,
     // so a degraded run lands in Intake instead of being trusted.
     const ceiling = degraded ? config.routeConfidenceThreshold - 0.01 : 1;
-    const confidence = Math.min(Number(parsed.confidence) || 0, ceiling);
+    const confidence = Math.max(Math.min(Number(parsed.confidence) || 0, ceiling), 0);
 
     return {
       projectId: confidence >= config.routeConfidenceThreshold ? chosen.id : null,
@@ -169,13 +202,16 @@ export async function routeWorkItem(
     console.warn(`[router] LLM routing failed: ${err.message}`);
   }
 
-  // No LLM. Neighbours alone decide only if they are overwhelming.
-  const ranked = [...neighbourScores.entries()].sort((a, b) => b[1] - a[1]);
-  const [top, second] = ranked;
-  if (top && (!second || top[1] > second[1] * 2)) {
+  // No LLM. Neighbours alone decide only if the evidence itself clears the bar.
+  const decision = decideFromNeighbours(
+    neighbourScores,
+    config.routeConfidenceThreshold,
+    neighbourHitCount,
+  );
+  if (decision) {
     return {
-      projectId: top[0],
-      confidence: config.routeConfidenceThreshold,
+      projectId: decision.projectId,
+      confidence: decision.confidence,
       reason: "Chosen from similar existing work items; the LLM was unavailable.",
       candidates: projects,
       source: "neighbours",
