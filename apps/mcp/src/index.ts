@@ -13,6 +13,7 @@ import revokeRouter from "./routes/revoke.js";
 import approveRouter from "./routes/approve.js";
 import mcpRouter from "./routes/mcp.js";
 import a2aRouter from "./routes/a2a.js";
+import { checkDependencies, reportHealthTransitions } from "./health.js";
 
 const app = express();
 
@@ -35,8 +36,17 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Health check
-app.get("/health", (_req, res) => {
+// Health check. Returns 503 when a dependency is down: every one of them has a
+// fallback that keeps the server answering, so a 200 here regardless of their
+// state is how a dead LLM endpoint stayed invisible for months.
+app.get("/health", async (_req, res) => {
+  const report = await checkDependencies();
+  res.status(report.status === "ok" ? 200 : 503).json(report);
+});
+
+// Liveness only — "is the process up", for restart policies that must not react
+// to a degraded dependency.
+app.get("/health/live", (_req, res) => {
   res.json({ status: "ok", server: "taskpilot-mcp" });
 });
 
@@ -81,6 +91,9 @@ async function main() {
     // A2A background tasks
     setInterval(async () => { await pollHitlDecisions(); await retryWebhooks(); }, 30000);
     setInterval(cleanupOldData, 24 * 60 * 60 * 1000);
+    // Shout when a dependency dies, rather than waiting for someone to poll.
+    setInterval(reportHealthTransitions, 5 * 60 * 1000);
+    void reportHealthTransitions();
     console.log("[a2a] Background tasks started");
   });
 }
