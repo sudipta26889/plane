@@ -70,17 +70,28 @@ export function buildAgentCard(baseUrl: string) {
 export function buildLlmsTxt(baseUrl: string): string {
   const skills = getAllSkills();
 
-  const taskSkills = skills.filter((s) => s.name.startsWith("task."));
-  const labelSkills = skills.filter((s) => s.name.startsWith("label."));
-  const commentSkills = skills.filter((s) => s.name.startsWith("comment."));
-  const cycleSkills = skills.filter((s) => s.name.startsWith("cycle."));
-  const projectSkills = skills.filter((s) => s.name.startsWith("project."));
+  // Grouped by name prefix rather than a hardcoded list, so a skill added to
+  // the registry later shows up here automatically instead of being silently
+  // undocumented.
+  const groups = new Map<string, typeof skills>();
+  for (const skill of skills) {
+    const prefix = skill.name.split(".")[0]!;
+    if (!groups.has(prefix)) groups.set(prefix, []);
+    groups.get(prefix)!.push(skill);
+  }
 
   const formatSkillGroup = (group: typeof skills) =>
     group.map((s) => {
       const approval = s.approval === "conditional" ? " - REQUIRES HUMAN APPROVAL for cancellation" : "";
       return `- **${s.name}**: ${s.description} (scope: ${s.scope})${approval}`;
     }).join("\n");
+
+  const skillSections = [...groups.entries()]
+    .map(([prefix, group]) => {
+      const heading = `${prefix.charAt(0).toUpperCase()}${prefix.slice(1)} Skills`;
+      return `### ${heading}\n${formatSkillGroup(group)}`;
+    })
+    .join("\n\n");
 
   return `# TaskPilot A2A Protocol API
 
@@ -131,29 +142,23 @@ OAuth 2.0 Authorization Code flow with PKCE is required:
   - method: context.get - Get all tasks in a context (params: contextId)
 
 Spec-form method names are accepted as aliases: \`message/send\`, \`tasks/get\`,
-\`tasks/list\`, \`tasks/cancel\`, \`context/get\`. \`message/send\` also accepts the
+\`tasks/list\`, \`tasks/cancel\`, \`context/get\`, and the older \`tasks/send\`
+(treated the same as \`message/send\`). \`message/send\` also accepts the
 spec's Message params — put contextId on the message and the skill in a data part:
 \`{"message": {"contextId": "...", "parts": [{"kind": "data", "data": {"skill": "task.create", "input": {...}}}]}}\`
+
+A2A v1.0 gRPC method names are also accepted, for clients (native OpenClaw
+among them) that speak that spelling instead: \`SendMessage\` (-> message.send),
+\`GetTask\` (-> task.get), \`ListTasks\` (-> task.list), \`CancelTask\` (-> task.cancel),
+\`GetAgentCard\` (-> agent.getCard), and \`agent/getAuthenticatedExtendedCard\`
+(also -> agent.getCard).
 
 ### Real-Time Updates
 - [SSE Stream](${baseUrl}/a2a/stream?taskId=TASK_ID): Subscribe to real-time task state changes
 
 ## Available Skills
 
-### Task Operations
-${formatSkillGroup(taskSkills)}
-
-### Label Management
-${formatSkillGroup(labelSkills)}
-
-### Comments
-${formatSkillGroup(commentSkills)}
-
-### Cycles / Sprints
-${formatSkillGroup(cycleSkills)}
-
-### Project Discovery
-${formatSkillGroup(projectSkills)}
+${skillSections}
 
 ## Request Format
 

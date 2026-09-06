@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildAgentCard, buildLlmsTxt } from "../agent-card.js";
+import { getAllSkills } from "../skill-registry.js";
 
 describe("Agent Card", () => {
   it("builds valid agent card JSON", () => {
@@ -81,5 +82,12 @@ describe("Agent Card", () => {
     expect(txt).toContain("HMAC-SHA256");
     expect(txt).toContain("DharaHIL");
     expect(typeof txt).toBe("string");
+  });
+
+  it("documents every registered skill in llms.txt", () => {
+    const txt = buildLlmsTxt("https://example.com");
+    for (const skill of getAllSkills()) {
+      expect(txt, `llms.txt is missing ${skill.name}`).toContain(skill.name);
+    }
   });
 });
