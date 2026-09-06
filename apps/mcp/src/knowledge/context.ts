@@ -21,7 +21,7 @@ const CACHE_TTL_SECONDS = 300;
  * modules are deliberately called out as unused: both tables are empty.
  */
 export const TASKPILOT_RULES = `TaskPilot facts you must not contradict:
-- TaskPilot is its own product, not any third-party tool.
+- TaskPilot is its own product. It is not Linear, Jira, Asana or any other tool.
 - There is no delete for work items. To remove one, cancel it.
 - Cancelling requires human approval and may not take effect immediately.
 - Uncertain items belong in Intake, not in a guessed project.
@@ -32,6 +32,12 @@ let redis: Redis | null = null;
 function getRedis(): Redis | null {
   if (!redis) {
     redis = new Redis(config.redisUrl, { lazyConnect: true });
+    // ioredis emits 'error' on later connection drops, not just the initial
+    // connect. An EventEmitter 'error' with no listener crashes the process —
+    // which would turn a cache blip into an outage.
+    redis.on("error", (err) => {
+      console.warn("[context] Redis error, running uncached:", err.message);
+    });
     redis.connect().catch((err) => {
       console.warn("[context] Redis unavailable, running uncached:", err.message);
       redis = null;

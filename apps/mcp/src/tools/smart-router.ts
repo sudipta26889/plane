@@ -10,6 +10,12 @@ let redis: Redis | null = null;
 function getRedis(): Redis {
   if (!redis) {
     redis = new Redis(config.redisUrl, { lazyConnect: true });
+    // ioredis emits 'error' on later connection drops, not just the initial
+    // connect. An EventEmitter 'error' with no listener crashes the process —
+    // which would turn a cache blip into an outage.
+    redis.on("error", (err) => {
+      console.warn("[smart-router] Redis error, running uncached:", err.message);
+    });
     redis.connect().catch((err) => {
       console.warn("[smart-router] Redis connection failed, routing without cache:", err.message);
       redis = null;

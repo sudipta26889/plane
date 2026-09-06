@@ -30,6 +30,8 @@ describe("TASKPILOT_RULES", () => {
   it("states the facts the agent gets wrong without them", () => {
     expect(TASKPILOT_RULES).toContain("no delete");
     expect(TASKPILOT_RULES).toContain("Intake");
-    expect(TASKPILOT_RULES).not.toContain("Linear");
+    // Two separate commits in this repo fixed models calling TaskPilot "Linear",
+    // so the rules name it explicitly rather than saying "no third-party tool".
+    expect(TASKPILOT_RULES).toContain("not Linear");
   });
 });
