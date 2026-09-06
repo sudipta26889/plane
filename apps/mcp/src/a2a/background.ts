@@ -5,6 +5,8 @@ import { transitionState, executeA2aTask } from "./task-executor.js";
 import { deliverWebhook } from "./webhooks.js";
 import { logAuditEvent } from "./audit-log.js";
 import { sseManager } from "./sse.js";
+import { syncWorkItems } from "../knowledge/index-sync.js";
+import { embed } from "../knowledge/embeddings.js";
 
 /**
  * Poll DharaHIL for pending HITL decisions and handle expired approvals.
@@ -189,5 +191,36 @@ export async function cleanupOldData() {
     console.log("[a2a] Data retention cleanup complete");
   } catch (err) {
     console.error("[a2a] Cleanup error:", err);
+  }
+}
+
+/**
+ * Keep the work-item index current. Incremental by content hash, so a run
+ * with no changes costs one Qdrant lookup and no embedding calls.
+ */
+export async function syncKnowledgeIndex() {
+  if (!config.qdrantUrl || !config.embeddingUrl) return;
+
+  try {
+    const { embedded, skipped } = await syncWorkItems();
+    if (embedded > 0) {
+      console.log(`[knowledge] Indexed ${embedded} work items (${skipped} unchanged)`);
+    }
+  } catch (err: any) {
+    console.warn(`[knowledge] Index sync failed: ${err.message}`);
+  }
+}
+
+/**
+ * The embedding server unloads the model after 300s idle and takes ~10.5s to
+ * reload. A cheap embed every few minutes keeps it resident.
+ */
+export async function keepEmbedderWarm() {
+  if (!config.embeddingUrl) return;
+
+  try {
+    await embed("keepalive");
+  } catch (err: any) {
+    console.warn(`[knowledge] Keepalive failed: ${err.message}`);
   }
 }

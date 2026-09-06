@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
 import { initDatabase } from "./db.js";
-import { pollHitlDecisions, retryWebhooks, cleanupOldData } from "./a2a/background.js";
+import { pollHitlDecisions, retryWebhooks, cleanupOldData, syncKnowledgeIndex, keepEmbedderWarm } from "./a2a/background.js";
 
 // Routes
 import discoveryRouter from "./routes/discovery.js";
@@ -94,6 +94,11 @@ async function main() {
     // Shout when a dependency dies, rather than waiting for someone to poll.
     setInterval(reportHealthTransitions, 5 * 60 * 1000);
     void reportHealthTransitions();
+    // Keep the model resident: it unloads after 300s idle.
+    setInterval(keepEmbedderWarm, 4 * 60 * 1000);
+    setInterval(syncKnowledgeIndex, 10 * 60 * 1000);
+    // First index build, after the server is already accepting requests.
+    void syncKnowledgeIndex();
     console.log("[a2a] Background tasks started");
   });
 }
