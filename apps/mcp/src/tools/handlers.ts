@@ -1,5 +1,5 @@
 import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
-import { routeTask } from "./smart-router.js";
+import { routeWorkItem } from "../routing/router.js";
 import { isCriticalAction } from "../a2a/skill-registry.js";
 import { runApprovalLoop } from "../a2a/dharahil.js";
 import { config } from "../config.js";
@@ -377,19 +377,81 @@ const TOOLS = [
 
 // --- Handler Implementations ---
 
+/** Resolve the configured intake project for a workspace, or null. */
+export function resolveIntakeProject(
+  workspace: string,
+  projects: { id: string; identifier: string }[],
+  configured: Map<string, string>,
+): string | null {
+  const identifier = configured.get(workspace);
+  if (!identifier) return null;
+
+  const project = projects.find(
+    (candidate) => candidate.identifier.toLowerCase() === identifier.toLowerCase(),
+  );
+  return project ? project.id : null;
+}
+
 async function handleCreateTask(args: any, client: TaskPilotClient, workspace: string) {
-  const projects = await client.listProjects();
-  const projectId = await routeTask(workspace, args.title, args.project_hint, client);
-  const project = projects.find((p: any) => String(p.id) === projectId);
+  const decision = await routeWorkItem(
+    {
+      workspace,
+      title: args.title,
+      description: args.description,
+      projectHint: args.project_hint,
+    },
+    client,
+  );
+
   const data: any = { name: args.title };
   if (args.description) data.description_html = `<p>${args.description}</p>`;
   if (args.priority) data.priority = args.priority;
-  const issue = await client.createIssue(projectId, data);
+
+  if (decision.projectId) {
+    const project = decision.candidates.find((candidate) => candidate.id === decision.projectId);
+    const issue = await client.createIssue(decision.projectId, data);
+
+    return {
+      identifier: `${project?.identifier || "?"}-${issue.sequence_id || "?"}`,
+      id: issue.id,
+      project: project?.name || "",
+      title: issue.name,
+      routing: {
+        confidence: decision.confidence,
+        reason: decision.reason,
+        source: decision.source,
+      },
+    };
+  }
+
+  // Not confident. File into Intake if one is configured for this workspace.
+  const intakeProjectId = resolveIntakeProject(
+    workspace,
+    decision.candidates,
+    config.intakeProjects,
+  );
+
+  if (intakeProjectId) {
+    const intake = await client.createIntakeIssue(intakeProjectId, {
+      name: args.title,
+      description_html: data.description_html,
+      priority: args.priority,
+    });
+
+    return {
+      status: "filed_to_intake",
+      id: intake?.issue?.id || intake?.id,
+      reason: decision.reason,
+      candidates: decision.candidates.map((candidate) => candidate.identifier),
+    };
+  }
+
+  // Nothing configured and not confident: write nothing, and say why.
   return {
-    identifier: `${project?.identifier || "?"}-${issue.sequence_id || "?"}`,
-    id: issue.id,
-    project: project?.name || "",
-    title: issue.name,
+    status: "undecided",
+    reason: decision.reason,
+    candidates: decision.candidates.map((candidate) => candidate.identifier),
+    hint: "Pass project_hint, or set A2A_INTAKE_PROJECTS so uncertain items have a home.",
   };
 }
 

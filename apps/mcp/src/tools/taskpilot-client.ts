@@ -104,6 +104,19 @@ export class TaskPilotClient {
     return this.request("POST", `/api/v1/workspaces/${this.workspace}/projects/${projectId}/issues/`, data);
   }
 
+  // --- Intake ---
+  /** File into the project's intake queue. Wire shape: { issue: {...} }. */
+  async createIntakeIssue(
+    projectId: string,
+    issue: { name: string; description_html?: string; priority?: string },
+  ): Promise<any> {
+    return this.request(
+      "POST",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/intake-issues/`,
+      { issue },
+    );
+  }
+
   async getIssue(projectId: string, issueId: string): Promise<any> {
     return this.request("GET", `/api/v1/workspaces/${this.workspace}/projects/${projectId}/issues/${issueId}/`);
   }

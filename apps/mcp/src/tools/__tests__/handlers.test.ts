@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { resolveIntakeProject } from "../handlers.js";
 
 describe("list_members handler", () => {
   it("should be registered in TOOLS array", async () => {
@@ -125,5 +126,27 @@ describe("all tools registration", () => {
     for (const name of writeToolNames) {
       expect(tools.find((t: any) => t.name === name)).toBeDefined();
     }
+  });
+});
+
+describe("resolveIntakeProject", () => {
+  const projects = [
+    { id: "p1", name: "Finance and Bills", identifier: "SUDIPTASCF", description: "" },
+    { id: "p2", name: "ProDevs", identifier: "PRODEVS", description: "" },
+  ];
+
+  it("finds the configured intake project for the workspace", () => {
+    const configured = new Map([["for-ai", "SUDIPTASCF"]]);
+    expect(resolveIntakeProject("for-ai", projects, configured)).toBe("p1");
+  });
+
+  it("returns null when the workspace has no configured intake project", () => {
+    // Nothing configured must mean nothing written — never a guessed project.
+    expect(resolveIntakeProject("meetecho", projects, new Map())).toBeNull();
+  });
+
+  it("returns null when the configured identifier does not exist", () => {
+    const configured = new Map([["for-ai", "NOSUCHPROJ"]]);
+    expect(resolveIntakeProject("for-ai", projects, configured)).toBeNull();
   });
 });
