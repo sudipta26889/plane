@@ -3,6 +3,7 @@ import { db } from "./db.js";
 import { config } from "./config.js";
 import { getLlmConfig } from "./tools/smart-router.js";
 import { getIndexSyncStatus } from "./a2a/background.js";
+import { ping as longmemoryPing } from "./agent/longmemory.js";
 
 /**
  * Real dependency checks behind /health.
@@ -53,7 +54,7 @@ async function getJson(url: string, headers: Record<string, string> = {}): Promi
 export async function checkDependencies(force = false): Promise<HealthReport> {
   if (!force && cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.report;
 
-  const [database, llm, qdrant, redis, embeddings] = await Promise.all([
+  const [database, llm, qdrant, redis, longmemory, embeddings] = await Promise.all([
     probe("database", async () => {
       await db.query("SELECT 1");
       return "reachable";
@@ -100,6 +101,10 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
       }
     }),
 
+    // The agent's durable memory. It has no fallback by design, so an outage
+    // must be visible here rather than looking like "nothing was remembered".
+    probe("longmemory", async () => await longmemoryPing()),
+
     probe("embeddings", async () => {
       if (!config.embeddingUrl) throw new Error("EMBEDDING_DIRECT_URL is not configured");
       // EMBEDDING_DIRECT_URL points at /embed; the server's health lives at /health.
@@ -111,7 +116,7 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
 
   // Not a probe: the index sync reports its own last outcome, so a job that
   // fails every tick surfaces here instead of only in the logs.
-  const dependencies = { database, llm, qdrant, redis, embeddings, indexSync: getIndexSyncStatus() };
+  const dependencies = { database, llm, qdrant, redis, longmemory, embeddings, indexSync: getIndexSyncStatus() };
   const report: HealthReport = {
     status: summarize(dependencies),
     server: "taskpilot-mcp",

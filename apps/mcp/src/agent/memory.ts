@@ -10,17 +10,7 @@ const MAX_CONVERSATION_TURNS = 50;
 // Bounded for the same reason: recallFacts is a DB fetch limit, the two
 // below cap what formatMemoryForPrompt is willing to render regardless of
 // how many facts (or how long) are passed in.
-const DEFAULT_FACT_LIMIT = 20;
-const MAX_FACT_LIMIT = 50;
-export const MAX_FACTS_IN_PROMPT = 20;
-export const MAX_PROMPT_CHARS = 2000;
 
-export interface StoredFact {
-  id: number;
-  fact: string;
-  source: string | null;
-  createdAt: Date;
-}
 
 interface ConversationRow {
   role: string;
@@ -77,47 +67,9 @@ export async function loadConversation(
   return rows.reverse().map(rowToMessage);
 }
 
-/** Store a durable fact for a user/workspace. Never overwrites or deletes prior facts. */
-export async function rememberFact(
-  userId: string,
-  workspace: string,
-  fact: string,
-  source?: string,
-): Promise<void> {
-  await db.query(
-    `INSERT INTO a2a_memory (user_id, workspace_slug, fact, source) VALUES ($1, $2, $3, $4)`,
-    [userId, workspace, fact, source ?? null],
-  );
-}
-
-/** Load active (not superseded) facts for a user/workspace, most recent first. Hard-capped regardless of the requested limit. */
-export async function recallFacts(
-  userId: string,
-  workspace: string,
-  limit: number = DEFAULT_FACT_LIMIT,
-): Promise<StoredFact[]> {
-  const boundedLimit = Math.min(limit, MAX_FACT_LIMIT);
-  const { rows } = await db.query(
-    `SELECT id, fact, source, created_at
-     FROM a2a_memory
-     WHERE user_id = $1 AND workspace_slug = $2 AND superseded_at IS NULL
-     ORDER BY created_at DESC
-     LIMIT $3`,
-    [userId, workspace, boundedLimit],
-  );
-  return rows.map((r) => ({ id: r.id, fact: r.fact, source: r.source, createdAt: r.created_at }));
-}
-
-/**
- * Render facts for injection into the system prompt. Pure and bounded: caps
- * both the number of facts rendered (MAX_FACTS_IN_PROMPT) and the total
- * output length (MAX_PROMPT_CHARS), so accumulated memory can't grow the
- * prompt without limit.
- */
-export function formatMemoryForPrompt(facts: StoredFact[]): string {
-  if (facts.length === 0) return "";
-
-  const lines = facts.slice(0, MAX_FACTS_IN_PROMPT).map((f) => `- ${f.fact}`);
-  const rendered = ["Known facts about this user/workspace:", ...lines].join("\n");
-  return rendered.length > MAX_PROMPT_CHARS ? rendered.slice(0, MAX_PROMPT_CHARS) : rendered;
-}
+// Durable facts deliberately do NOT live here. They live in the
+// longmemory-hydrograph service (agent/longmemory.ts), which models
+// supersession and contradictions — things a local facts table could not
+// express, since it could record when a fact was written but never when it
+// stopped being true. Keeping a second local store would give two recall paths
+// that drift, and the one that drifts is the one that stops being true.

@@ -38,6 +38,12 @@ export const config = {
   llmApiKey: process.env.LLM_API_KEY || "",
   llmModel: process.env.LLM_MODEL || "gpt-4o-mini",
 
+  // Long-term agentic memory (longmemory-hydrograph MCP). Unset means the agent
+  // runs on conversation history alone and /health reports memory unavailable —
+  // there is deliberately no local fallback store to hide that with.
+  longmemoryUrl: process.env.LONGMEMORY_URL || "",
+  longmemoryApiKey: process.env.LONGMEMORY_API_KEY || "",
+
   // Vector store (Qdrant) — awareness of existing work items
   qdrantUrl: process.env.QDRANT_URL || "",
   qdrantApiKey: process.env.QDRANT_API_KEY || "",
