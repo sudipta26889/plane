@@ -464,3 +464,40 @@ describe("repeated identical tool calls", () => {
     expect(executeToolCallMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("tool results are rendered summary-first", () => {
+  it("keeps scalar fields when the bulk payload forces truncation", async () => {
+    // The real failure: page_list returned {pages:[...50], total_available:4487}
+    // and JSON.stringify put the array first, so truncation removed the total.
+    // The model then paged the list to count, burning its whole budget.
+    const bulky = {
+      pages: Array.from({ length: 400 }, (_, i) => ({ id: `page-${i}`, name: "x".repeat(60) })),
+      count: 50,
+      total_available: 4487,
+      truncated: true,
+    };
+    createMock
+      .mockResolvedValueOnce(callsResponse([{ id: "c1", name: "page_list", args: { project_hint: "PKMSRC" } }]))
+      .mockResolvedValueOnce(answerResponse("4487 pages."));
+    executeToolCallMock.mockResolvedValue(bulky);
+
+    await run({ text: "how many pages are in PKM Sources?" });
+
+    const toolReply = messagesOnCall(2).find((m: any) => m.tool_call_id === "c1");
+    expect(toolReply.content).toContain("total_available");
+    expect(toolReply.content).toContain("4487");
+    // And it really was truncated, so this is not passing by the payload being small.
+    expect(toolReply.content).toContain("truncated");
+  });
+
+  it("leaves a small result untouched", async () => {
+    createMock
+      .mockResolvedValueOnce(callsResponse([{ id: "c1", name: "list_projects", args: {} }]))
+      .mockResolvedValueOnce(answerResponse("done"));
+    executeToolCallMock.mockResolvedValue({ projects: [{ id: "p1" }], count: 1 });
+
+    await run({ text: "list projects" });
+    const toolReply = messagesOnCall(2).find((m: any) => m.tool_call_id === "c1");
+    expect(JSON.parse(toolReply.content)).toEqual({ count: 1, projects: [{ id: "p1" }] });
+  });
+});

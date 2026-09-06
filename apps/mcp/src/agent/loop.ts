@@ -54,10 +54,30 @@ function toolMessage(toolCallId: string, content: string): ChatMessage {
   return { role: "tool", tool_call_id: toolCallId, content };
 }
 
+/**
+ * Serialise a tool result for the model, summary fields first.
+ *
+ * JSON.stringify preserves insertion order, so a result like
+ * `{ pages: [...50 items], total_available: 4487 }` puts the bulk first and
+ * truncation then removes the total — the model never saw the number it needed
+ * and paged through the list to count instead. Scalars are cheap and are
+ * usually the answer, so they go first and survive truncation.
+ */
 function renderResult(result: unknown): string {
-  const text = typeof result === "string" ? result : JSON.stringify(result ?? null);
+  if (typeof result === "string") return truncate(result);
+  if (!result || typeof result !== "object" || Array.isArray(result)) {
+    return truncate(JSON.stringify(result ?? null));
+  }
+
+  const entries = Object.entries(result as Record<string, unknown>);
+  const scalars = entries.filter(([, v]) => v === null || typeof v !== "object");
+  const rest = entries.filter(([, v]) => v !== null && typeof v === "object");
+  return truncate(JSON.stringify(Object.fromEntries([...scalars, ...rest])));
+}
+
+function truncate(text: string): string {
   return text.length > MAX_TOOL_RESULT_CHARS
-    ? `${text.slice(0, MAX_TOOL_RESULT_CHARS)}\n…[result truncated]`
+    ? `${text.slice(0, MAX_TOOL_RESULT_CHARS)}\n…[result truncated — scalar summary fields above are complete]`
     : text;
 }
 
