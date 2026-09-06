@@ -30,11 +30,16 @@ async function request(method: string, path: string, body?: unknown): Promise<Re
   });
 }
 
+async function formatError(response: Response, method: string, path: string): Promise<string> {
+  const text = await response.text().catch(() => "");
+  return `Qdrant ${method} ${path} failed (${response.status}): ${text.slice(0, 200)}`;
+}
+
 async function requestJson(method: string, path: string, body?: unknown): Promise<any> {
   const response = await request(method, path, body);
   if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Qdrant ${method} ${path} failed (${response.status}): ${text.slice(0, 200)}`);
+    const message = await formatError(response, method, path);
+    throw new Error(message);
   }
   return response.json();
 }
@@ -43,6 +48,11 @@ async function requestJson(method: string, path: string, body?: unknown): Promis
 export async function ensureCollection(): Promise<void> {
   const existing = await request("GET", `/collections/${config.qdrantCollection}`);
   if (existing.ok) return;
+
+  if (existing.status !== 404) {
+    const message = await formatError(existing, "GET", `/collections/${config.qdrantCollection}`);
+    throw new Error(message);
+  }
 
   await requestJson("PUT", `/collections/${config.qdrantCollection}`, {
     vectors: { size: config.embeddingDims, distance: "Cosine" },

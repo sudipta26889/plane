@@ -8,9 +8,10 @@ afterEach(() => {
 function stubFetch(responses: any[]) {
   const spy = vi.fn();
   for (const body of responses) {
+    const status = body.__status ?? (body.__ok === false ? 404 : 200);
     spy.mockResolvedValueOnce({
-      ok: body.__ok !== false,
-      status: body.__ok === false ? 404 : 200,
+      ok: status >= 200 && status < 300,
+      status,
       json: async () => body,
       text: async () => JSON.stringify(body),
     });
@@ -35,6 +36,18 @@ describe("ensureCollection", () => {
     expect(url).toContain("/collections/");
     expect(init.method).toBe("PUT");
     expect(JSON.parse(init.body).vectors).toEqual({ size: 1024, distance: "Cosine" });
+  });
+
+  it("throws on 500 error and does not attempt to create", async () => {
+    const spy = stubFetch([{ __status: 500, error: "Internal Server Error" }]);
+    await expect(ensureCollection()).rejects.toThrow(/failed \(500\)/);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws on 403 error and does not attempt to create", async () => {
+    const spy = stubFetch([{ __status: 403, error: "Forbidden" }]);
+    await expect(ensureCollection()).rejects.toThrow(/failed \(403\)/);
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -92,6 +105,17 @@ describe("deletePoints", () => {
     await deletePoints([]);
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it("sends point ids in the correct request shape", async () => {
+    const spy = stubFetch([{ result: true }]);
+    await deletePoints(["p1", "p2"]);
+
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toContain("/collections/");
+    expect(url).toContain("/points/delete");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body).points).toEqual(["p1", "p2"]);
+  });
 });
 
 describe("retrievePayloads", () => {
@@ -108,5 +132,18 @@ describe("retrievePayloads", () => {
     const spy = stubFetch([{ result: [] }]);
     expect((await retrievePayloads([])).size).toBe(0);
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("sends point ids in the correct request shape", async () => {
+    const spy = stubFetch([{ result: [] }]);
+    await retrievePayloads(["p1", "p2"]);
+
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toContain("/collections/");
+    expect(url).toContain("/points");
+    expect(init.method).toBe("POST");
+    const body = JSON.parse(init.body);
+    expect(body.ids).toEqual(["p1", "p2"]);
+    expect(body.with_payload).toBe(true);
   });
 });
