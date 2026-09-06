@@ -99,6 +99,22 @@ describe("decideFromNeighbours", () => {
     expect(decision?.confidence).toBeCloseTo(1);
   });
 
+  it("returns null when the winner clears the floor but not the dominance threshold", () => {
+    // The only case that actually reaches the share gate: corroborated (2 hits)
+    // and above the similarity floor (1.2/2 = 0.6), but 1.2/2.1 = 0.571 is not
+    // dominant enough. The evenly-split test below is stopped by the floor gate
+    // first, so without this case the share check has no regression cover.
+    const scores = new Map([
+      ["p1", 1.2],
+      ["p2", 0.9],
+    ]);
+    const hitsByProject = new Map([
+      ["p1", 2],
+      ["p2", 1],
+    ]);
+    expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
+  });
+
   it("returns null when the evidence is split evenly below threshold", () => {
     const scores = new Map([
       ["p1", 0.5],
