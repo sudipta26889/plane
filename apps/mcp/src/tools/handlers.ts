@@ -13,7 +13,7 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks"]);
+const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive"]);
 
 /** Resolve state UUID to name using a states lookup map */
 function resolveStateName(stateId: string | undefined, statesMap: Map<string, string>): string {
@@ -405,6 +405,45 @@ const TOOLS = [
   {
     name: "page_get",
     description: "Get one page including its content.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_id: { type: "string", description: "Project UUID" },
+        page_id: { type: "string", description: "Page UUID" },
+      },
+      required: ["project_id", "page_id"],
+    },
+  },
+  {
+    name: "page_create",
+    description: "Create a page (document). Automatically routes to the right project, or specify project_hint.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Page title" },
+        content: { type: "string", description: "Page content (optional)" },
+        project_hint: { type: "string", description: "Project name or identifier to route to (optional)" },
+      },
+      required: ["title"],
+    },
+  },
+  {
+    name: "page_update",
+    description: "Replace a page's content. Refuses pages synced from an external system (like MeetEcho) unless forced.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_id: { type: "string", description: "Project UUID" },
+        page_id: { type: "string", description: "Page UUID" },
+        content: { type: "string", description: "New page content" },
+        force: { type: "boolean", description: "Edit an externally-synced page anyway. Default false." },
+      },
+      required: ["project_id", "page_id", "content"],
+    },
+  },
+  {
+    name: "page_archive",
+    description: "Archive a page, removing it from view. Requires human approval.",
     inputSchema: {
       type: "object",
       properties: {
@@ -951,6 +990,77 @@ async function handleGetPage(args: any, client: TaskPilotClient, _workspace: str
   };
 }
 
+/**
+ * Whether the agent may write to a page. Two different refusals: a locked page
+ * is an explicit human decision and is never overridable, while an
+ * externally-synced page is refusable-but-forceable, since the owning system
+ * would overwrite our edit on its next sync.
+ */
+export function canAgentEditPage(page: any, force: boolean): { allowed: boolean; reason?: string } {
+  if (page.is_locked) {
+    return { allowed: false, reason: "Page is locked. Unlock it in TaskPilot first." };
+  }
+  if (page.external_source && !force) {
+    return {
+      allowed: false,
+      reason: `Page is synced from ${page.external_source} and edits would be overwritten on its next sync. Pass force: true to edit anyway.`,
+    };
+  }
+  return { allowed: true };
+}
+
+async function handleCreatePage(args: any, client: TaskPilotClient, workspace: string) {
+  if (!args.title) return { error: "title is required" };
+
+  const decision = await routeWorkItem(
+    { workspace, title: args.title, description: args.content, projectHint: args.project_hint },
+    client,
+  );
+
+  if (!decision.projectId) {
+    return {
+      status: "undecided",
+      reason: decision.reason,
+      candidates: decision.candidates.map((c) => c.identifier),
+      hint: "Pass project_hint to say where this page belongs.",
+    };
+  }
+
+  const project = decision.candidates.find((c) => c.id === decision.projectId);
+  const page = await client.createPage(decision.projectId, {
+    name: args.title,
+    ...(args.content ? { description_html: `<p>${args.content}</p>` } : {}),
+  });
+
+  return {
+    id: page.id,
+    name: page.name,
+    project: project?.identifier || "",
+    routing: { confidence: decision.confidence, reason: decision.reason, source: decision.source },
+  };
+}
+
+async function handleUpdatePage(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.project_id || !args.page_id || !args.content) {
+    return { error: "project_id, page_id and content are required" };
+  }
+
+  const page = await client.getPage(args.project_id, args.page_id);
+  const verdict = canAgentEditPage(page, Boolean(args.force));
+  if (!verdict.allowed) return { error: verdict.reason };
+
+  await client.updatePageDescription(args.project_id, args.page_id, args.content);
+  return { id: args.page_id, name: page.name, status: "updated" };
+}
+
+async function handleArchivePage(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.project_id || !args.page_id) {
+    return { error: "project_id and page_id are required" };
+  }
+  await client.archivePage(args.project_id, args.page_id);
+  return { id: args.page_id, status: "archived" };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -973,4 +1083,7 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   bulk_cancel_tasks: handleBulkCancelTasks,
   page_list: handleListPages,
   page_get: handleGetPage,
+  page_create: handleCreatePage,
+  page_update: handleUpdatePage,
+  page_archive: handleArchivePage,
 };

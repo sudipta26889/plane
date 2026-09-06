@@ -83,10 +83,10 @@ describe("mapStateGroupToSimpleStatus", () => {
 });
 
 describe("all tools registration", () => {
-  it("should register exactly 21 tools", async () => {
+  it("should register exactly 24 tools", async () => {
     const { getToolDefinitions } = await import("../handlers.js");
     const tools = getToolDefinitions();
-    expect(tools).toHaveLength(21);
+    expect(tools).toHaveLength(24);
   });
 
   it("should have unique tool names", async () => {
@@ -183,5 +183,29 @@ describe("formatPageSummary", () => {
   it("reports a page with no external source as locally authored", () => {
     const summary = formatPageSummary({ id: "p3", name: "Notes" });
     expect(summary.source).toBe("local");
+  });
+});
+
+import { canAgentEditPage } from "../handlers.js";
+
+describe("canAgentEditPage", () => {
+  it("allows editing a locally authored page", () => {
+    expect(canAgentEditPage({ id: "p1" }, false)).toEqual({ allowed: true });
+  });
+
+  it("refuses a page owned by an external system", () => {
+    // MeetEcho re-syncs these; our edit would be silently overwritten.
+    const verdict = canAgentEditPage({ id: "p2", external_source: "meetecho" }, false);
+    expect(verdict.allowed).toBe(false);
+    expect(verdict.reason).toContain("meetecho");
+  });
+
+  it("allows an external page when the caller forces it", () => {
+    expect(canAgentEditPage({ id: "p2", external_source: "meetecho" }, true).allowed).toBe(true);
+  });
+
+  it("refuses a locked page even when forced", () => {
+    // is_locked is an explicit human decision, not a sync artifact.
+    expect(canAgentEditPage({ id: "p3", is_locked: true }, true).allowed).toBe(false);
   });
 });
