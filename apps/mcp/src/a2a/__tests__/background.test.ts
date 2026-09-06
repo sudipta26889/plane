@@ -216,16 +216,38 @@ describe("pollHitlDecisions — agent run resume", () => {
     expect(taskStates.get(AGENT_TASK.task_id)).toBe("rejected");
   });
 
-  it("refuses to revise an agent run rather than resuming with unapproved args", async () => {
+  it("applies a revision to the pending call and resumes with the revised args", async () => {
     pollRows.push(AGENT_TASK);
     taskStates.set(AGENT_TASK.task_id, "auth_required");
     runStates.set(AGENT_TASK.task_id, { messages: [], iteration: 1, pendingToolCall: PENDING_CALL });
     decision.body = { status: "REVISE_REQUESTED", action: "REVISE_REQUESTED", revise_input: "cancel WEB-2 instead" };
+    applyRevisionMock.mockResolvedValue({ identifier: "WEB-2" });
+
+    await pollHitlDecisions();
+
+    // The revision was interpreted against the PENDING call, not the task input.
+    expect(applyRevisionMock).toHaveBeenCalledWith(PENDING_CALL.name, PENDING_CALL.args, "cancel WEB-2 instead");
+
+    // And the loop resumed carrying the revised arguments — what the human
+    // actually approved — rather than the originals they rejected.
+    expect(runAgentMock).toHaveBeenCalled();
+    const resumed = runAgentMock.mock.calls[0][0].resumeFrom;
+    expect(resumed.pendingToolCall.args).toEqual({ identifier: "WEB-2" });
+    expect(resumed.pendingToolCall.id).toBe(PENDING_CALL.id);
+  });
+
+  it("rejects rather than executing the ORIGINAL args when a revision fails", async () => {
+    // The originals are precisely what the human declined; falling through to
+    // them would execute the thing the revision was meant to prevent.
+    pollRows.push(AGENT_TASK);
+    taskStates.set(AGENT_TASK.task_id, "auth_required");
+    runStates.set(AGENT_TASK.task_id, { messages: [], iteration: 1, pendingToolCall: PENDING_CALL });
+    decision.body = { status: "REVISE_REQUESTED", action: "REVISE_REQUESTED", revise_input: "something the model cannot parse" };
+    applyRevisionMock.mockRejectedValue(new Error("could not interpret"));
 
     await pollHitlDecisions();
 
     expect(runAgentMock).not.toHaveBeenCalled();
-    expect(applyRevisionMock).not.toHaveBeenCalled();
     expect(executeA2aTaskMock).not.toHaveBeenCalled();
     expect(runStates.has(AGENT_TASK.task_id)).toBe(false);
     expect(taskStates.get(AGENT_TASK.task_id)).toBe("rejected");

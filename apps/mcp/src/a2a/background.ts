@@ -1,7 +1,7 @@
 import { config } from "../config.js";
 import { db } from "../db.js";
 import { runAgent } from "../agent/loop.js";
-import { clearRunState, loadRunState } from "../agent/state.js";
+import { clearRunState, loadRunState, saveRunState } from "../agent/state.js";
 import { interpretDecision, applyRevisionInstructions } from "./dharahil.js";
 import { transitionState, executeA2aTask, settleAgentRun } from "./task-executor.js";
 import { deliverWebhook } from "./webhooks.js";
@@ -91,17 +91,54 @@ export async function pollHitlDecisions() {
           // Revised — use LLM to interpret instructions, modify args, re-execute
           console.log(`[a2a] REVISE requested for ${task.task_id}: "${decision.reviseInput}"`);
 
-          // ponytail: revising an agent run means rewriting the approved call's
-          // arguments inside the saved transcript, which nothing does yet.
-          // Reject rather than resume with arguments no human approved.
-          if (await loadRunState(task.task_id)) {
-            await clearRunState(task.task_id);
-            await db.query(
-              `UPDATE a2a_approvals SET status = 'rejected', responded_at = NOW() WHERE task_id = $1`,
-              [task.task_id]
-            );
-            await transitionState(task.task_id, "rejected", `Revision is not supported for agent runs: ${decision.reviseInput}`);
-            await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: false, errorMessage: "Revision is not supported for agent runs" });
+          // An agent run suspended on one specific tool call. Revising it means
+          // rewriting THAT call's arguments inside the saved transcript, then
+          // resuming — the revised arguments are what the human approved, so
+          // the resumed call is pre-approved exactly as the plain approve path
+          // is. Re-asking would lose the write to an expired second request.
+          const reviseState = await loadRunState(task.task_id);
+          if (reviseState) {
+            const pending = reviseState.pendingToolCall;
+            if (!pending) {
+              await clearRunState(task.task_id);
+              await transitionState(task.task_id, "rejected", "Nothing was pending to revise");
+              continue;
+            }
+
+            const auth = { userId: task.user_id, workspaceSlug: task.workspace_slug, clientId: task.client_id, scopes: ["taskpilot:read", "taskpilot:write"] };
+            const input = typeof task.input === "string" ? JSON.parse(task.input) : task.input;
+
+            try {
+              const revisedArgs = await applyRevisionInstructions(pending.name, pending.args, decision.reviseInput);
+              console.log(`[a2a] Revised ${pending.name} for ${task.task_id}:`, JSON.stringify(revisedArgs));
+
+              await saveRunState(task.task_id, {
+                ...reviseState,
+                pendingToolCall: { ...pending, args: revisedArgs },
+              });
+              await db.query(
+                `UPDATE a2a_approvals SET status = 'revised', responded_at = NOW() WHERE task_id = $1`,
+                [task.task_id]
+              );
+              await transitionState(task.task_id, "submitted", `Revised by human: ${decision.reviseInput}`);
+
+              const revisedState = await loadRunState(task.task_id);
+              const result = await runAgent({
+                text: input?.text ?? "",
+                contextId: task.context_id,
+                auth,
+                taskId: task.task_id,
+                resumeFrom: revisedState!,
+              });
+              await settleAgentRun(task.task_id, task.context_id, result, auth);
+              await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: true, metadata: { revise_input: decision.reviseInput, revised_args: JSON.stringify(revisedArgs) } });
+            } catch (err: any) {
+              // A failed revision must not fall through and execute the
+              // ORIGINAL arguments — those are the ones the human rejected.
+              await clearRunState(task.task_id);
+              await transitionState(task.task_id, "rejected", `Revision failed: ${err.message}`);
+              await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.revised", taskId: task.task_id, skill: task.skill, success: false, errorMessage: err.message });
+            }
             continue;
           }
 
