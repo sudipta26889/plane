@@ -1,11 +1,28 @@
 import { getAllSkills } from "./skill-registry.js";
 
+const SCOPES = {
+  "taskpilot:read": "Read projects, tasks, members, labels, cycles",
+  "taskpilot:write": "Create/update/move tasks, assign, label",
+};
+
 export function buildAgentCard(baseUrl: string) {
   const skills = getAllSkills().map((skill) => ({
+    // A2A requires `id` and `tags` on every skill; `name` stays for the clients
+    // that were reading this card before.
+    id: skill.name,
     name: skill.name,
     description: skill.description,
+    tags: [skill.name.split(".")[0], skill.scope],
     requiresApproval: skill.approval === "conditional" ? "conditional" : skill.approval,
   }));
+
+  const oauthFlows = {
+    authorizationCode: {
+      authorizationUrl: `${baseUrl}/authorize`,
+      tokenUrl: `${baseUrl}/token`,
+      scopes: SCOPES,
+    },
+  };
 
   return {
     name: "TaskPilot",
@@ -14,21 +31,30 @@ export function buildAgentCard(baseUrl: string) {
     protocol: "a2a",
     protocolVersion: "0.3",
     url: `${baseUrl}/a2a`,
+    // Current A2A clients (native OpenClaw among them) read the endpoint from
+    // `supportedInterfaces`/`preferredTransport` and ignore the flat `url`
+    // above. All three name the same endpoint.
+    preferredTransport: "JSONRPC",
+    supportedInterfaces: [
+      { url: `${baseUrl}/a2a`, protocolBinding: "JSONRPC", protocolVersion: "0.3" },
+    ],
+    defaultInputModes: ["application/json", "text/plain"],
+    defaultOutputModes: ["application/json", "text/plain"],
+    // `authentication` is this server's original non-standard shape; the spec
+    // calls for securitySchemes + security. Both describe the same OAuth flow.
     authentication: {
       type: "oauth2",
-      flows: {
-        authorizationCode: {
-          authorizationUrl: `${baseUrl}/authorize`,
-          tokenUrl: `${baseUrl}/token`,
-          scopes: {
-            "taskpilot:read": "Read projects, tasks, members, labels, cycles",
-            "taskpilot:write": "Create/update/move tasks, assign, label",
-          },
-        },
-      },
+      flows: oauthFlows,
     },
+    securitySchemes: {
+      oauth2: { type: "oauth2", flows: oauthFlows },
+    },
+    security: [{ oauth2: Object.keys(SCOPES) }],
     capabilities: {
       streaming: true,
+      // Spec name for our webhook deliveries. `tasks/pushNotificationConfig/*`
+      // is not implemented, so this stays false until it is.
+      pushNotifications: false,
       webhooks: true,
       humanInTheLoop: true,
     },
@@ -103,6 +129,11 @@ OAuth 2.0 Authorization Code flow with PKCE is required:
   - method: task.list - List tasks in a context (params: contextId)
   - method: task.cancel - Cancel a task (params: taskId)
   - method: context.get - Get all tasks in a context (params: contextId)
+
+Spec-form method names are accepted as aliases: \`message/send\`, \`tasks/get\`,
+\`tasks/list\`, \`tasks/cancel\`, \`context/get\`. \`message/send\` also accepts the
+spec's Message params — put contextId on the message and the skill in a data part:
+\`{"message": {"contextId": "...", "parts": [{"kind": "data", "data": {"skill": "task.create", "input": {...}}}]}}\`
 
 ### Real-Time Updates
 - [SSE Stream](${baseUrl}/a2a/stream?taskId=TASK_ID): Subscribe to real-time task state changes

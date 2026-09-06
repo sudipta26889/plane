@@ -15,6 +15,32 @@ describe("Agent Card", () => {
     expect(card.authentication.type).toBe("oauth2");
   });
 
+  it("advertises the JSON-RPC endpoint the way current A2A clients read it", () => {
+    const card = buildAgentCard("https://mcp.taskpilot.sudiptadhara.in");
+    expect(card.preferredTransport).toBe("JSONRPC");
+    const jsonRpc = card.supportedInterfaces.find((i) => i.protocolBinding === "JSONRPC");
+    expect(jsonRpc).toBeDefined();
+    expect(jsonRpc!.url).toBe("https://mcp.taskpilot.sudiptadhara.in/a2a");
+    expect(card.defaultInputModes.length).toBeGreaterThan(0);
+    expect(card.defaultOutputModes.length).toBeGreaterThan(0);
+  });
+
+  it("describes OAuth via securitySchemes as well as the legacy field", () => {
+    const card = buildAgentCard("https://example.com");
+    expect(card.securitySchemes.oauth2.type).toBe("oauth2");
+    expect(card.securitySchemes.oauth2.flows.authorizationCode.tokenUrl).toBe("https://example.com/token");
+    expect(card.security[0].oauth2).toContain("taskpilot:write");
+    expect(card.authentication.type).toBe("oauth2");
+  });
+
+  it("gives every skill the spec-required id and tags", () => {
+    const card = buildAgentCard("https://example.com");
+    for (const skill of card.skills) {
+      expect(skill.id).toBe(skill.name);
+      expect(skill.tags.length).toBeGreaterThan(0);
+    }
+  });
+
   it("includes all skills with names and descriptions", () => {
     const card = buildAgentCard("https://example.com");
     for (const skill of card.skills) {

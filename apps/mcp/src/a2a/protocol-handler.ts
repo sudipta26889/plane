@@ -25,6 +25,21 @@ export const A2A_METHODS = [
 
 export type A2aMethod = (typeof A2A_METHODS)[number];
 
+// The A2A spec spells methods with a slash and a plural `tasks`; this server has
+// always used the dot form. Spec-conformant clients (native OpenClaw, the a2a
+// SDKs) would otherwise get METHOD_NOT_FOUND, so accept both spellings.
+const METHOD_ALIASES: Record<string, A2aMethod> = {
+  "message/send": "message.send",
+  "tasks/get": "task.get",
+  "tasks/list": "task.list",
+  "tasks/cancel": "task.cancel",
+  "context/get": "context.get",
+};
+
+export function canonicalMethod(method: string): string {
+  return METHOD_ALIASES[method] ?? method;
+}
+
 export function validateJsonRpcRequest(body: any): { valid: boolean; error?: string } {
   if (!body || typeof body !== "object") {
     return { valid: false, error: "Request body must be an object" };
@@ -41,6 +56,10 @@ export function validateJsonRpcRequest(body: any): { valid: boolean; error?: str
   if (!body.method || typeof body.method !== "string") {
     return { valid: false, error: "Missing required field: method" };
   }
+
+  // Canonicalise in place. Validation runs first on every entry path (route and
+  // handler), so every downstream comparison only ever sees the dot form.
+  body.method = canonicalMethod(body.method);
 
   return { valid: true };
 }
@@ -73,12 +92,35 @@ function handleInitialize(body: any) {
   });
 }
 
+// Spec-form `message/send` wraps everything in a Message object; ours takes a
+// flat { contextId, skill, input }. Accept both. The skill and its input ride in
+// a DataPart because free text alone cannot name a skill.
+export function normalizeMessageParams(params: any) {
+  const message = params?.message;
+  if (!message || params.skill) return params ?? {};
+
+  const parts: any[] = Array.isArray(message.parts) ? message.parts : [];
+  const data = parts.find((part) => part?.kind === "data")?.data ?? {};
+
+  return {
+    contextId: message.contextId ?? params.contextId,
+    skill: data.skill,
+    input: data.input ?? {},
+    // messageId is stable across a client's retries, which is what we want here.
+    idempotencyKey: params.idempotencyKey ?? message.messageId,
+  };
+}
+
 async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string) {
-  const params = body.params || {};
+  const params = normalizeMessageParams(body.params || {});
   const { contextId, skill, input, idempotencyKey } = params;
 
   if (!skill || !contextId) {
-    return jsonRpcError(body.id, A2A_ERROR_CODES.INVALID_PARAMS, "Missing required params: skill, contextId");
+    return jsonRpcError(
+      body.id,
+      A2A_ERROR_CODES.INVALID_PARAMS,
+      "Missing required params: skill, contextId (spec form: params.message.contextId plus a data part carrying { skill, input })",
+    );
   }
 
   const skillDef = getSkillDefinition(skill);
