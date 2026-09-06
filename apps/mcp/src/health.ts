@@ -1,6 +1,7 @@
 import { db } from "./db.js";
 import { config } from "./config.js";
 import { getLlmConfig } from "./tools/smart-router.js";
+import { getIndexSyncStatus } from "./a2a/background.js";
 
 /**
  * Real dependency checks behind /health.
@@ -88,7 +89,9 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
     }),
   ]);
 
-  const dependencies = { database, llm, qdrant, embeddings };
+  // Not a probe: the index sync reports its own last outcome, so a job that
+  // fails every tick surfaces here instead of only in the logs.
+  const dependencies = { database, llm, qdrant, embeddings, indexSync: getIndexSyncStatus() };
   const report: HealthReport = {
     status: summarize(dependencies),
     server: "taskpilot-mcp",

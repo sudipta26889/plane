@@ -198,16 +198,40 @@ export async function cleanupOldData() {
  * Keep the work-item index current. Incremental by content hash, so a run
  * with no changes costs one Qdrant lookup and no embedding calls.
  */
+// syncWorkItems pages the whole corpus from a fresh cursor every call, so two
+// overlapping runs duplicate all the DB and embedding work. A first run against
+// an unindexed corpus can outlast the 10-minute interval, so guard reentry.
+let syncInFlight = false;
+
+// Last outcome, surfaced through /health. A sync that fails every tick would
+// otherwise be visible only in logs someone happens to be reading — the same
+// silent-degradation shape this codebase already got bitten by.
+let lastSyncError: string | null = null;
+
+export function getIndexSyncStatus(): { ok: boolean; detail: string } {
+  if (lastSyncError) return { ok: false, detail: `last sync failed: ${lastSyncError}` };
+  return { ok: true, detail: syncInFlight ? "sync in progress" : "idle" };
+}
+
 export async function syncKnowledgeIndex() {
   if (!config.qdrantUrl || !config.embeddingUrl) return;
+  if (syncInFlight) {
+    console.warn("[knowledge] Previous sync still running; skipping this tick");
+    return;
+  }
 
+  syncInFlight = true;
   try {
     const { embedded, skipped } = await syncWorkItems();
+    lastSyncError = null;
     if (embedded > 0) {
       console.log(`[knowledge] Indexed ${embedded} work items (${skipped} unchanged)`);
     }
   } catch (err: any) {
-    console.warn(`[knowledge] Index sync failed: ${err.message}`);
+    lastSyncError = err?.message ? String(err.message).slice(0, 200) : "unknown error";
+    console.error(`[knowledge] Index sync failed: ${lastSyncError}`);
+  } finally {
+    syncInFlight = false;
   }
 }
 
