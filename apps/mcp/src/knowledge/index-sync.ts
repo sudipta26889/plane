@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { db } from "../db.js";
 import { embedBatch } from "./embeddings.js";
-import { ensureCollection, upsertPoints, retrievePayloads } from "./qdrant.js";
+import { ensureCollection, upsertPoints, retrievePayloads, scrollPointIds, deletePoints } from "./qdrant.js";
 
 // Bounds one item's contribution to a batch. Throughput is char-bound
 // (~1750 chars/sec warm on CPU), so an untrimmed 10k-char description would
@@ -31,11 +31,12 @@ export function contentHash(text: string): string {
  * Embed work items that are new or whose text changed, and upsert them.
  * Returns counts so the caller can log progress; safe to run repeatedly.
  */
-export async function syncWorkItems(): Promise<{ embedded: number; skipped: number }> {
+export async function syncWorkItems(): Promise<{ embedded: number; skipped: number; removed: number }> {
   await ensureCollection();
 
   let embedded = 0;
   let skipped = 0;
+  const live = new Set<string>();
   let after = "00000000-0000-0000-0000-000000000000";
 
   // Keyset pagination over the whole corpus. A fixed LIMIT would silently
@@ -60,6 +61,7 @@ export async function syncWorkItems(): Promise<{ embedded: number; skipped: numb
 
     if (rows.rows.length === 0) break;
     after = String(rows.rows[rows.rows.length - 1].id);
+    for (const row of rows.rows) live.add(String(row.id));
 
     // One bulk lookup per page, so an unchanged corpus costs one Qdrant call
     // per page and no embedding calls at all.
@@ -112,5 +114,17 @@ export async function syncWorkItems(): Promise<{ embedded: number; skipped: numb
     }
   }
 
-  return { embedded, skipped };
+  // Deleted work items are simply never selected again by the query above, so
+  // without this they would stay in the shared collection forever and dedupe
+  // could report a duplicate whose identifier no longer resolves.
+  const indexed = await scrollPointIds({
+    must: [{ key: "entity_type", match: { value: "work_item" } }],
+  });
+  const stale = [...indexed].filter((id) => !live.has(id));
+  if (stale.length > 0) {
+    await deletePoints(stale);
+    console.log(`[knowledge] Removed ${stale.length} points for deleted work items`);
+  }
+
+  return { embedded, skipped, removed: stale.length };
 }

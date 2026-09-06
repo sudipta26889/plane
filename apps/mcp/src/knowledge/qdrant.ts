@@ -92,6 +92,32 @@ export async function deletePoints(ids: string[]): Promise<void> {
 }
 
 /**
+ * Every point id in the collection matching a filter. Pages through Qdrant's
+ * scroll cursor; used to find points whose source row is gone.
+ */
+export async function scrollPointIds(filter?: Record<string, unknown>): Promise<Set<string>> {
+  const ids = new Set<string>();
+  let offset: unknown = undefined;
+
+  for (;;) {
+    const data: any = await requestJson("POST", `/collections/${config.qdrantCollection}/points/scroll`, {
+      limit: 1000,
+      with_payload: false,
+      with_vector: false,
+      ...(filter ? { filter } : {}),
+      ...(offset !== undefined && offset !== null ? { offset } : {}),
+    });
+
+    for (const point of data.result?.points || []) ids.add(String(point.id));
+
+    offset = data.result?.next_page_offset;
+    if (offset === undefined || offset === null) break;
+  }
+
+  return ids;
+}
+
+/**
  * Fetch stored payloads by point id. Missing ids are simply absent from the
  * map. Used to skip re-embedding rows whose content has not changed.
  */
