@@ -30,7 +30,10 @@ Reply with ONLY a JSON object:
 
 Set confidence below 0.5 when the item could plausibly belong to more than one
 project, or when no project's description covers it. Never invent a project id.
-It is far better to be honestly unsure than to be confidently wrong.`;
+It is far better to be honestly unsure than to be confidently wrong.
+
+Keep "reason" under 15 words. A long reason risks the reply being truncated,
+which throws the whole routing decision away.`;
 
 export function matchHint(hint: string, projects: ProjectSummary[]): ProjectSummary | null {
   const needle = hint.trim().toLowerCase();
@@ -212,7 +215,7 @@ export async function routeWorkItem(
         },
       ],
       temperature: 0,
-      max_tokens: 512,
+      max_tokens: 1024,
     });
 
     const raw = response.choices[0]?.message?.content?.trim() || "";
