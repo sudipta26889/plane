@@ -162,14 +162,13 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
   }
 
   if (!skill || !contextId) {
-    const received = params.text
-      ? ` Received free text with no skill: "${String(params.text).slice(0, 80)}".`
-      : "";
-    return jsonRpcError(
-      body.id,
-      A2A_ERROR_CODES.INVALID_PARAMS,
-      `Missing required params: skill, contextId. Spec-form senders must include a data part carrying { skill, input } alongside any text part.${received}`,
-    );
+    // Two different failures reach here. Text that no skill matched is the
+    // adapter declining; no text at all is a malformed send. Saying "add a data
+    // part" for the first would be misleading advice.
+    const message = params.text
+      ? `Could not determine which TaskPilot action you meant from: "${String(params.text).slice(0, 80)}". Rephrase as a specific request (create, find, update, assign, comment, cancel), or send a data part carrying { skill, input }.`
+      : "Missing required params: skill, contextId. Send either a flat { contextId, skill, input }, or a message whose parts include text or a data part carrying { skill, input }.";
+    return jsonRpcError(body.id, A2A_ERROR_CODES.INVALID_PARAMS, message);
   }
 
   const skillDef = getSkillDefinition(skill);
