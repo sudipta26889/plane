@@ -83,10 +83,10 @@ describe("mapStateGroupToSimpleStatus", () => {
 });
 
 describe("all tools registration", () => {
-  it("should register exactly 19 tools", async () => {
+  it("should register exactly 21 tools", async () => {
     const { getToolDefinitions } = await import("../handlers.js");
     const tools = getToolDefinitions();
-    expect(tools).toHaveLength(19);
+    expect(tools).toHaveLength(21);
   });
 
   it("should have unique tool names", async () => {
@@ -148,5 +148,40 @@ describe("resolveIntakeProject", () => {
   it("returns null when the configured identifier does not exist", () => {
     const configured = new Map([["for-ai", "NOSUCHPROJ"]]);
     expect(resolveIntakeProject("for-ai", projects, configured)).toBeNull();
+  });
+});
+
+import { formatPageSummary } from "../handlers.js";
+
+describe("formatPageSummary", () => {
+  it("returns the fields an agent needs to act on a page", () => {
+    const summary = formatPageSummary({
+      id: "p1",
+      name: "Q3 planning",
+      external_source: "meetecho",
+      external_id: "abc",
+      is_locked: false,
+      archived_at: null,
+      updated_at: "2026-09-01T00:00:00Z",
+    });
+    expect(summary).toEqual({
+      id: "p1",
+      name: "Q3 planning",
+      source: "meetecho",
+      locked: false,
+      archived: false,
+      updated_at: "2026-09-01T00:00:00Z",
+    });
+  });
+
+  it("marks an archived page as archived", () => {
+    // archived_at is a date, not a boolean — a truthy check is the contract.
+    const summary = formatPageSummary({ id: "p2", name: "Old", archived_at: "2026-08-01" });
+    expect(summary.archived).toBe(true);
+  });
+
+  it("reports a page with no external source as locally authored", () => {
+    const summary = formatPageSummary({ id: "p3", name: "Notes" });
+    expect(summary.source).toBe("local");
   });
 });

@@ -26,6 +26,8 @@ const SKILL_REGISTRY: Record<string, SkillDefinition> = {
   "project.list_cycles":  { name: "project.list_cycles",  mcpTool: "list_cycles",      scope: "taskpilot:read",  approval: false, description: "List sprints/cycles" },
   "project.list_tasks":   { name: "project.list_tasks",   mcpTool: "list_tasks",       scope: "taskpilot:read",  approval: false, description: "List tasks with filters" },
   "task.bulk_cancel":     { name: "task.bulk_cancel",     mcpTool: "bulk_cancel_tasks", scope: "taskpilot:write", approval: true,  description: "Cancel multiple tasks at once (requires human approval). No delete exists — use this instead." },
+  "page.list":            { name: "page.list",            mcpTool: "page_list",        scope: "taskpilot:read",  approval: false, description: "List pages (documents) in a project or across projects" },
+  "page.get":             { name: "page.get",             mcpTool: "page_get",         scope: "taskpilot:read",  approval: false, description: "Get one page including its content" },
 };
 
 export function getSkillDefinition(skillName: string): SkillDefinition | undefined {

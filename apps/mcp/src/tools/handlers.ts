@@ -42,6 +42,19 @@ export function getToolDefinitions() {
   return TOOLS;
 }
 
+/** Trim a page to what an agent needs: identity, provenance, and whether it can be edited. */
+export function formatPageSummary(page: any) {
+  return {
+    id: page.id,
+    name: page.name || "",
+    // MeetEcho writes most pages; a locally authored one has no external source.
+    source: page.external_source || "local",
+    locked: Boolean(page.is_locked),
+    archived: Boolean(page.archived_at),
+    updated_at: page.updated_at,
+  };
+}
+
 /**
  * Maps TaskPilot's 6 state groups to the 3-state model used by
  * Claude Code's TodoWrite and other AI agent task systems.
@@ -377,6 +390,28 @@ const TOOLS = [
         },
       },
       required: ["project"],
+    },
+  },
+  {
+    name: "page_list",
+    description: "List pages (documents) in a project, or across all projects. Pages are documents, not tasks.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_hint: { type: "string", description: "Project name or identifier to limit to (optional)" },
+      },
+    },
+  },
+  {
+    name: "page_get",
+    description: "Get one page including its content.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_id: { type: "string", description: "Project UUID" },
+        page_id: { type: "string", description: "Page UUID" },
+      },
+      required: ["project_id", "page_id"],
     },
   },
 ];
@@ -879,6 +914,43 @@ async function handleBulkCancelTasks(args: any, client: TaskPilotClient, _worksp
   };
 }
 
+async function handleListPages(args: any, client: TaskPilotClient, workspace: string) {
+  const projects = await client.listProjects();
+  const project = args.project_hint
+    ? projects.find(
+        (p: any) =>
+          p.identifier?.toLowerCase() === args.project_hint.toLowerCase() ||
+          p.name?.toLowerCase() === args.project_hint.toLowerCase(),
+      )
+    : null;
+
+  if (args.project_hint && !project) {
+    return { error: `No project matching '${args.project_hint}'. Available: ${projects.map((p: any) => p.identifier).join(", ")}` };
+  }
+
+  const targets = project ? [project] : projects;
+  const pages: any[] = [];
+  for (const target of targets) {
+    const found = await client.listPages(String(target.id));
+    for (const page of found.slice(0, 50)) {
+      pages.push({ ...formatPageSummary(page), project: target.identifier });
+    }
+  }
+
+  return { pages: pages.slice(0, 100), count: pages.length };
+}
+
+async function handleGetPage(args: any, client: TaskPilotClient, _workspace: string) {
+  if (!args.page_id || !args.project_id) {
+    return { error: "Both project_id and page_id are required" };
+  }
+  const page = await client.getPage(args.project_id, args.page_id);
+  return {
+    ...formatPageSummary(page),
+    description_html: page.description_html || "",
+  };
+}
+
 const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: string) => Promise<any>> = {
   create_task: handleCreateTask,
   move_task: handleMoveTask,
@@ -899,4 +971,6 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   remove_label: handleRemoveLabel,
   get_task_summary: handleGetTaskSummary,
   bulk_cancel_tasks: handleBulkCancelTasks,
+  page_list: handleListPages,
+  page_get: handleGetPage,
 };

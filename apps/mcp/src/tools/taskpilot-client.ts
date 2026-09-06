@@ -237,4 +237,57 @@ export class TaskPilotClient {
       labels: currentLabels.filter((id: string) => id !== labelId),
     });
   }
+
+  // --- Pages ---
+  async listPages(projectId: string, params?: Record<string, string>): Promise<any[]> {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    const data = await this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${qs}`,
+    );
+    return Array.isArray(data) ? data : data.results || data;
+  }
+
+  async getPage(projectId: string, pageId: string): Promise<any> {
+    return this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${pageId}/`,
+    );
+  }
+
+  async createPage(projectId: string, data: Record<string, unknown>): Promise<any> {
+    return this.request(
+      "POST",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/`,
+      data,
+    );
+  }
+
+  /** Description lives behind its own endpoint, not the page PATCH. */
+  async updatePageDescription(
+    projectId: string,
+    pageId: string,
+    descriptionHtml: string,
+  ): Promise<any> {
+    return this.request(
+      "PATCH",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${pageId}/description/`,
+      { description_html: descriptionHtml },
+    );
+  }
+
+  async archivePage(projectId: string, pageId: string): Promise<any> {
+    return this.request(
+      "POST",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${pageId}/archive/`,
+    );
+  }
+
+  async listPageVersions(projectId: string, pageId: string): Promise<any[]> {
+    const data = await this.request(
+      "GET",
+      `/api/v1/workspaces/${this.workspace}/projects/${projectId}/pages/${pageId}/versions/`,
+    );
+    return Array.isArray(data) ? data : data.results || data;
+  }
 }
