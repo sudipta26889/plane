@@ -198,7 +198,7 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
 
   const taskInput = input || {};
 
-  if (requiresApproval(skill, taskInput)) {
+  if (requiresApproval(skill, taskInput, auth.clientId)) {
     // Create task in auth_required state
     const taskId = await createA2aTask({
       contextId,

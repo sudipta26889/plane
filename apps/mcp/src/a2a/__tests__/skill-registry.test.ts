@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   getSkillDefinition,
   getAllSkills,
+  getWriteTools,
+  isExternalPeer,
+  requiresHumanApproval,
   isCriticalAction,
   requiresApproval,
 } from "../skill-registry.js";
@@ -126,5 +129,63 @@ describe("the two approval gates cannot disagree", () => {
         `${skill.mcpTool} is approval:true but isCriticalAction ignores it, so MCP clients bypass the human gate`,
       ).toBe(true);
     }
+  });
+});
+
+describe("write-safety policy", () => {
+  const OWNER = "mcp_Xuj887b3OxafyM9stKhQSA";
+  const PEER = "peer_mitra";
+
+  it("derives the write set from the registry, so a new write skill cannot ship ungated", () => {
+    const derived = getWriteTools();
+    const declared = getAllSkills().filter((s) => s.scope === "taskpilot:write");
+    expect(derived.size).toBe(declared.length);
+    for (const skill of declared) {
+      expect(derived.has(skill.mcpTool), `${skill.mcpTool} missing from the write set`).toBe(true);
+    }
+    // And nothing read-scoped leaked in.
+    for (const skill of getAllSkills().filter((s) => s.scope === "taskpilot:read")) {
+      expect(derived.has(skill.mcpTool), `${skill.mcpTool} is read-only but in the write set`).toBe(false);
+    }
+  });
+
+  it("recognises a peer credential and does not mistake an owner session for one", () => {
+    expect(isExternalPeer(PEER)).toBe(true);
+    expect(isExternalPeer("peer_mitra-meetecho")).toBe(true);
+    expect(isExternalPeer(OWNER)).toBe(false);
+    expect(isExternalPeer("")).toBe(false);
+  });
+
+  it("gates every write by an external peer, including harmless ones", () => {
+    // A peer holding a token is not the account owner.
+    expect(requiresHumanApproval("create_task", { title: "x" }, PEER)).toBe(true);
+    expect(requiresHumanApproval("add_comment", {}, PEER)).toBe(true);
+    expect(requiresHumanApproval("page_create", {}, PEER)).toBe(true);
+  });
+
+  it("leaves the owner's ordinary writes ungated, so routine filing stays frictionless", () => {
+    expect(requiresHumanApproval("create_task", { title: "x" }, OWNER)).toBe(false);
+    expect(requiresHumanApproval("add_comment", {}, OWNER)).toBe(false);
+  });
+
+  it("gates destructive actions for the owner too", () => {
+    expect(requiresHumanApproval("bulk_cancel_tasks", {}, OWNER)).toBe(true);
+    expect(requiresHumanApproval("page_archive", {}, OWNER)).toBe(true);
+    expect(requiresHumanApproval("move_task", { state: "Cancelled" }, OWNER)).toBe(true);
+    expect(requiresHumanApproval("intake_triage", { decision: "reject" }, OWNER)).toBe(true);
+  });
+
+  it("never gates a read, for either caller", () => {
+    for (const id of [OWNER, PEER]) {
+      expect(requiresHumanApproval("list_projects", {}, id)).toBe(false);
+      expect(requiresHumanApproval("page_list", {}, id)).toBe(false);
+      expect(requiresHumanApproval("find_tasks", {}, id)).toBe(false);
+    }
+  });
+
+  it("routes a peer's write through the A2A approval gate as well", () => {
+    // Both paths must agree; the MCP path is covered above.
+    expect(requiresApproval("task.create", { title: "x" }, PEER)).toBe(true);
+    expect(requiresApproval("task.create", { title: "x" }, OWNER)).toBe(false);
   });
 });

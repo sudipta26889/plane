@@ -69,12 +69,67 @@ export function isCriticalAction(mcpTool: string, args: Record<string, any>): bo
   return false;
 }
 
-export function requiresApproval(skillName: string, input: Record<string, any>): boolean {
+/**
+ * Whether an A2A skill call needs a human.
+ *
+ * `clientId` is optional only so existing callers and tests keep compiling;
+ * pass it. Without it a peer's ordinary write looks like the owner's and
+ * skips the gate, which is the asymmetry this policy exists to remove.
+ */
+export function requiresApproval(
+  skillName: string,
+  input: Record<string, any>,
+  clientId = "",
+): boolean {
   const skill = SKILL_REGISTRY[skillName];
   if (!skill) return false;
   if (skill.approval === true) return true;
-  if (skill.approval === "conditional") {
-    return isCriticalAction(skill.mcpTool, input);
-  }
-  return false;
+  if (skill.approval === "conditional" && isCriticalAction(skill.mcpTool, input)) return true;
+
+  // Same rule the MCP path applies: any write by an external peer.
+  return requiresHumanApproval(skill.mcpTool, input, clientId);
+}
+
+// --- Write-safety policy: one place, used by BOTH the MCP and A2A paths ---
+
+/**
+ * The write tools, DERIVED from the registry rather than hand-listed.
+ *
+ * A hand-maintained set is how a new tool ships ungated: whoever adds the skill
+ * has to remember a second place. Deriving it means a skill declared
+ * `taskpilot:write` is gated by construction.
+ */
+export function getWriteTools(): Set<string> {
+  return new Set(
+    getAllSkills()
+      .filter((skill) => skill.scope === "taskpilot:write")
+      .map((skill) => skill.mcpTool),
+  );
+}
+
+/**
+ * Whether a caller is an external peer rather than the account owner.
+ *
+ * Peer credentials are minted by scripts/mint-peer-token.ts, which is the only
+ * thing that creates a `peer_` client id; OAuth dynamic registration produces
+ * `mcp_` ids. A peer holding a token is not the owner — one bad write's blast
+ * radius is the datastore, not the request — so peers are held to a stricter
+ * bar than the owner's own session.
+ */
+export function isExternalPeer(clientId: string): boolean {
+  return typeof clientId === "string" && clientId.startsWith("peer_");
+}
+
+/**
+ * The single approval decision. Destructive actions always need a human. An
+ * external peer needs one for ANY write, because a peer's judgement is not the
+ * owner's.
+ */
+export function requiresHumanApproval(
+  mcpTool: string,
+  args: Record<string, any>,
+  clientId: string,
+): boolean {
+  if (isCriticalAction(mcpTool, args)) return true;
+  return isExternalPeer(clientId) && getWriteTools().has(mcpTool);
 }

@@ -25,6 +25,14 @@ export interface RouteDecision {
   vector?: number[];
 }
 
+// Measured against this instance: a routing call is 1-2s and an intent call
+// 1.3-1.7s. The OpenAI SDK defaults to a 600s timeout with 2 retries — up to 30
+// minutes for one call — while the calling A2A peer gives up at 120s, so a hung
+// LLM held a connection open long after anyone was listening and then completed
+// work nobody received. 30s is ~20x the measured cost and well inside the
+// peer's budget.
+const LLM_TIMEOUT_MS = 30_000;
+
 const NEIGHBOUR_LIMIT = 20;
 
 const ROUTING_SYSTEM_PROMPT = `You route work items to projects in TaskPilot.
@@ -261,7 +269,7 @@ export async function routeWorkItem(
       ],
       temperature: 0,
       max_tokens: 1024,
-    });
+    }, { timeout: LLM_TIMEOUT_MS, maxRetries: 1 });
 
     const raw = response.choices[0]?.message?.content?.trim() || "";
     const parsed = JSON.parse(raw.replace(/^```(?:json)?|```$/g, "").trim());

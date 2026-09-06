@@ -2,8 +2,9 @@ import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
 import { routeWorkItem } from "../routing/router.js";
 import { findDuplicate } from "../routing/dedupe.js";
 import { buildIndexText } from "../knowledge/index-sync.js";
-import { isCriticalAction } from "../a2a/skill-registry.js";
+import { isCriticalAction, getWriteTools, requiresHumanApproval, isExternalPeer } from "../a2a/skill-registry.js";
 import { runApprovalLoop } from "../a2a/dharahil.js";
+import { logAuditEvent } from "../a2a/audit-log.js";
 import { config } from "../config.js";
 
 interface AuthContext {
@@ -13,7 +14,9 @@ interface AuthContext {
   scopes: string[];
 }
 
-const WRITE_TOOLS = new Set(["create_task", "move_task", "update_task", "add_comment", "assign_to_cycle", "assign_task", "unassign_task", "add_label", "remove_label", "bulk_cancel_tasks", "page_create", "page_update", "page_archive", "intake_triage", "relation_add", "callnote_upsert"]);
+// Derived from the registry, not hand-listed: a skill declaring taskpilot:write
+// is scope-gated by construction, so adding one cannot forget this file.
+const WRITE_TOOLS = getWriteTools();
 
 /** Exactly the values IssueRelationCreateSerializer accepts. */
 export const RELATION_TYPES = [
@@ -136,14 +139,31 @@ export async function executeToolCall(
     throw new Error(`Unknown tool: ${name}`);
   }
 
-  // DharaHIL HITL check for critical actions (shared between MCP and A2A)
-  if (config.dharahilEnabled && !approvalAlreadyGranted && isCriticalAction(name, args)) {
+  // One approval decision for both paths: destructive actions always, and ANY
+  // write by an external peer. See requiresHumanApproval in skill-registry.
+  const needsApproval = requiresHumanApproval(name, args, auth.clientId);
+
+  if (config.dharahilEnabled && !approvalAlreadyGranted && needsApproval) {
+    const who = isExternalPeer(auth.clientId) ? `peer ${auth.clientId}` : "owner session";
     const decision = await runApprovalLoop({
       toolName: name,
       toolArgs: args,
       userId: auth.userId,
       taskId: `mcp_${Date.now()}`,
-      contextSummary: `MCP: ${name} with args ${JSON.stringify(args)}`,
+      contextSummary: `${who}: ${name} with args ${JSON.stringify(args)}`,
+    });
+
+    // Every approval outcome is recorded. Previously the MCP path wrote no
+    // a2a_approvals row and no audit entry, so a destructive write approved or
+    // denied here left no trace at all.
+    await logAuditEvent({
+      userId: auth.userId,
+      clientId: auth.clientId,
+      ipAddress: "",
+      operation: decision.shouldProceed ? "approval.approved" : "approval.denied",
+      skill: name,
+      success: decision.shouldProceed,
+      errorMessage: decision.shouldProceed ? undefined : decision.reason,
     });
 
     if (!decision.shouldProceed) {
@@ -157,7 +177,38 @@ export async function executeToolCall(
   // Get or create API token for this user from the shared database
   const apiToken = await getOrCreateApiToken(auth.userId, auth.workspaceSlug);
   const client = new TaskPilotClient(auth.workspaceSlug, apiToken);
-  return handler(args, client, auth.workspaceSlug);
+
+  // The MCP path had no audit trail whatsoever — logAuditEvent was called from
+  // eleven places, all of them on the A2A path. A tool call arriving over MCP
+  // was invisible after the fact.
+  try {
+    const result = await handler(args, client, auth.workspaceSlug);
+    if (WRITE_TOOLS.has(name)) {
+      await logAuditEvent({
+        userId: auth.userId,
+        clientId: auth.clientId,
+        ipAddress: "",
+        operation: "tool.executed",
+        skill: name,
+        success: true,
+        metadata: { approved: needsApproval },
+      });
+    }
+    return result;
+  } catch (err: any) {
+    if (WRITE_TOOLS.has(name)) {
+      await logAuditEvent({
+        userId: auth.userId,
+        clientId: auth.clientId,
+        ipAddress: "",
+        operation: "tool.failed",
+        skill: name,
+        success: false,
+        errorMessage: err?.message?.slice(0, 300),
+      });
+    }
+    throw err;
+  }
 }
 
 // --- Tool Definitions ---
