@@ -95,6 +95,15 @@ describe("Agent Card", () => {
 describe("llms.txt tells a peer what it actually needs", () => {
   const txt = buildLlmsTxt("https://example.test");
 
+  it("does not point agents at the wrong one of its two auth paths", () => {
+    // The peer-token section is written first, so "use the second one" sent
+    // every agent that followed the instruction straight to OAuth.
+    const peerAt = txt.indexOf("Long-lived peer token");
+    const oauthAt = txt.indexOf("OAuth 2.0 Authorization Code with PKCE");
+    expect(peerAt).toBeLessThan(oauthAt);
+    expect(txt).toContain("use the first one");
+  });
+
   it("points agents at peer tokens, not the OAuth flow that expires on them", () => {
     // OAuth refresh failing while an unattended agent slept is the reason
     // peers moved to static tokens; the doc used to say OAuth was required.

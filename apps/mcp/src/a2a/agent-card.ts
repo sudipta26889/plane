@@ -126,7 +126,7 @@ This API allows AI agents to:
 
 ## Authentication
 
-Two paths. **If you are an agent peer, use the second one.**
+Two paths. **If you are an agent peer, use the first one.**
 
 **Long-lived peer token (recommended for agents).** A static Bearer token bound
 to one user and one workspace, issued out of band by a TaskPilot operator. It
