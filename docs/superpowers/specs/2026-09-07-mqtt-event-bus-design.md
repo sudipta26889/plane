@@ -1,32 +1,34 @@
 # MQTT Event Bus — Design
 
 **Date:** 2026-09-07
-**Status:** design, blocked on a working credential
+**Status:** design — credential now working, topic tree enumerated
 **Scope:** `apps/mcp` — the MCP/A2A server
 
-## The blocker, first
+## Credential: resolved
 
-`homeassistant.lan:1883` is reachable and speaks MQTT, but **rejects every
-credential tried**, including anonymous:
+The broker rejected every credential including anonymous, and the client was
+falsified as the cause — a deliberately wrong protocol version returned code 132
+(`0x84`, Unsupported Protocol Version) while the correct version returned "not
+authorised", proving the packets parsed. The user was subsequently created on
+the broker and `CONNACK: accepted` now succeeds with the unchanged `.env`
+password.
 
-```
-anonymous (no creds)         not authorised
-configured user+password     not authorised
-username only                not authorised
-```
+## The broker, measured
 
-`MQTT_USERNAME=a2a_agents_mqtt_user` and its password are clean in `.env` — no
-quotes, no stray whitespace. **The client was falsified as the cause**: sending a
-deliberately wrong protocol version returns code 132 (`0x84`, Unsupported
-Protocol Version) while the correct version returns "not authorised", so the
-broker parses these packets correctly and the rejection is real. The user does
-not exist on the broker yet, or its password differs. On Home Assistant's Mosquitto add-on, MQTT users are
-either Home Assistant users (Settings → People → Users) or entries in the
-add-on's `logins:` config. Nothing below can be implemented or verified until a
-`CONNACK: accepted` is achievable.
+`homeassistant.lan:1883`, 12-second listen on `#`:
 
-The rest of this design does not depend on the credential, but its
-**verification does** — no phase should be called done on reading alone.
+**1,241 messages across 1,115 topics — roughly 100 messages/second.**
+
+| namespace | topics | nature |
+|---|---|---|
+| `homeassistant/` | 663 | discovery/config, not events |
+| `espresense/` | 259 | BLE room presence, continuous |
+| `frigate/` | 120 | camera — mixed signal and binary |
+| `zigbee2mqtt/` | 68 | device state |
+| `esphome/`, `room-assistant/`, `espnow-receiver/` | 5 | minor |
+
+This makes the allowlist **existential rather than tidy**. At one LLM call per
+ingested message, a wildcard subscribe would exhaust the budget in minutes.
 
 ## Why MQTT, in terms of measured problems
 
@@ -98,8 +100,29 @@ LLM budget alike.
 
 ```
 taskpilot/ingest/+            deliberate "make a task of this" channel
-<curated HA topics>           configured per topic, one rule each
+frigate/events                object lifecycle JSON — 0 msgs in 25s, high signal
+frigate/reviews               review items — 0 msgs in 25s, high signal
+homeassistant/status          fires on HA restart only
+zigbee2mqtt/bridge/state      bridge online/offline
 ```
+
+**Explicitly excluded, each for a measured reason:**
+
+| Excluded | Why |
+|---|---|
+| `frigate/+/+/snapshot` | **binary JPEG** (`JFIF` header), not text — useless to an LLM and costly to receive |
+| `zigbee2mqtt/bridge/logging` | ~720 msg/hr of debug chatter |
+| `homeassistant/#` | 663 topics of discovery config, not events |
+| `espresense/#` | 259 topics of continuous presence telemetry |
+| `#` | ~100 msg/sec |
+
+The two Frigate event topics produced **nothing** in 25 seconds, which is the
+point: they fire on a real occurrence rather than continuously. That is the
+shape an ingest rule wants.
+
+**Not yet verified:** no `frigate/events` payload was observed, because nothing
+happened while listening. The rule that parses it must be written against a real
+captured message, not against the schema from memory.
 
 ## The five decisions that matter
 
