@@ -114,6 +114,32 @@ async function initA2aDatabase(client: any): Promise<void> {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Live index notifications. NOTIFY is delivered only when the transaction
+    -- commits, so a listener can never be told about a row it cannot yet read.
+    -- The payload carries ids only: NOTIFY has an 8000-byte ceiling, and the
+    -- listener reads the row itself anyway.
+    CREATE OR REPLACE FUNCTION taskpilot_notify_index() RETURNS trigger AS $fn$
+    DECLARE
+      entity text;
+      row_id uuid;
+    BEGIN
+      entity := TG_ARGV[0];
+      row_id := COALESCE(NEW.id, OLD.id);
+      PERFORM pg_notify('taskpilot_index', json_build_object('entity', entity, 'id', row_id)::text);
+      RETURN NULL;
+    END;
+    $fn$ LANGUAGE plpgsql;
+
+    DROP TRIGGER IF EXISTS taskpilot_index_issues ON issues;
+    CREATE TRIGGER taskpilot_index_issues
+      AFTER INSERT OR UPDATE OR DELETE ON issues
+      FOR EACH ROW EXECUTE FUNCTION taskpilot_notify_index('work_item');
+
+    DROP TRIGGER IF EXISTS taskpilot_index_pages ON pages;
+    CREATE TRIGGER taskpilot_index_pages
+      AFTER INSERT OR UPDATE OR DELETE ON pages
+      FOR EACH ROW EXECUTE FUNCTION taskpilot_notify_index('page');
+
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_task_id ON a2a_tasks(task_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_context_id ON a2a_tasks(context_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_client_state ON a2a_tasks(client_id, state);

@@ -41,6 +41,103 @@ export function contentHash(text: string): string {
  * is the weaker guarantee. It is also chunked, so hits are fragments rather
  * than pages. Our own points carry the same tenancy key as work items.
  */
+/**
+ * Re-index specific rows, for the live path.
+ *
+ * The full syncs page the whole corpus on a timer; this handles the handful of
+ * ids a database notification names, so a new work item or page is searchable
+ * in seconds rather than after the next timer tick. Rows that no longer exist
+ * (deleted, or archived in the case of pages) have their points removed, so a
+ * deletion is reflected as promptly as a creation.
+ */
+export async function indexByIds(
+  entityType: "work_item" | "page",
+  ids: string[],
+): Promise<{ embedded: number; skipped: number; removed: number }> {
+  if (ids.length === 0) return { embedded: 0, skipped: 0, removed: 0 };
+  await ensureCollection();
+
+  const rows =
+    entityType === "work_item"
+      ? await db.query(
+          `SELECT i.id, i.name, i.description_stripped, i.project_id, i.workspace_id,
+                  i.sequence_id, p.identifier AS project_identifier, s.group AS state_group
+           FROM issues i
+           JOIN projects p ON p.id = i.project_id
+           LEFT JOIN states s ON s.id = i.state_id
+           WHERE i.deleted_at IS NULL AND i.id = ANY($1::uuid[])`,
+          [ids],
+        )
+      : await db.query(
+          `SELECT pg.id, pg.name, pg.description_stripped, pg.workspace_id,
+                  pg.external_source, pp.project_id
+           FROM pages pg
+           JOIN project_pages pp ON pp.page_id = pg.id
+           WHERE pg.deleted_at IS NULL AND pg.archived_at IS NULL AND pg.id = ANY($1::uuid[])`,
+          [ids],
+        );
+
+  const found = new Set(rows.rows.map((row: any) => String(row.id)));
+
+  // Anything named but no longer present is gone from the corpus. Removing its
+  // point here is what makes a delete visible immediately rather than at the
+  // next full reconciliation.
+  const gone = ids.filter((id) => !found.has(id));
+  if (gone.length > 0) await deletePoints(gone);
+
+  const stored = await retrievePayloads([...found]);
+  const pending: { id: string; text: string; payload: Record<string, unknown> }[] = [];
+  let skipped = 0;
+
+  for (const row of rows.rows) {
+    const text = buildIndexText(row);
+    const hash =
+      entityType === "work_item"
+        ? contentHash([text, row.project_id, row.state_group || "", row.project_identifier, row.sequence_id].join("\u0000"))
+        : contentHash([text, row.project_id, row.external_source || ""].join("\u0000"));
+
+    if (stored.get(String(row.id))?.content_hash === hash) {
+      skipped++;
+      continue;
+    }
+
+    pending.push({
+      id: String(row.id),
+      text,
+      payload:
+        entityType === "work_item"
+          ? {
+              entity_type: "work_item",
+              issue_id: String(row.id),
+              project_id: String(row.project_id),
+              workspace_id: String(row.workspace_id),
+              identifier: `${row.project_identifier}-${row.sequence_id}`,
+              state_group: row.state_group || "",
+              content_hash: hash,
+            }
+          : {
+              entity_type: "page",
+              page_id: String(row.id),
+              project_id: String(row.project_id),
+              workspace_id: String(row.workspace_id),
+              name: row.name || "",
+              source: row.external_source || "local",
+              content_hash: hash,
+            },
+    });
+  }
+
+  let embedded = 0;
+  for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+    const batch = pending.slice(i, i + BATCH_SIZE);
+    const vectors = await embedBatch(batch.map((item) => item.text));
+    await upsertPoints(batch.map((item, index) => ({ id: item.id, vector: vectors[index]!, payload: item.payload })));
+    embedded += batch.length;
+  }
+
+  return { embedded, skipped, removed: gone.length };
+}
+
 export async function syncPages(): Promise<{ embedded: number; skipped: number; removed: number }> {
   await ensureCollection();
 

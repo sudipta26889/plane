@@ -14,6 +14,7 @@ import approveRouter from "./routes/approve.js";
 import mcpRouter from "./routes/mcp.js";
 import a2aRouter from "./routes/a2a.js";
 import { checkDependencies, reportHealthTransitions, redactHealthReport } from "./health.js";
+import { startLiveIndex } from "./knowledge/live-index.js";
 import { authenticateA2aRequest } from "./a2a/auth.js";
 
 const app = express();
@@ -112,6 +113,12 @@ async function main() {
     setInterval(syncKnowledgeIndex, 10 * 60 * 1000);
     // First index build, after the server is already accepting requests.
     void syncKnowledgeIndex();
+
+    // Live index: a change is searchable in seconds instead of up to ten
+    // minutes. The periodic sync above stays as the reconciliation pass —
+    // NOTIFY is a notification, not a delivery guarantee, so dropping it would
+    // trade a bounded staleness for an unbounded one.
+    void startLiveIndex();
     console.log("[a2a] Background tasks started");
   });
 }
