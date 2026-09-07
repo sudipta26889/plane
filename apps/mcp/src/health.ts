@@ -5,6 +5,7 @@ import { getLlmConfig } from "./tools/smart-router.js";
 import { getIndexSyncStatus } from "./a2a/background.js";
 import { ping as longmemoryPing } from "./agent/longmemory.js";
 import { ping as mqttPing, publish as publishMqtt, TOPIC as MQTT_TOPIC } from "./agent/mqtt.js";
+import { getIngestStatus } from "./agent/ingest.js";
 import { getLiveIndexStatus } from "./knowledge/live-index.js";
 
 /**
@@ -122,7 +123,7 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
 
   // Not a probe: the index sync reports its own last outcome, so a job that
   // fails every tick surfaces here instead of only in the logs.
-  const dependencies = { database, llm, qdrant, redis, longmemory, mqtt, embeddings, indexSync: getIndexSyncStatus(), liveIndex: getLiveIndexStatus() };
+  const dependencies = { database, llm, qdrant, redis, longmemory, mqtt, embeddings, indexSync: getIndexSyncStatus(), liveIndex: getLiveIndexStatus(), ingest: getIngestStatus() };
   const report: HealthReport = {
     status: summarize(dependencies),
     server: "taskpilot-mcp",

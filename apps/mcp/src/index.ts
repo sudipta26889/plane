@@ -14,6 +14,7 @@ import approveRouter from "./routes/approve.js";
 import mcpRouter from "./routes/mcp.js";
 import a2aRouter from "./routes/a2a.js";
 import { checkDependencies, reportHealthTransitions, redactHealthReport } from "./health.js";
+import { startIngest } from "./agent/ingest.js";
 import { startLiveIndex } from "./knowledge/live-index.js";
 import { authenticateA2aRequest } from "./a2a/auth.js";
 
@@ -119,6 +120,7 @@ async function main() {
     // NOTIFY is a notification, not a delivery guarantee, so dropping it would
     // trade a bounded staleness for an unbounded one.
     void startLiveIndex();
+    void startIngest();
     console.log("[a2a] Background tasks started");
   });
 }

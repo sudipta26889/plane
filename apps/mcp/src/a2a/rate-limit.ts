@@ -113,3 +113,18 @@ export async function checkRateLimit(
 
   return strictest;
 }
+
+/**
+ * Consume one unit of an arbitrary quota.
+ *
+ * Exposed for callers outside the A2A request path — MQTT ingest, which needs
+ * a per-rule limit and a global hourly ceiling — so they reuse this module's
+ * Redis client and its 'error' listener rather than opening their own.
+ */
+export async function consumeQuota(
+  key: string,
+  limit: number,
+  windowSeconds: number,
+): Promise<RateLimitResult> {
+  return await checkSingleLimit(getRedis(), key, limit, windowSeconds);
+}

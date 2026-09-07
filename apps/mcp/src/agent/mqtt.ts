@@ -239,6 +239,50 @@ export async function publishEntityState(key: EntityKey, value: string): Promise
   await publish(ENTITIES[key].state_topic, { state: value }, { retain: true });
 }
 
+/**
+ * Subscribe to an explicit list of topics.
+ *
+ * Never a wildcard beyond a single `+` level named by a caller: this broker
+ * carries ~100 messages/second across 1,115 topics, and `#` would flood the
+ * process and the model budget alike. The handler is called per message; it
+ * must not throw, and this logs and continues if it does, since one bad
+ * message must not tear down the subscription.
+ */
+export async function subscribe(
+  topics: string[],
+  handler: (topic: string, payload: string) => void | Promise<void>,
+): Promise<void> {
+  const c = getClient();
+  if (!c) return;
+
+  const attach = () => {
+    c.subscribe(topics, { qos: 1 }, (err) => {
+      if (err) {
+        lastError = err.message;
+        console.warn(`[mqtt] subscribe failed: ${err.message}`);
+        return;
+      }
+      console.log(`[mqtt] subscribed to ${topics.length} ingest topic(s)`);
+    });
+  };
+
+  // Subscriptions do not survive a reconnect with `clean: true`, so re-attach
+  // on every connect rather than only the first. Without this, a broker blip
+  // silently ends ingest and looks exactly like "nothing happened".
+  c.on("connect", attach);
+  if (c.connected) attach();
+
+  c.on("message", (topic, payload) => {
+    void (async () => {
+      try {
+        await handler(topic, payload.toString());
+      } catch (err: any) {
+        console.warn(`[mqtt] ingest handler for ${topic} threw: ${err?.message}`);
+      }
+    })();
+  });
+}
+
 /** Graceful shutdown: say offline ourselves rather than leaving it to the will. */
 export async function shutdown(): Promise<void> {
   const c = client;

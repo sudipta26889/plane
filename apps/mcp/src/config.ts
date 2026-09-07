@@ -44,6 +44,10 @@ export const config = {
   mqttPort: parseInt(process.env.MQTT_PORT || "1883", 10),
   mqttUsername: process.env.MQTT_USERNAME || "",
   mqttPassword: process.env.MQTT_PASSWORD || "",
+  // The peer client id inbound MQTT ingest acts as. Empty disables ingest.
+  // A real minted token must exist for this client, so revoking it stops
+  // ingest without a redeploy.
+  mqttIngestClientId: process.env.MQTT_INGEST_CLIENT_ID || "",
 
   // Long-term agentic memory (longmemory-hydrograph MCP). Unset means the agent
   // runs on conversation history alone and /health reports memory unavailable —
