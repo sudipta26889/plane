@@ -16,8 +16,11 @@ username only                not authorised
 ```
 
 `MQTT_USERNAME=a2a_agents_mqtt_user` and its password are clean in `.env` — no
-quotes, no stray whitespace. So the user does not exist on the broker yet, or
-its password differs. On Home Assistant's Mosquitto add-on, MQTT users are
+quotes, no stray whitespace. **The client was falsified as the cause**: sending a
+deliberately wrong protocol version returns code 132 (`0x84`, Unsupported
+Protocol Version) while the correct version returns "not authorised", so the
+broker parses these packets correctly and the rejection is real. The user does
+not exist on the broker yet, or its password differs. On Home Assistant's Mosquitto add-on, MQTT users are
 either Home Assistant users (Settings → People → Users) or entries in the
 add-on's `logins:` config. Nothing below can be implemented or verified until a
 `CONNACK: accepted` is achievable.
@@ -157,9 +160,11 @@ behaviour. Nothing depends on it yet.
 with respect to TaskPilot's own data: it cannot break anything, and it gives the
 household something to react to immediately.
 
-**Phase 3 — approval notification.** DharaHIL decisions arrive by event; the
-poller drops to an hourly safety net. Removes the 30-second approval latency.
-*Depends on DharaHIL being able to publish — verify before planning the work.*
+**Phase 3 — approval notification. NOT BUILDABLE, deferred.** DharaHIL cannot
+publish to MQTT yet (confirmed). Until it can, the 30-second approval latency
+stays and `pollHitlDecisions` keeps its 30s interval — dropping it to hourly
+without an event source would make approvals *worse*, not better. Revisit only
+when DharaHIL gains a publisher.
 
 **Phase 4 — index freshness.** Django publishes work-item and page changes on
 save; the MCP server re-indexes that row. The 10-minute full pass becomes a
@@ -181,10 +186,22 @@ it is the only phase that lets the outside world cause writes.
 | Broker outage looks like "nothing happened" | `/health` probes MQTT; pollers remain as the safety net |
 | HA topic flood | Explicit allowlist, never `#` |
 
-## Dependency question to settle before Phase 3 and 5
+## Settled dependencies
 
-- **Can DharaHIL publish to MQTT?** If not, Phase 3 is not buildable and the
-  30-second approval latency stays.
-- **What is actually on the broker?** The topic tree could not be enumerated
-  because the credential is rejected. Phase 5's allowlist cannot be written
-  without it — the rules must be built from real topics, not imagined ones.
+- **DharaHIL cannot publish to MQTT.** Confirmed. Phase 3 is deferred and the
+  approval poller keeps its 30s interval.
+- **The topic tree is still unknown**, because the credential is rejected.
+  Phase 5's allowlist must be built from real topics, not imagined ones, so it
+  cannot even be specified until a subscribe succeeds.
+
+## What is actually buildable today
+
+Phases 1, 2 and 4 — client + health, outbound events, and index freshness. Of
+those, 1 and 2 need only a working credential; 4 additionally needs a publisher
+in `apps/api` on work-item and page save.
+
+The honest summary of value without Phase 3 and 5: MQTT buys **index freshness**
+(10 minutes stale to seconds, and the end of re-hashing 5,908 pages on a timer)
+and **visible health in the house**. The two headline wins — instant approvals
+and the agent noticing things by itself — are both blocked, one on DharaHIL and
+one on the credential.
