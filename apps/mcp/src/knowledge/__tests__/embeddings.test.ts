@@ -66,3 +66,16 @@ describe("embedBatch", () => {
     await expect(embedBatch(["one", "two", "three"])).rejects.toThrow(/1 vectors for 3 inputs/);
   });
 });
+
+describe("empty inputs", () => {
+  it("refuses an empty string and names the position, rather than sending a 400", async () => {
+    // One page in the corpus had neither a name nor a description. The server
+    // answers such an input with `Each input must have text/input or image`,
+    // which failed the whole 32-item batch and threw the entire sync — every
+    // cycle, stalling the page backfill at 2,131 of 5,933. The caller must skip
+    // these; this makes it obvious which one was wrong if it ever slips through.
+    const spy = stubFetch({ embeddings: [] });
+    await expect(embedBatch(["real text", "   "])).rejects.toThrow(/empty string at index 1/);
+    expect(spy).not.toHaveBeenCalled();
+  });
+});

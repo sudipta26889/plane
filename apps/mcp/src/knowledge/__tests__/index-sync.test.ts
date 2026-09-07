@@ -27,3 +27,12 @@ describe("contentHash", () => {
     expect(contentHash("hello")).not.toBe(contentHash("hello!"));
   });
 });
+
+describe("rows with nothing to index", () => {
+  it("yields empty text for a row with no name and no description", () => {
+    // The syncs must skip these: a blank input is a 400 from the embedder, and
+    // a 400 fails the whole batch rather than the one bad row.
+    expect(buildIndexText({ name: "", description_stripped: null })).toBe("");
+    expect(buildIndexText({ name: "  ", description_stripped: "  " }).trim()).toBe("");
+  });
+});

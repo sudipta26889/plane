@@ -45,6 +45,14 @@ export async function embed(text: string): Promise<number[]> {
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
 
+  // The server answers an empty input with a 400 that names no offender, and
+  // one such row is enough to fail an entire batch. Refuse here so the caller
+  // sees which position was wrong instead of an opaque HTTP error.
+  const emptyAt = texts.findIndex((text) => !text.trim());
+  if (emptyAt !== -1) {
+    throw new Error(`embedBatch received an empty string at index ${emptyAt}; callers must skip rows with no text`);
+  }
+
   const data = await post("/batch", { inputs: texts.map((text) => ({ text })) });
   const embeddings: number[][] = data.embeddings || [];
 

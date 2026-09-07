@@ -96,6 +96,12 @@ export async function indexByIds(
         ? contentHash([text, row.project_id, row.state_group || "", row.project_identifier, row.sequence_id].join("\u0000"))
         : contentHash([text, row.project_id, row.external_source || ""].join("\u0000"));
 
+    // Nothing to embed, and an empty input is a 400 from the embedder.
+    if (!text.trim()) {
+      skipped++;
+      continue;
+    }
+
     if (stored.get(String(row.id))?.content_hash === hash) {
       skipped++;
       continue;
@@ -168,6 +174,15 @@ export async function syncPages(): Promise<{ embedded: number; skipped: number; 
     for (const row of rows.rows) {
       const text = buildIndexText(row);
       const hash = contentHash([text, row.project_id, row.external_source || ""].join("\u0000"));
+
+      // A row with no name and no description has nothing to embed, and the
+      // embedding server rejects an empty input with a 400 — which threw the
+      // whole sync. One such page stalled the entire page backfill at 2,131 of
+      // 5,933, re-failing on every cycle.
+      if (!text.trim()) {
+        skipped++;
+        continue;
+      }
 
       if (stored.get(String(row.id))?.content_hash === hash) {
         skipped++;
@@ -256,6 +271,15 @@ export async function syncWorkItems(): Promise<{ embedded: number; skipped: numb
       const hash = contentHash(
         [text, row.project_id, row.state_group || "", row.project_identifier, row.sequence_id].join("\u0000"),
       );
+
+      // A row with no name and no description has nothing to embed, and the
+      // embedding server rejects an empty input with a 400 — which threw the
+      // whole sync. One such page stalled the entire page backfill at 2,131 of
+      // 5,933, re-failing on every cycle.
+      if (!text.trim()) {
+        skipped++;
+        continue;
+      }
 
       if (stored.get(String(row.id))?.content_hash === hash) {
         skipped++;
