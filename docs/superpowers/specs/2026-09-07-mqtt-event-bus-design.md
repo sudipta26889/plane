@@ -211,11 +211,33 @@ it is the only phase that lets the outside world cause writes.
 
 ## Settled dependencies
 
-- **DharaHIL cannot publish to MQTT.** Confirmed. Phase 3 is deferred and the
-  approval poller keeps its 30s interval.
-- **The topic tree is still unknown**, because the credential is rejected.
-  Phase 5's allowlist must be built from real topics, not imagined ones, so it
-  cannot even be specified until a subscribe succeeds.
+Both are now resolved; kept here because the reasoning still explains the shape
+of what shipped.
+
+- **~~DharaHIL cannot publish to MQTT.~~** It can, as of 2026-09-07. It
+  publishes telemetry only and deliberately accepts no approval over MQTT,
+  since MQTT authenticates a connection rather than a request. So Phase 3
+  shipped as a *notification*: `dharahil/last_decision/state` firing means "ask
+  the authenticated API now" and its payload is never read as a decision. The
+  30s poller is kept as the safety net rather than lengthened — it is cheap,
+  and the notification path failing must make approvals late, not invisible.
+- **~~The topic tree is unknown.~~** Enumerated against the real broker; the
+  allowlist below is built from measured topics.
+
+## Status as shipped (2026-09-07)
+
+| Phase | State |
+|---|---|
+| 1–2 — publish, health, LWT, HA discovery | Done. Four retained topics verified on the real broker. |
+| 3 — approval notification | Done, as a notification only (see above). |
+| 4 — index freshness | Done, via Postgres LISTEN/NOTIFY rather than MQTT: NOTIFY delivers only on commit, so the listener can never read a row that does not exist yet. |
+| 5 — inbound ingest | Done. Verified end to end: a write published to `taskpilot/ingest/+` suspended on the approval gate, was approved by a human in 17s, and only then executed. |
+
+**Still deliberately unfinished:** no `frigate/events` payload has been observed
+— nothing moved during a 3-minute capture. Those topics are subscribed and
+logged (the `observe` handler) precisely so the parsing rule can be written
+against a real message. Guessing the schema is the one thing this document says
+not to do, so nothing parses them yet.
 
 ## What is actually buildable today
 
