@@ -107,7 +107,8 @@ export function buildLlmsTxt(baseUrl: string): string {
 ## Important Constraints
 
 - **There is NO task delete operation.** Tasks cannot be deleted. To remove tasks, use \`task.move\` to move them to "Cancelled" state, or use \`task.bulk_cancel\` / \`bulk_cancel_tasks\` to cancel multiple tasks at once.
-- **Cancellation requires human approval.** Moving a task to "Cancelled" or bulk cancelling triggers a DharaHIL approval request. The human must approve via Slack/Telegram before the action executes.
+- **If you are an external peer, EVERY write you attempt requires human approval.** Not just cancellation. Any client whose id begins with \`peer_\` has every write-scoped skill gated: the task suspends in \`auth_required\`, a human is asked, and the write executes only after they approve. Expect writes to be slow and to sometimes be refused. This is the intended behaviour, not an error — do not retry a rejected write, and do not try to route around it.
+- **Cancellation and page archiving always require approval**, for every caller including internal ones.
 - **Do NOT suggest deleting tasks.** Always suggest cancelling instead.
 - **Do NOT refer to TaskPilot as "Linear" or any other product.** TaskPilot is its own system.
 
@@ -125,7 +126,20 @@ This API allows AI agents to:
 
 ## Authentication
 
-OAuth 2.0 Authorization Code flow with PKCE is required:
+Two paths. **If you are an agent peer, use the second one.**
+
+**Long-lived peer token (recommended for agents).** A static Bearer token bound
+to one user and one workspace, issued out of band by a TaskPilot operator. It
+does not expire on the timescale an unattended agent cares about and there is
+no refresh step to fail. Put it in your peer configuration and send it as
+\`Authorization: Bearer <token>\`. Ask the operator to run
+\`scripts/mint-peer-token.ts\`. The token is not recoverable after issue — only
+its id is stored — so if it is lost, a new one must be minted. Revoking it in
+the database revokes access immediately, with no redeploy.
+
+**OAuth 2.0 Authorization Code with PKCE (for interactive clients).** Requires a
+human at a browser, and its refresh tokens can expire while an unattended agent
+sleeps — which is exactly why agent peers should not use it.
 1. Discover capabilities: GET ${baseUrl}/.well-known/agent-card.json
 2. Register OAuth client: POST ${baseUrl}/register
 3. Initiate authorization: GET ${baseUrl}/authorize
@@ -188,6 +202,36 @@ POST ${baseUrl}/a2a
 Headers required:
 - Authorization: Bearer YOUR_ACCESS_TOKEN
 - Content-Type: application/json
+
+### You do not have to name a skill
+
+If you can only send free text, send free text. A message with a text part and
+**no** \`skill\` is handled by a full tool-calling agent that can chain several
+TaskPilot operations to answer one request, rather than mapping to a single
+call. This is the recommended path for conversational peers.
+
+\`\`\`json
+{
+  "jsonrpc": "2.0", "id": 1, "method": "message/send",
+  "params": {
+    "contextId": "my-conversation-1",
+    "message": {
+      "role": "user",
+      "messageId": "unique-per-message",
+      "parts": [{"kind": "text", "text": "What is blocking the payments milestone?"}]
+    }
+  }
+}
+\`\`\`
+
+**\`contextId\` is required, and it is load-bearing.** It is the conversation
+this message belongs to: reuse the same value to keep history, and a new value
+to start fresh. Omitting it is the single most common integration mistake —
+the request is refused rather than silently answered without history.
+
+**\`messageId\` doubles as the idempotency key.** Resending the same messageId
+returns the original task instead of doing the work twice, so a retry after a
+timeout is safe.
 
 ## Response Format
 
@@ -262,6 +306,37 @@ Webhooks deliver push notifications for task state changes:
 - Webhooks include HMAC-SHA256 signature (X-Webhook-Signature header) for verification
 - Retry logic: 5 attempts with exponential backoff (1s, 5s, 15s, 1min, 5min)
 - Available events: task.created, task.state_changed, task.completed, task.failed, task.canceled, task.rejected, task.approval_required
+
+## MQTT Event Bus
+
+TaskPilot publishes state to MQTT and accepts a narrow inbound channel. This is
+a convenience for home/ops automation, not a second API: it carries no
+authentication of its own, so it never bypasses the rules above.
+
+**Published** (JSON; every message carries \`origin: "taskpilot-mcp"\` and \`at\`):
+
+| Topic | Payload | Retained |
+|---|---|---|
+| \`taskpilot/availability\` | \`online\` / \`offline\`, backed by a last will | yes |
+| \`taskpilot/health\` | \`{status, degraded:[...]}\` | yes |
+| \`taskpilot/task/created\` | \`{identifier, project, title, source}\` | no |
+| \`taskpilot/task/state_changed\` | \`{identifier, from, to}\` | no |
+| \`taskpilot/agent/run\` | \`{taskId, toolsUsed, status}\` | no |
+| \`taskpilot/approval/requested\` | \`{taskId, tool, summary}\` | no |
+
+Home Assistant discovery configs are retained under
+\`homeassistant/binary_sensor/taskpilot_mcp/<entity>/config\`.
+
+**Inbound.** Only \`taskpilot/ingest/+\` reaches the agent. Publish free text
+there and it is handled exactly as an A2A message would be — as a \`peer_\`
+identity, which means **every write it attempts requires human approval**.
+Ingest is rate limited per rule and by a global hourly ceiling, is idempotent
+on redelivery, and refuses any topic that would feed TaskPilot its own output.
+
+There is no MQTT topic that approves anything, and one must never be added:
+MQTT authenticates a connection, not a request, so anything able to reach the
+broker could publish the bytes that approve an action as you. Approvals travel
+only over the authenticated DharaHIL API.
 
 ## Human-in-the-Loop Approvals
 

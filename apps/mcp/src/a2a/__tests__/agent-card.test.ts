@@ -91,3 +91,34 @@ describe("Agent Card", () => {
     }
   });
 });
+
+describe("llms.txt tells a peer what it actually needs", () => {
+  const txt = buildLlmsTxt("https://example.test");
+
+  it("points agents at peer tokens, not the OAuth flow that expires on them", () => {
+    // OAuth refresh failing while an unattended agent slept is the reason
+    // peers moved to static tokens; the doc used to say OAuth was required.
+    expect(txt).toMatch(/[Ll]ong-lived peer token/);
+    expect(txt).toMatch(/recommended for agents/i);
+  });
+
+  it("states that an external peer needs approval for EVERY write", () => {
+    // It previously said only cancellation was gated, which would let a peer
+    // assume its other writes go through unattended.
+    expect(txt).toMatch(/EVERY write/);
+    expect(txt).toContain("peer_");
+  });
+
+  it("says contextId is required, the most common integration mistake", () => {
+    expect(txt).toMatch(/contextId.*required/is);
+  });
+
+  it("documents the free-text path, so a peer that cannot name a skill still works", () => {
+    expect(txt).toMatch(/do not have to name a skill/i);
+  });
+
+  it("documents the MQTT bus and refuses to promise an approve topic", () => {
+    expect(txt).toContain("taskpilot/ingest/+");
+    expect(txt).toMatch(/no MQTT topic that approves/i);
+  });
+});
