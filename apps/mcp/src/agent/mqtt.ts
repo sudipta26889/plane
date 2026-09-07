@@ -29,6 +29,37 @@ export function isConfigured(): boolean {
 }
 
 /** Topics this server owns. Everything it publishes lives under `taskpilot/`. */
+/** Availability, backed by the broker's Last Will. */
+export const AVAILABILITY_TOPIC = "taskpilot/availability";
+
+/**
+ * Home Assistant discovery entities.
+ *
+ * One entity per question someone would actually ask, not one per metric:
+ * "is it running?" and "is it degraded?". What is broken rides along as an
+ * attribute rather than becoming a third entity.
+ */
+export const ENTITIES = {
+  availability: {
+    component: "binary_sensor",
+    name: "TaskPilot Agent",
+    device_class: "connectivity",
+    state_topic: AVAILABILITY_TOPIC,
+    payload_on: "online",
+    payload_off: "offline",
+  },
+  degraded: {
+    component: "binary_sensor",
+    name: "TaskPilot Agent Degraded",
+    device_class: "problem",
+    state_topic: "taskpilot/health",
+    value_template: "{{ 'ON' if value_json.status == 'degraded' else 'OFF' }}",
+    json_attributes_topic: "taskpilot/health",
+  },
+} as const;
+
+export type EntityKey = keyof typeof ENTITIES;
+
 export const TOPIC = {
   taskCreated: "taskpilot/task/created",
   taskStateChanged: "taskpilot/task/state_changed",
@@ -54,11 +85,27 @@ function getClient(): MqttClient | null {
     connectTimeout: CONNECT_TIMEOUT_MS,
     reconnectPeriod: 5_000,
     clean: true,
+    // The Last Will is the reason to prefer this over a polling health check:
+    // if the process dies — crash, OOM, severed socket — the BROKER publishes
+    // "offline" on our behalf. Agent-down detection with no watchdog and no
+    // polling. A graceful shutdown never exercises this, so it must be tested
+    // by killing the connection rather than by calling our own shutdown.
+    will: {
+      topic: AVAILABILITY_TOPIC,
+      payload: Buffer.from("offline"),
+      qos: 1,
+      retain: true,
+    },
   });
 
   client.on("connect", () => {
     lastError = null;
+    // This fires on CONNACK, not on the TCP handshake, and the client raises
+    // `error` for a non-zero return code — so this log cannot claim a
+    // connection the broker refused.
     console.log(`[mqtt] connected to ${config.mqttHost}:${config.mqttPort}`);
+    client?.publish(AVAILABILITY_TOPIC, "online", { qos: 1, retain: true });
+    void publishDiscovery();
   });
 
   // An 'error' listener is mandatory: this is an EventEmitter, and an unhandled
@@ -135,4 +182,70 @@ export async function ping(): Promise<string> {
   });
 
   return `${config.mqttHost}:${config.mqttPort} connected`;
+}
+
+/**
+ * Announce entities to Home Assistant so they self-register.
+ *
+ * Retained, so a restarting Home Assistant re-reads them without waiting for
+ * this process to restart too. Grouped under one device block so they appear
+ * as one thing rather than two loose sensors.
+ */
+export async function publishDiscovery(): Promise<void> {
+  const c = getClient();
+  if (!c) return;
+
+  const device = {
+    identifiers: ["taskpilot_mcp"],
+    name: "TaskPilot Agent",
+    manufacturer: "TaskPilot",
+    model: "MCP/A2A server",
+  };
+
+  for (const key of Object.keys(ENTITIES) as EntityKey[]) {
+    const entity = ENTITIES[key];
+    const topic = `homeassistant/${entity.component}/taskpilot_mcp/${key}/config`;
+    const payload = {
+      ...entity,
+      unique_id: `taskpilot_mcp_${key}`,
+      object_id: `taskpilot_${key}`,
+      device,
+      // Every entity except availability itself is unknown when we are down.
+      ...(key === "availability" ? {} : { availability_topic: AVAILABILITY_TOPIC }),
+    };
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        c.publish(topic, JSON.stringify(payload), { qos: 1, retain: true }, (err) =>
+          err ? reject(err) : resolve(),
+        );
+      });
+    } catch (err: any) {
+      console.warn(`[mqtt] discovery for ${key} failed: ${err.message}`);
+    }
+  }
+}
+
+/**
+ * Publish an entity's state by key.
+ *
+ * Throws on an unknown key rather than silently creating an entity nothing
+ * announced — a typo here should be loud.
+ */
+export async function publishEntityState(key: EntityKey, value: string): Promise<void> {
+  if (!(key in ENTITIES)) {
+    throw new Error(`Unknown MQTT entity "${key}". Declare it in ENTITIES first.`);
+  }
+  await publish(ENTITIES[key].state_topic, { state: value }, { retain: true });
+}
+
+/** Graceful shutdown: say offline ourselves rather than leaving it to the will. */
+export async function shutdown(): Promise<void> {
+  const c = client;
+  if (!c) return;
+  await new Promise<void>((resolve) => {
+    c.publish(AVAILABILITY_TOPIC, "offline", { qos: 1, retain: true }, () => resolve());
+  });
+  c.end();
+  client = null;
 }
