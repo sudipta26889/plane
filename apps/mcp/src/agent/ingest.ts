@@ -208,23 +208,7 @@ async function handleAgentMessage(topic: string, payload: string, rule: Rule): P
   const text = extractText(payload);
   if (!text) return;
 
-  const response = await handleA2aRequest(
-    {
-      jsonrpc: "2.0",
-      id: `mqtt-${Date.now()}`,
-      method: "message.send",
-      params: {
-        idempotencyKey: idempotencyKeyFor(topic, payload),
-        message: {
-          role: "user",
-          messageId: idempotencyKeyFor(topic, payload),
-          parts: [{ kind: "text", text: `[via MQTT ${topic}] ${text}` }],
-        },
-      },
-    },
-    identity,
-    "mqtt",
-  );
+  const response = await handleA2aRequest(buildIngestRequest(topic, payload, text), identity, "mqtt");
 
   dispatched++;
   if (response?.error) {
@@ -233,6 +217,31 @@ async function handleAgentMessage(topic: string, payload: string, rule: Rule): P
   } else {
     console.log(`[ingest] ${topic} dispatched as ${identity.clientId}`);
   }
+}
+
+/**
+ * Build the A2A request an ingested message becomes.
+ *
+ * Separated out because the contextId here is load-bearing and easy to drop:
+ * without one the handler skips the ReAct agent entirely and silently falls
+ * back to the single-shot intent adapter, which looks like a worse agent
+ * rather than a missing field.
+ */
+export function buildIngestRequest(topic: string, payload: string, text: string) {
+  const key = idempotencyKeyFor(topic, payload);
+  // One context per topic, so a stream of related events reads as one ongoing
+  // conversation instead of losing its history every message.
+  const contextId = `mqtt:${topic}`;
+  return {
+    jsonrpc: "2.0",
+    id: `mqtt-${Date.now()}`,
+    method: "message.send",
+    params: {
+      contextId,
+      idempotencyKey: key,
+      message: { role: "user", messageId: key, contextId, parts: [{ kind: "text", text: `[via MQTT ${topic}] ${text}` }] },
+    },
+  };
 }
 
 /** Take the human-readable content out of whatever shape arrived. */

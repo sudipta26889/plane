@@ -7,6 +7,7 @@ import {
   idempotencyKeyFor,
   extractText,
   findRule,
+  buildIngestRequest,
 } from "../ingest.js";
 
 describe("loop prevention", () => {
@@ -133,5 +134,32 @@ describe("extractText", () => {
 
   it("passes plain text through", () => {
     expect(extractText("just words")).toBe("just words");
+  });
+});
+
+describe("buildIngestRequest", () => {
+  it("supplies a contextId, without which the ReAct agent is silently skipped", () => {
+    // This was a real bug: no contextId meant the handler fell through to the
+    // single-shot intent adapter, which reads as a dumber agent rather than a
+    // missing field. Both the params and the message carry it.
+    const req = buildIngestRequest("taskpilot/ingest/email", '{"text":"x"}', "x") as any;
+    expect(req.params.contextId).toBe("mqtt:taskpilot/ingest/email");
+    expect(req.params.message.contextId).toBe("mqtt:taskpilot/ingest/email");
+  });
+
+  it("keeps one context per topic so related events stay one conversation", () => {
+    const a = buildIngestRequest("taskpilot/ingest/a", "{}", "x") as any;
+    const b = buildIngestRequest("taskpilot/ingest/b", "{}", "x") as any;
+    expect(a.params.contextId).not.toBe(b.params.contextId);
+  });
+
+  it("reuses the idempotency key as the message id, so a redelivery is one event", () => {
+    const req = buildIngestRequest("t", '{"id":"e1"}', "x") as any;
+    expect(req.params.message.messageId).toBe(req.params.idempotencyKey);
+  });
+
+  it("marks the origin topic in the text so the agent knows where it came from", () => {
+    const req = buildIngestRequest("frigate/events", "{}", "a person appeared") as any;
+    expect(req.params.message.parts[0].text).toContain("[via MQTT frigate/events]");
   });
 });

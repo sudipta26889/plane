@@ -235,7 +235,12 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
     // Two different failures reach here. Text that no skill matched is the
     // adapter declining; no text at all is a malformed send. Saying "add a data
     // part" for the first would be misleading advice.
-    const message = params.text
+    // A resolved skill with no contextId is neither of those: it is a caller
+    // that sent usable text but no conversation to attach it to, and blaming
+    // intent resolution for it sends the reader looking in the wrong place.
+    const message = skill && !contextId
+      ? `Resolved the action "${skill}" but no contextId was supplied. Send a contextId so the request can be attached to a conversation.`
+      : params.text
       ? `Could not determine which TaskPilot action you meant from: "${String(params.text).slice(0, 80)}". Rephrase as a specific request (create, find, update, assign, comment, cancel), or send a data part carrying { skill, input }.`
       : "Missing required params: skill, contextId. Send either a flat { contextId, skill, input }, or a message whose parts include text or a data part carrying { skill, input }.";
     return jsonRpcError(body.id, A2A_ERROR_CODES.INVALID_PARAMS, message);

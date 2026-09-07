@@ -256,13 +256,22 @@ export async function subscribe(
   if (!c) return;
 
   const attach = () => {
-    c.subscribe(topics, { qos: 1 }, (err) => {
+    c.subscribe(topics, { qos: 1 }, (err, granted) => {
       if (err) {
         lastError = err.message;
         console.warn(`[mqtt] subscribe failed: ${err.message}`);
         return;
       }
-      console.log(`[mqtt] subscribed to ${topics.length} ingest topic(s)`);
+      // A broker refuses an individual topic by returning QoS 128 for it in the
+      // SUBACK, not by raising an error. Reporting success here regardless
+      // would leave a silently dead subscription that looks exactly like a
+      // topic nobody publishes to.
+      const refused = (granted ?? []).filter((g) => g.qos === 128).map((g) => g.topic);
+      if (refused.length) {
+        lastError = `broker refused: ${refused.join(", ")}`;
+        console.warn(`[mqtt] ${lastError}`);
+      }
+      console.log(`[mqtt] subscribed to ${(granted ?? []).length - refused.length}/${topics.length} ingest topic(s)`);
     });
   };
 
