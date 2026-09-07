@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { publish as publishMqtt, TOPIC as MQTT_TOPIC } from "../agent/mqtt.js";
 import { db } from "../db.js";
 import { clearRunState } from "../agent/state.js";
 import { executeToolCall } from "../tools/handlers.js";
@@ -298,6 +299,13 @@ export async function settleAgentRun(
   result: AgentResult,
   auth: AuthContext,
 ): Promise<A2aTaskState> {
+  void publishMqtt(MQTT_TOPIC.agentRun, {
+    taskId,
+    contextId,
+    status: result.status,
+    ...(result.status === "completed" ? { toolsUsed: result.toolsUsed, stoppedEarly: Boolean(result.stoppedEarly) } : {}),
+  });
+
   const event = (state: A2aTaskState, extra: Record<string, any> = {}) =>
     queueWebhookDeliveries(
       taskId,
@@ -309,6 +317,17 @@ export async function settleAgentRun(
   if (result.status === "needs_approval") {
     const { name, args } = result.toolCall;
     await transitionState(taskId, "auth_required", `Awaiting approval for ${name}`);
+
+    // Announced so a dashboard can show a pending approval without polling,
+    // and so a phone notification is not the only way to learn of one.
+    void publishMqtt(MQTT_TOPIC.approvalRequested, {
+      taskId,
+      tool: name,
+      // Argument VALUES are deliberately omitted: this bus is shared with the
+      // whole house, and a work item's contents are not.
+      arg_keys: Object.keys(args ?? {}),
+      client_id: auth.clientId,
+    });
     try {
       await requestApproval({
         taskId,

@@ -2,6 +2,7 @@ import { TaskPilotClient, getOrCreateApiToken } from "./taskpilot-client.js";
 import { routeWorkItem } from "../routing/router.js";
 import { findDuplicate } from "../routing/dedupe.js";
 import { searchPages } from "../knowledge/page-search.js";
+import { publish as publishMqtt, TOPIC as MQTT_TOPIC } from "../agent/mqtt.js";
 import { buildIndexText } from "../knowledge/index-sync.js";
 import { isCriticalAction, getWriteTools, requiresHumanApproval, isExternalPeer } from "../a2a/skill-registry.js";
 import { runApprovalLoop } from "../a2a/dharahil.js";
@@ -711,8 +712,17 @@ async function handleCreateTask(args: any, client: TaskPilotClient, workspace: s
 
     const issue = await client.createIssue(decision.projectId, data);
 
+    const identifier = `${project?.identifier || "?"}-${issue.sequence_id || "?"}`;
+    void publishMqtt(MQTT_TOPIC.taskCreated, {
+      identifier,
+      project: project?.identifier || "",
+      title: issue.name,
+      routed_by: decision.source,
+      confidence: decision.confidence,
+    });
+
     return {
-      identifier: `${project?.identifier || "?"}-${issue.sequence_id || "?"}`,
+      identifier,
       id: issue.id,
       project: project?.name || "",
       title: issue.name,
@@ -763,7 +773,15 @@ async function handleMoveTask(args: any, client: TaskPilotClient, _workspace: st
   if (!targetState) {
     return { error: `State '${args.state}' not found. Available: ${states.map((s: any) => s.name)}` };
   }
+  const fromState = states.find((st: any) => st.id === issue.state)?.name || "";
   await client.updateIssue(projectId, String(issue.id), { state: targetState.id });
+
+  void publishMqtt(MQTT_TOPIC.taskStateChanged, {
+    identifier: args.identifier,
+    from: fromState,
+    to: targetState.name,
+  });
+
   return { identifier: args.identifier, state: targetState.name, status: "moved" };
 }
 

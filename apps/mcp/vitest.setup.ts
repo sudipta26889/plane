@@ -5,3 +5,6 @@ process.env.EMBEDDING_DIRECT_URL ||= "http://embeddings.test/embed";
 process.env.QDRANT_URL ||= "http://qdrant.test";
 process.env.QDRANT_API_KEY ||= "test-key";
 process.env.QDRANT_COLLECTION_NAME ||= "test_collection";
+process.env.MQTT_HOST ||= "mqtt.test";
+process.env.MQTT_USERNAME ||= "test-user";
+process.env.MQTT_PASSWORD ||= "test-pass";

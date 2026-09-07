@@ -38,6 +38,13 @@ export const config = {
   llmApiKey: process.env.LLM_API_KEY || "",
   llmModel: process.env.LLM_MODEL || "gpt-4o-mini",
 
+  // MQTT event bus. The broker carries ~100 msg/sec across 1,115 topics, so
+  // nothing subscribes to a wildcard — inbound is an explicit allowlist only.
+  mqttHost: process.env.MQTT_HOST || "",
+  mqttPort: parseInt(process.env.MQTT_PORT || "1883", 10),
+  mqttUsername: process.env.MQTT_USERNAME || "",
+  mqttPassword: process.env.MQTT_PASSWORD || "",
+
   // Long-term agentic memory (longmemory-hydrograph MCP). Unset means the agent
   // runs on conversation history alone and /health reports memory unavailable —
   // there is deliberately no local fallback store to hide that with.
