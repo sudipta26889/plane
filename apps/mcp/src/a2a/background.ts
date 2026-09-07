@@ -65,6 +65,13 @@ export async function pollHitlDecisions() {
           );
           await transitionState(task.task_id, "submitted", "Approved by human");
 
+          // Logged here, before the work runs, not after it settles. The
+          // approval is a fact the moment it arrives, independent of whether
+          // the resumed run then succeeds — and logging it afterwards puts the
+          // audit row AFTER the write it authorised, which reads in the trail
+          // as a write that preceded its own approval.
+          await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.approved", taskId: task.task_id, skill: task.skill, success: true });
+
           const auth = { userId: task.user_id, workspaceSlug: task.workspace_slug, clientId: task.client_id, scopes: ["taskpilot:read", "taskpilot:write"] };
           const input = typeof task.input === "string" ? JSON.parse(task.input) : task.input;
 
@@ -86,7 +93,6 @@ export async function pollHitlDecisions() {
             await executeA2aTask(task.task_id, task.skill, input, auth);
           }
 
-          await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.approved", taskId: task.task_id, skill: task.skill, success: true });
         } else if (decision.shouldRevise) {
           // Revised — use LLM to interpret instructions, modify args, re-execute
           console.log(`[a2a] REVISE requested for ${task.task_id}: "${decision.reviseInput}"`);
