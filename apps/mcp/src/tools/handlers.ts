@@ -70,10 +70,35 @@ async function buildStatesMap(client: TaskPilotClient, projectId: string): Promi
   return map;
 }
 
+/**
+ * A work item's description as plain text.
+ *
+ * The v1 API serializer EXCLUDES description_stripped (api/serializers/issue.py),
+ * so reading that field alone returned "" for every item fetched over the API —
+ * get_task showed blank descriptions and find_tasks never matched on them.
+ * description_html is what the API does return; derive the text from it.
+ */
+export function issueDescription(issue: any): string {
+  if (issue?.description_stripped) return issue.description_stripped;
+  return String(issue?.description_html ?? "")
+    .replace(/<\/(p|div|h[1-6]|li|blockquote|pre)>|<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Client-side text search filter */
 function matchesSearch(issue: any, query: string): boolean {
   const q = query.toLowerCase();
-  const text = `${issue.name || ""} ${issue.description_stripped || ""}`.toLowerCase();
+  const text = `${issue.name || ""} ${issueDescription(issue)}`.toLowerCase();
   return q.split(/\s+/).every((word) => text.includes(word));
 }
 
@@ -1044,7 +1069,8 @@ async function handleGetTask(args: any, client: TaskPilotClient, _workspace: str
     identifier: args.identifier,
     project_id: String(issue.project),
     title: issue.name || "",
-    description: issue.description_stripped || "",
+    description: issueDescription(issue),
+    description_html: issue.description_html || "",
     state: resolveStateName(issue.state, statesMap),
     priority: issue.priority || "",
     assignees: (issue.assignee_detail || issue.assignees || []).map((a: any) => a.display_name || a),

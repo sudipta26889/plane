@@ -176,3 +176,21 @@ describe("A2A and MCP expose the same surface", () => {
     expect(mapped).toEqual(tools);
   });
 });
+
+describe("issueDescription", () => {
+  // The v1 API never sends description_stripped; this is what get_task sees.
+  it("derives text from description_html when description_stripped is absent", async () => {
+    const { issueDescription } = await import("../handlers.js");
+    const issue = {
+      description_html:
+        '<p class="editor-paragraph-block" data-id="x">Evidence: 404 &amp; 500</p><p>Scope: fix&nbsp;it</p><ul><li>one</li><li>two</li></ul>',
+    };
+    expect(issueDescription(issue)).toBe("Evidence: 404 & 500\nScope: fix it\none\ntwo");
+  });
+
+  it("prefers description_stripped when present, and is empty for no description", async () => {
+    const { issueDescription } = await import("../handlers.js");
+    expect(issueDescription({ description_stripped: "plain", description_html: "<p>x</p>" })).toBe("plain");
+    expect(issueDescription({})).toBe("");
+  });
+});
