@@ -97,30 +97,56 @@ export async function transitionState(
     throw new Error(`Invalid transition: ${currentState} → ${newState}`);
   }
 
-  const updates: string[] = [`state = $2`, `updated_at = NOW()`];
-  const params: any[] = [taskId, newState];
-  let paramIdx = 3;
-
-  if (reason) {
-    updates.push(`state_reason = $${paramIdx}`);
-    params.push(reason);
-    paramIdx++;
-  }
-
+  // The reason describes THIS state; a stale "Approved by human" must not
+  // survive onto the completed task.
+  const updates: string[] = [`state = $2`, `updated_at = NOW()`, `state_reason = $4`];
   if (isTerminalState(newState)) {
     updates.push(`completed_at = NOW()`);
   }
 
-  await db.query(
-    `UPDATE a2a_tasks SET ${updates.join(", ")} WHERE task_id = $1`,
-    params,
+  // Compare-and-set on the state just read. Two pollers can both see one
+  // approved task in auth_required; only the one whose UPDATE still finds it
+  // there may go on to run the write. That is what makes an approved write
+  // execute once rather than once per worker that noticed the approval.
+  const updated = await db.query(
+    `UPDATE a2a_tasks SET ${updates.join(", ")} WHERE task_id = $1 AND state = $3`,
+    [taskId, newState, currentState, reason || null],
   );
+  if (updated.rowCount === 0) {
+    throw new Error(`Concurrent transition: ${taskId} is no longer ${currentState}`);
+  }
 
   await db.query(
     `INSERT INTO a2a_task_history (task_id, from_state, to_state, reason)
      VALUES ($1, $2, $3, $4)`,
     [taskId, currentState, newState, reason || null],
   );
+
+  console.log(JSON.stringify({
+    evt: "a2a.transition",
+    task_id: taskId,
+    from: currentState,
+    to: newState,
+    ...(reason ? { reason: reason.slice(0, 200) } : {}),
+  }));
+}
+
+/**
+ * Why a handler's return value means nothing was done, or null if it did.
+ *
+ * Several handlers refuse by RETURNING — an unresolvable project, a suspected
+ * duplicate, a failed validation — rather than throwing. Taken at face value
+ * those tasks ended `completed`, so a caller polling for its new page or
+ * ticket was told it succeeded with nothing behind it.
+ */
+export function unwrittenReason(result: any): string | null {
+  if (!result || typeof result !== "object") return null;
+  if (result.error) return String(result.error);
+  if (result.status === "undecided") return `Nothing was written: ${result.reason || "no project could be chosen"}${result.hint ? `. ${result.hint}` : ""}`;
+  if (result.status === "possible_duplicate") {
+    return `Nothing was written: possible duplicate of ${result.duplicate_of}. ${result.hint || ""}`.trim();
+  }
+  return null;
 }
 
 /**
@@ -157,16 +183,24 @@ export async function executeA2aTask(
   if (!skillDef) throw new Error(`Unknown skill: ${skill}`);
 
   const startTime = Date.now();
+  const contextId = (await getA2aTask(taskId))?.context_id ?? "";
+
+  // Claimed outside the try: losing this race means another worker owns the
+  // task, and the failure handling below must not then fail THEIR task.
+  await transitionState(taskId, "working");
 
   try {
-    // Transition to working
-    await transitionState(taskId, "working");
-
     // Map A2A input to MCP args and call handler
     const mcpArgs = mapSkillInputToMcpArgs(skill, input);
     // The A2A path already ran its own approval flow before reaching here (the
     // task sat in auth_required until a human approved), so do not ask again.
     const result = await executeToolCall(skillDef.mcpTool, mcpArgs, auth, true);
+
+    const unwritten = unwrittenReason(result);
+    if (unwritten) {
+      await storeResult(taskId, result);
+      throw new Error(unwritten);
+    }
 
     // Success
     await storeResult(taskId, result);
@@ -187,7 +221,7 @@ export async function executeA2aTask(
     // Webhooks
     await queueWebhookDeliveries(taskId, "task.completed", {
       task_id: taskId,
-      context_id: "",
+      context_id: contextId,
       skill,
       state: "completed",
       result,
@@ -214,7 +248,8 @@ export async function executeA2aTask(
       }
     }
 
-    await storeError(taskId, { message: err.message, stack: err.stack });
+    // No stack: this is returned to the peer by tasks/get.
+    await storeError(taskId, { message: err.message });
     await transitionState(taskId, "failed", err.message);
 
     await logAuditEvent({
@@ -231,7 +266,7 @@ export async function executeA2aTask(
 
     await queueWebhookDeliveries(taskId, "task.failed", {
       task_id: taskId,
-      context_id: "",
+      context_id: contextId,
       skill,
       state: "failed",
       error: { message: err.message },
@@ -257,7 +292,8 @@ export async function requestApproval(params: {
   toolArgs: Record<string, any>;
   userId: string;
   contextSummary: string;
-}): Promise<void> {
+  project?: string;
+}): Promise<{ requestId: string; expiresAt: string }> {
   const { requestId, expiresAt } = await submitApproval(
     buildApprovalRequest({
       toolName: params.toolName,
@@ -265,6 +301,7 @@ export async function requestApproval(params: {
       userId: params.userId,
       taskId: params.taskId,
       contextSummary: params.contextSummary,
+      project: params.project,
     }),
   );
 
@@ -281,6 +318,7 @@ export async function requestApproval(params: {
        responded_by = NULL`,
     [params.taskId, params.skill, JSON.stringify(params.toolArgs), requestId, expiresAt],
   );
+  return { requestId, expiresAt };
 }
 
 /**
@@ -338,9 +376,15 @@ export async function settleAgentRun(
         contextSummary: `TaskPilot agent wants to call ${name}`,
       });
     } catch (err: any) {
-      // Same posture as the single-skill path: log and leave the task parked.
-      // Failing closed strands the run; it never executes the write.
-      console.error(`[a2a] Failed to submit approval for ${taskId}:`, err);
+      // A task parked with no approval request behind it waits forever:
+      // nothing will ever decide it. Fail it, so the caller learns now.
+      console.error(`[a2a] Failed to submit approval for ${taskId}: ${err.message}`);
+      const message = `Could not open the human approval request: ${err.message}`;
+      await clearRunState(taskId);
+      await storeError(taskId, { message });
+      await transitionState(taskId, "failed", message);
+      await event("failed", { error: { message } });
+      return "failed";
     }
     await event("auth_required");
     return "auth_required";

@@ -99,6 +99,10 @@ export class TaskPilotClient {
     return Array.isArray(data) ? data : data.results || data;
   }
 
+  async createProject(data: { name: string; identifier: string; description?: string }): Promise<any> {
+    return this.request("POST", `/api/v1/workspaces/${this.workspace}/projects/`, data);
+  }
+
   async getProject(projectId: string): Promise<any> {
     return this.request("GET", `/api/v1/workspaces/${this.workspace}/projects/${projectId}/`);
   }

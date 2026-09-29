@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
 import { initDatabase } from "./db.js";
-import { pollHitlDecisions, retryWebhooks, cleanupOldData, syncKnowledgeIndex, keepEmbedderWarm } from "./a2a/background.js";
+import { pollHitlDecisions, retryWebhooks, cleanupOldData, syncKnowledgeIndex, keepEmbedderWarm, failStrandedTasks } from "./a2a/background.js";
 
 // Routes
 import discoveryRouter from "./routes/discovery.js";
@@ -104,7 +104,7 @@ async function main() {
     console.log(`[mcp] Frontend: ${config.frontendUrl}`);
 
     // A2A background tasks
-    setInterval(async () => { await pollHitlDecisions(); await retryWebhooks(); }, 30000);
+    setInterval(async () => { await pollHitlDecisions(); await retryWebhooks(); await failStrandedTasks(); }, 30000);
     setInterval(cleanupOldData, 24 * 60 * 60 * 1000);
     // Shout when a dependency dies, rather than waiting for someone to poll.
     setInterval(reportHealthTransitions, 5 * 60 * 1000);

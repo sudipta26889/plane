@@ -102,6 +102,9 @@ router.post("/a2a", async (req: Request, res: Response) => {
 
   // Dispatch to protocol handler
   const response = await handleA2aRequest(body, auth, ipAddress);
+  // 403, not 401: the token is fine, it just cannot do this. Clients that
+  // treat any 401 as "refresh credentials" must not be sent down that path.
+  if (response?.error?.code === A2A_ERROR_CODES.INSUFFICIENT_SCOPE) res.status(403);
   res.json(response);
 });
 

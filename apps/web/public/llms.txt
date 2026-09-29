@@ -41,7 +41,7 @@ You can mix freely — the MCP/A2A servers internally call the same REST API, so
 These rules are enforced server-side and must be respected by any integration:
 
 1. **There is NO delete operation for tasks.** Tasks cannot be deleted. To remove a task, **move it to the `Cancelled` state** (via `move_task` in MCP, `task.move` in A2A, or `PATCH` work-item with state UUID in REST).
-2. **Cancellation requires human approval.** Moving any task to `Cancelled` (single or bulk) triggers a DharaHIL approval request delivered out-of-band (Slack/Telegram). The action does **not** execute until a human approves.
+2. **Cancellation requires human approval**, and so does every write by an external agent peer. Moving any task to `Cancelled` (single or bulk) triggers a DharaHIL approval request delivered out-of-band (Slack/Telegram). The action does **not** execute until a human approves; see "DharaHIL" below for how to get the result.
 3. **Do not suggest deleting tasks.** Always suggest cancelling.
 4. **Do not refer to TaskPilot as Linear, Jira, or any other product.** TaskPilot is its own system.
 5. **HTML in descriptions is sanitized.** Anything submitted as `description_html` is run through an XSS filter; malformed/dangerous HTML is rejected.
@@ -722,41 +722,20 @@ Auth: same OAuth flow as MCP above.
 
 ## A2A skills (invoked via `message.send`)
 
-Skills map 1:1 onto the MCP tools above — same semantics, dotted naming:
-
-| Skill | Scope | MCP equivalent |
-|---|---|---|
-| `task.create` | write | `create_task` |
-| `task.update` | write | `update_task` |
-| `task.find` | read | `find_tasks` |
-| `task.get` | read | `get_task` |
-| `task.move` | write | `move_task` (approval for Cancelled) |
-| `task.summarize` | read | `get_task_summary` |
-| `task.assign` | write | `assign_task` |
-| `task.unassign` | write | `unassign_task` |
-| `task.bulk_cancel` | write | `bulk_cancel_tasks` (approval) |
-| `label.add` | write | `add_label` |
-| `label.remove` | write | `remove_label` |
-| `comment.add` | write | `add_comment` |
-| `cycle.assign` | write | `assign_to_cycle` |
-| `project.list` | read | `list_projects` |
-| `project.list_states` | read | `list_states` |
-| `project.list_members` | read | `list_members` |
-| `project.list_labels` | read | `list_labels` |
-| `project.list_cycles` | read | `list_cycles` |
+Skills map 1:1 onto the MCP tools above (same semantics, dotted naming: `create_task` is `task.create`, `create_project` is `project.create`). The authoritative, always-current list, generated from the server's own registry, is at `https://taskpilot-mcp.sudiptadhara.in/a2a/llms.txt` and in the agent card. It includes each skill's scope and approval rule.
 
 ---
 
 ## DharaHIL (human-in-the-loop)
 
-Some actions are gated by human approval, delivered out-of-band (Slack/Telegram):
+- **Every write by an external peer (`peer_` client) waits for human approval.** That covers task, page, comment, label and project writes, not just cancellation.
+- `project.create`, cancelling (`task.move` to Cancelled, `task.bulk_cancel`), `page.archive` and rejecting intake need approval whoever calls them.
 
-- `move_task` / `task.move` → `Cancelled` state
-- `bulk_cancel_tasks` / `task.bulk_cancel`
+A gated write returns `state: "auth_required"` with a `taskId` and the DharaHIL `approval.id`. **That is not an authentication error.** Do not re-authenticate and do not re-send. After the human approves, TaskPilot runs the original request on the same `taskId`. Poll `tasks/get` until the state is `completed`, `rejected` or `failed`. The write runs at most once, and resending the same `messageId` returns the original task.
 
-When triggered, the tool returns a pending approval reference. The action does not complete until the human approves. Webhooks (configured server-side) notify on resolution.
+A token without the needed scope gets HTTP 403 / code -32005, which is a different case from waiting on approval. The full lifecycle, error codes and retry rules are in `https://taskpilot-mcp.sudiptadhara.in/a2a/llms.txt`.
 
-Direct REST `PATCH` to set state=Cancelled does **not** invoke DharaHIL — it is a privileged path intended for system/admin use. AI integrations should always go through MCP/A2A so the approval flow runs.
+Direct REST `PATCH` to set state=Cancelled does **not** invoke DharaHIL. It is a privileged path intended for system/admin use. AI integrations should always go through MCP/A2A so the approval flow runs.
 
 ---
 

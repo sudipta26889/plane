@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { config } from "../config.js";
 
 export interface ApprovalRequestInput {
@@ -7,6 +8,8 @@ export interface ApprovalRequestInput {
   taskId: string;
   contextSummary: string;
   agentId?: string;
+  /** Identifier of the project the call targets, so the approver sees where it lands. */
+  project?: string;
 }
 
 export interface ApprovalRequest {
@@ -39,6 +42,15 @@ const PROCEED_ACTIONS = new Set(["APPROVED", "ALLOW", "AUTO_ALLOWED"]);
 
 export function buildApprovalRequest(input: ApprovalRequestInput): ApprovalRequest {
   const identifier = input.toolArgs.identifier || "";
+  // Stable for one exact call on one task, so a resubmission after a crash or
+  // retry is deduplicated by the gateway instead of paging the human twice. The
+  // args hash keeps a resumed agent run's NEXT call from matching the previous
+  // (already approved) request and sailing through on it.
+  const argsHash = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(input.toolArgs ?? {}))
+    .digest("hex")
+    .slice(0, 16);
   return {
     tenant_id: config.dharahilTenantId,
     app_id: config.dharahilAppId,
@@ -51,11 +63,14 @@ export function buildApprovalRequest(input: ApprovalRequestInput): ApprovalReque
     context_summary: input.contextSummary,
     risk_level: "HIGH",
     environment: "production",
-    tags: ["taskpilot", input.toolName.replace("_", "."), "cancel"],
-    idempotency_key: `task_move_${identifier}_cancelled_${Date.now()}`,
+    tags: ["taskpilot", input.toolName.replace(/_/g, ".")],
+    idempotency_key: `taskpilot:${input.taskId}:${input.toolName}:${argsHash}`,
+    // The gateway types metadata values as strings.
     metadata: {
       tool: input.toolName,
-      identifier,
+      task_id: input.taskId,
+      ...(identifier ? { identifier: String(identifier) } : {}),
+      ...(input.project ? { project: input.project } : {}),
     },
     webhook: {
       url: "",
@@ -104,7 +119,6 @@ export async function applyRevisionInstructions(
   // Dynamically import to reuse LLM config pattern from smart-router
   const OpenAI = (await import("openai")).default;
   const { db: database } = await import("../db.js");
-  const crypto = await import("node:crypto");
 
   // Get LLM config (same pattern as smart-router)
   const result = await database.query(

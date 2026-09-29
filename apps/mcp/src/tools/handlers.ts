@@ -77,6 +77,96 @@ function matchesSearch(issue: any, query: string): boolean {
   return q.split(/\s+/).every((word) => text.includes(word));
 }
 
+/** The project reference a caller supplied, under any of the names tools accept. */
+export function projectRefFrom(args: any): string | undefined {
+  const ref = args?.project_id ?? args?.project ?? args?.project_hint;
+  return typeof ref === "string" && ref.trim() ? ref.trim() : undefined;
+}
+
+/**
+ * The one way a caller's project reference becomes a project: an exact match
+ * on id, identifier or name, and nothing else.
+ *
+ * Every project-scoped tool used to run its own lookup — some by substring,
+ * some by name only — and on no match quietly fell back to EVERY project. That
+ * is how a query scoped to GUARDIANAI came back with other projects' tasks.
+ * A reference that does not resolve to exactly one project is now an error.
+ */
+export function resolveProjectRef(
+  ref: string,
+  projects: any[],
+): { project: any } | { error: string } {
+  const needle = ref.trim().toLowerCase();
+  const matches = new Map<string, any>();
+  for (const p of projects) {
+    if (
+      String(p.id).toLowerCase() === needle ||
+      p.identifier?.toLowerCase() === needle ||
+      p.name?.toLowerCase() === needle
+    ) {
+      matches.set(String(p.id), p);
+    }
+  }
+
+  if (matches.size === 1) return { project: [...matches.values()][0] };
+  const available = projects.map((p: any) => p.identifier).filter(Boolean).join(", ");
+  if (matches.size === 0) {
+    return { error: `No project matches '${ref}'. Use an exact project id, identifier or name. Available: ${available}` };
+  }
+  const found = [...matches.values()].map((p) => `${p.identifier} (${p.id})`).join(", ");
+  return { error: `'${ref}' is ambiguous — it matches ${found}. Pass the project id instead.` };
+}
+
+/** The projects a tool should read: the one the caller named, or all when they named none. */
+async function scopedProjects(args: any, client: TaskPilotClient): Promise<{ projects: any[] } | { error: string }> {
+  const projects = await client.listProjects();
+  const ref = projectRefFrom(args);
+  if (!ref) return { projects };
+  const resolved = resolveProjectRef(ref, projects);
+  return "error" in resolved ? resolved : { projects: [resolved.project] };
+}
+
+/**
+ * Everything knowable about a call before a human is asked to approve it: its
+ * required fields, and the one project it targets. Asking someone to approve a
+ * write that was always going to fail wastes their attention and teaches them
+ * to approve blind — and they cannot judge a write whose target they cannot see.
+ *
+ * `result` means the call is already satisfied (creating a project that exists
+ * exactly as asked) and needs no approval, because nothing would be written.
+ */
+export async function precheckToolCall(
+  name: string,
+  args: Record<string, any>,
+  auth: AuthContext,
+): Promise<{ error?: string; project?: { id: string; identifier: string; name: string }; result?: any }> {
+  const tool = TOOLS.find((t) => t.name === name);
+  for (const field of (tool?.inputSchema as any)?.required ?? []) {
+    const value = args?.[field];
+    if (value === undefined || value === null || (typeof value === "string" && !value.trim())) {
+      return { error: `${field} is required` };
+    }
+  }
+
+  const ref = projectRefFrom(args);
+  if (!ref && name !== "create_project") return {};
+
+  const client = new TaskPilotClient(auth.workspaceSlug, await getOrCreateApiToken(auth.userId, auth.workspaceSlug));
+  const projects = await client.listProjects();
+
+  if (name === "create_project") {
+    const plan = planProjectCreate(args, projects);
+    if ("error" in plan) return { error: plan.error };
+    if ("exists" in plan) return { result: { ...formatProject(plan.exists, auth.workspaceSlug), status: "exists" } };
+    return {};
+  }
+
+  const resolved = resolveProjectRef(ref!, projects);
+  if ("error" in resolved) return { error: resolved.error };
+  const { id, identifier, name: projectName } = resolved.project;
+  return { project: { id: String(id), identifier, name: projectName } };
+}
+
 export function getToolDefinitions() {
   return TOOLS;
 }
@@ -146,13 +236,18 @@ export async function executeToolCall(
   const needsApproval = requiresHumanApproval(name, args, auth.clientId);
 
   if (config.dharahilEnabled && !approvalAlreadyGranted && needsApproval) {
+    const check = await precheckToolCall(name, args, auth);
+    if (check.error) throw new Error(`${name} refused before approval: ${check.error}`);
+    if (check.result) return check.result;
+
     const who = isExternalPeer(auth.clientId) ? `peer ${auth.clientId}` : "owner session";
     const decision = await runApprovalLoop({
       toolName: name,
       toolArgs: args,
       userId: auth.userId,
       taskId: `mcp_${Date.now()}`,
-      contextSummary: `${who}: ${name} with args ${JSON.stringify(args)}`,
+      contextSummary: `${who}: ${name}${check.project ? ` in project ${check.project.identifier}` : ""} with args ${JSON.stringify(args)}`,
+      project: check.project?.identifier,
     });
 
     // Every approval outcome is recorded. Previously the MCP path wrote no
@@ -263,6 +358,31 @@ const TOOLS = [
     name: "list_projects",
     description: "List all projects in the workspace.",
     inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "get_project",
+    description: "Get one project by exact id, identifier or name.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: { type: "string", description: "Project id, identifier (e.g. GUARDIANAI) or exact name" },
+      },
+      required: ["project"],
+    },
+  },
+  {
+    name: "create_project",
+    description:
+      "Create a project. ALWAYS requires human approval. Idempotent: if a project with exactly this name and identifier already exists, it is returned instead of created. A clash on only one of the two is refused.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Project name, 1-255 characters" },
+        identifier: { type: "string", description: "Short key, 1-12 letters or digits, e.g. GUARDIANAI. Stored uppercase." },
+        description: { type: "string", description: "What the project is for (optional)" },
+      },
+      required: ["name", "identifier"],
+    },
   },
   {
     name: "list_tasks",
@@ -734,8 +854,9 @@ async function handleCreateTask(args: any, client: TaskPilotClient, workspace: s
     };
   }
 
-  // Not confident. File into Intake if one is configured for this workspace.
-  const intakeProjectId = resolveIntakeProject(
+  // Not confident. File into Intake if one is configured for this workspace —
+  // unless the caller named a project: their item belongs there or nowhere.
+  const intakeProjectId = args.project_hint ? null : resolveIntakeProject(
     workspace,
     decision.candidates,
     config.intakeProjects,
@@ -785,23 +906,42 @@ async function handleMoveTask(args: any, client: TaskPilotClient, _workspace: st
   return { identifier: args.identifier, state: targetState.name, status: "moved" };
 }
 
+/**
+ * Issues of one project that pass the optional state and priority filters.
+ * The issues endpoint is already project-scoped; the project check is here so
+ * a scoping mistake anywhere upstream still cannot leak another project's row.
+ */
+async function filteredIssues(project: any, args: any, client: TaskPilotClient) {
+  const issues = await client.listIssues(String(project.id));
+  const statesMap = await buildStatesMap(client, String(project.id));
+  const rows: any[] = [];
+  for (const issue of issues || []) {
+    if (issue.project && String(issue.project) !== String(project.id)) continue;
+    const state = resolveStateName(issue.state, statesMap);
+    if (args.state && state.toLowerCase() !== String(args.state).toLowerCase()) continue;
+    if (args.priority && issue.priority !== args.priority) continue;
+    rows.push({
+      identifier: `${project.identifier || "?"}-${issue.sequence_id || "?"}`,
+      title: issue.name || "",
+      state,
+      priority: issue.priority || "",
+      project: project.identifier || "",
+      project_id: String(project.id),
+      _issue: issue,
+    });
+  }
+  return rows;
+}
+
+const withoutIssue = ({ _issue, ...row }: any) => row;
+
 async function handleFindTasks(args: any, client: TaskPilotClient, _workspace: string) {
-  const projects = await client.listProjects();
+  const scope = await scopedProjects(args, client);
+  if ("error" in scope) return scope;
   const results: any[] = [];
-  for (const project of projects) {
-    if (args.project_hint && !project.name?.toLowerCase().includes(args.project_hint.toLowerCase())) continue;
-    const issues = await client.listIssues(String(project.id));
-    const statesMap = await buildStatesMap(client, String(project.id));
-    const filtered = (issues || []).filter((issue: any) => matchesSearch(issue, args.query));
-    for (const issue of filtered.slice(0, 10)) {
-      results.push({
-        identifier: `${project.identifier || "?"}-${issue.sequence_id || "?"}`,
-        title: issue.name || "",
-        state: resolveStateName(issue.state, statesMap),
-        priority: issue.priority || "",
-        project: project.name || "",
-      });
-    }
+  for (const project of scope.projects) {
+    const rows = (await filteredIssues(project, args, client)).filter((row) => matchesSearch(row._issue, args.query));
+    results.push(...rows.slice(0, 10).map(withoutIssue));
   }
   // count describes what is in `tasks`; the pre-slice total went out as a
   // count of items the caller never received.
@@ -821,32 +961,79 @@ async function handleListProjects(_args: any, client: TaskPilotClient, _workspac
   };
 }
 
+/** The fields an agent needs to name a project back to us, plus where a human finds it. */
+function formatProject(p: any, workspace: string) {
+  return {
+    id: String(p.id),
+    name: p.name,
+    identifier: p.identifier || "",
+    description: p.description || "",
+    ...(config.frontendUrl ? { url: `${config.frontendUrl.replace(/\/$/, "")}/${workspace}/projects/${p.id}/issues` } : {}),
+  };
+}
+
+async function handleGetProject(args: any, client: TaskPilotClient, workspace: string) {
+  const resolved = resolveProjectRef(String(args.project ?? ""), await client.listProjects());
+  return "error" in resolved ? resolved : formatProject(resolved.project, workspace);
+}
+
+/**
+ * What creating this project would do, decided before anyone is asked to
+ * approve it: `exists` returns the project already there, `error` refuses, and
+ * neither needs a human because nothing would be written.
+ */
+export function planProjectCreate(
+  args: any,
+  projects: any[],
+): { create: { name: string; identifier: string; description?: string } } | { exists: any } | { error: string } {
+  const name = typeof args.name === "string" ? args.name.trim() : "";
+  const identifier = typeof args.identifier === "string" ? args.identifier.trim().toUpperCase() : "";
+  if (!name || name.length > 255) return { error: "name is required and must be at most 255 characters" };
+  if (!/^[A-Z0-9]{1,12}$/.test(identifier)) {
+    return { error: `identifier '${args.identifier ?? ""}' is invalid: use 1-12 letters or digits, e.g. GUARDIANAI` };
+  }
+
+  const byIdentifier = projects.find((p: any) => p.identifier?.toUpperCase() === identifier);
+  const byName = projects.find((p: any) => p.name?.toLowerCase() === name.toLowerCase());
+  if (byIdentifier && byIdentifier === byName) return { exists: byIdentifier };
+  if (byIdentifier) {
+    return { error: `identifier ${identifier} is already used by project '${byIdentifier.name}' (${byIdentifier.id})` };
+  }
+  if (byName) {
+    return { error: `a project named '${byName.name}' already exists with identifier ${byName.identifier} (${byName.id})` };
+  }
+  return { create: { name, identifier, ...(args.description ? { description: String(args.description) } : {}) } };
+}
+
+async function handleCreateProject(args: any, client: TaskPilotClient, workspace: string) {
+  const plan = planProjectCreate(args, await client.listProjects());
+  if ("error" in plan) return plan;
+  if ("exists" in plan) return { ...formatProject(plan.exists, workspace), status: "exists" };
+
+  const project = await client.createProject(plan.create);
+  return { ...formatProject(project, workspace), status: "created" };
+}
+
 async function handleListTasks(args: any, client: TaskPilotClient, _workspace: string) {
-  const projects = await client.listProjects();
-  let targetProjects = projects;
-  if (args.project) {
-    const match = projects.find(
-      (p: any) => args.project.toLowerCase().includes(p.name?.toLowerCase()) || args.project === String(p.id),
-    );
-    if (match) targetProjects = [match];
+  const scope = await scopedProjects(args, client);
+  if ("error" in scope) return scope;
+  const limit = Math.min(Number(args.limit) || 20, 100);
+  const matched: any[] = [];
+  for (const project of scope.projects) {
+    matched.push(...(await filteredIssues(project, args, client)));
+    // Unscoped listing stops reading projects once it has enough; a scoped one
+    // reads its single project whole so `total` is the filtered total.
+    if (scope.projects.length > 1 && matched.length >= limit) break;
   }
-  const results: any[] = [];
-  const limit = args.limit || 20;
-  for (const project of targetProjects) {
-    const issues = await client.listIssues(String(project.id));
-    const statesMap = await buildStatesMap(client, String(project.id));
-    for (const issue of issues || []) {
-      results.push({
-        identifier: `${project.identifier || "?"}-${issue.sequence_id || "?"}`,
-        title: issue.name || "",
-        state: resolveStateName(issue.state, statesMap),
-        priority: issue.priority || "",
-      });
-      if (results.length >= limit) break;
-    }
-    if (results.length >= limit) break;
-  }
-  return { tasks: results, count: results.length };
+  const tasks = matched.slice(0, limit).map(withoutIssue);
+  return {
+    tasks,
+    count: tasks.length,
+    ...(scope.projects.length === 1
+      ? { project: scope.projects[0].identifier, project_id: String(scope.projects[0].id), total: matched.length }
+      : {}),
+    truncated: matched.length > tasks.length,
+  };
 }
 
 async function handleGetTask(args: any, client: TaskPilotClient, _workspace: string) {
@@ -855,6 +1042,7 @@ async function handleGetTask(args: any, client: TaskPilotClient, _workspace: str
   return {
     id: issue.id,
     identifier: args.identifier,
+    project_id: String(issue.project),
     title: issue.name || "",
     description: issue.description_stripped || "",
     state: resolveStateName(issue.state, statesMap),
@@ -886,12 +1074,9 @@ async function handleAddComment(args: any, client: TaskPilotClient, _workspace: 
 }
 
 async function handleListStates(args: any, client: TaskPilotClient, _workspace: string) {
-  const projects = await client.listProjects();
-  let targetProjects = projects;
-  if (args.project) {
-    const match = projects.find((p: any) => args.project.toLowerCase().includes(p.name?.toLowerCase()));
-    if (match) targetProjects = [match];
-  }
+  const scope = await scopedProjects(args, client);
+  if ("error" in scope) return scope;
+  const targetProjects = scope.projects;
   // Aggregate states from target projects (v1 API only supports project-level states)
   const allStates: any[] = [];
   const seen = new Set<string>();
@@ -908,9 +1093,10 @@ async function handleListStates(args: any, client: TaskPilotClient, _workspace: 
 }
 
 async function handleListCycles(args: any, client: TaskPilotClient, _workspace: string) {
-  const projects = await client.listProjects();
-  const p = projects.find((p: any) => args.project.toLowerCase().includes(p.name?.toLowerCase()));
-  if (!p) return { error: `Project '${args.project}' not found` };
+  if (!projectRefFrom(args)) return { error: "project is required" };
+  const scope = await scopedProjects(args, client);
+  if ("error" in scope) return scope;
+  const p = scope.projects[0];
   const cycles = await client.listCycles(String(p.id));
   return {
     cycles: cycles.map((c: any) => ({
@@ -934,14 +1120,10 @@ async function handleListMembers(
   _workspace: string,
 ): Promise<any> {
   let projectId: string | undefined;
-  if (args.project) {
-    const projects = await client.listProjects();
-    const match = projects.find(
-      (p: any) =>
-        p.name?.toLowerCase() === args.project.toLowerCase() ||
-        p.identifier?.toLowerCase() === args.project.toLowerCase(),
-    );
-    if (match) projectId = String(match.id);
+  if (projectRefFrom(args)) {
+    const scope = await scopedProjects(args, client);
+    if ("error" in scope) return scope;
+    projectId = String(scope.projects[0].id);
   }
   const members = await client.listMembers(projectId);
   return {
@@ -984,17 +1166,9 @@ async function handleListLabels(
 ): Promise<any> {
   // Labels are project-scoped in TaskPilot v1 API.
   // If no project given, aggregate labels across all projects.
-  const projects = await client.listProjects();
-  let targetProjects = projects;
-
-  if (args.project) {
-    const match = projects.find(
-      (p: any) =>
-        p.name?.toLowerCase() === args.project.toLowerCase() ||
-        p.identifier?.toLowerCase() === args.project.toLowerCase(),
-    );
-    if (match) targetProjects = [match];
-  }
+  const scope = await scopedProjects(args, client);
+  if ("error" in scope) return scope;
+  const targetProjects = scope.projects;
 
   const allLabels: any[] = [];
   for (const project of targetProjects) {
@@ -1062,17 +1236,9 @@ async function handleGetTaskSummary(
   client: TaskPilotClient,
   _workspace: string,
 ): Promise<any> {
-  const projects = await client.listProjects();
-  let targetProjects = projects;
-
-  if (args.project) {
-    const match = projects.find(
-      (p: any) =>
-        p.name?.toLowerCase() === args.project.toLowerCase() ||
-        p.identifier?.toLowerCase() === args.project.toLowerCase(),
-    );
-    if (match) targetProjects = [match];
-  }
+  const scope = await scopedProjects(args, client);
+  if ("error" in scope) return scope;
+  const targetProjects = scope.projects;
 
   const limit = args.limit || 10;
   const summary: Record<string, any[]> = {
@@ -1500,6 +1666,8 @@ const HANDLERS: Record<string, (args: any, client: TaskPilotClient, workspace: s
   find_tasks: handleFindTasks,
   list_projects: handleListProjects,
   list_tasks: handleListTasks,
+  get_project: handleGetProject,
+  create_project: handleCreateProject,
   get_task: handleGetTask,
   update_task: handleUpdateTask,
   add_comment: handleAddComment,

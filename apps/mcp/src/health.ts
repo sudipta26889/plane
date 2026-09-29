@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import { db } from "./db.js";
 import { config } from "./config.js";
 import { getLlmConfig } from "./tools/smart-router.js";
-import { getIndexSyncStatus } from "./a2a/background.js";
+import { getIndexSyncStatus, getApprovalWorkerStatus } from "./a2a/background.js";
 import { ping as longmemoryPing } from "./agent/longmemory.js";
 import { ping as mqttPing, publish as publishMqtt, TOPIC as MQTT_TOPIC } from "./agent/mqtt.js";
 import { getIngestStatus } from "./agent/ingest.js";
@@ -57,7 +57,7 @@ async function getJson(url: string, headers: Record<string, string> = {}): Promi
 export async function checkDependencies(force = false): Promise<HealthReport> {
   if (!force && cached && Date.now() - cached.at < CACHE_TTL_MS) return cached.report;
 
-  const [database, llm, qdrant, redis, longmemory, mqtt, embeddings] = await Promise.all([
+  const [database, llm, qdrant, redis, longmemory, mqtt, embeddings, dharahil] = await Promise.all([
     probe("database", async () => {
       await db.query("SELECT 1");
       return "reachable";
@@ -119,11 +119,22 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
       await getJson(`${base}/health`);
       return `${base} reachable`;
     }),
+
+    // Every peer write waits on this gateway. If it is down, writes fail at
+    // submission rather than hang — but they all fail, so say so here.
+    probe("dharahil", async () => {
+      if (!config.dharahilEnabled) return "disabled";
+      if (!config.dharahilBaseUrl) throw new Error("DHARAHIL_BASE_URL is not configured");
+      await getJson(`${config.dharahilBaseUrl.replace(/\/$/, "")}/healthz`);
+      return `${config.dharahilBaseUrl} reachable`;
+    }),
   ]);
 
   // Not a probe: the index sync reports its own last outcome, so a job that
   // fails every tick surfaces here instead of only in the logs.
-  const dependencies = { database, llm, qdrant, redis, longmemory, mqtt, embeddings, indexSync: getIndexSyncStatus(), liveIndex: getLiveIndexStatus(), ingest: getIngestStatus() };
+  // approvalWorker is the resumption path itself: an approved write only ever
+  // runs because that loop picked it up.
+  const dependencies = { database, llm, qdrant, redis, longmemory, mqtt, embeddings, dharahil, approvalWorker: getApprovalWorkerStatus(), indexSync: getIndexSyncStatus(), liveIndex: getLiveIndexStatus(), ingest: getIngestStatus() };
   const report: HealthReport = {
     status: summarize(dependencies),
     server: "taskpilot-mcp",

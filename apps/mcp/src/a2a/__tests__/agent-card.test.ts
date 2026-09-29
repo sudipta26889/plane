@@ -9,7 +9,7 @@ describe("Agent Card", () => {
     expect(card.protocol).toBe("a2a");
     expect(card.protocolVersion).toBe("0.3");
     expect(card.url).toBe("https://mcp.taskpilot.sudiptadhara.in/a2a");
-    expect(card.skills.length).toBe(31);
+    expect(card.skills.length).toBe(33);
     expect(card.capabilities.streaming).toBe(true);
     expect(card.capabilities.webhooks).toBe(true);
     expect(card.capabilities.humanInTheLoop).toBe(true);
@@ -73,7 +73,9 @@ describe("Agent Card", () => {
     expect(txt).toContain("## Rate Limits");
     expect(txt).toContain("## Real-Time Updates (SSE)");
     expect(txt).toContain("## Webhook Notifications");
-    expect(txt).toContain("## Human-in-the-Loop Approvals");
+    expect(txt).toContain("## Writes, approvals and how to get the result");
+    expect(txt).toContain("is not an authentication problem");
+    expect(txt).toContain("tasks/get");
     expect(txt).toContain("## Response Format");
     expect(txt).toContain("## Security Features");
     expect(txt).toContain("## Production Endpoints");

@@ -16,14 +16,40 @@ describe("DharaHIL Client", () => {
     expect(req.run_id).toBe("user-1");
     expect(req.step_id).toBe("task-1");
     expect(req.risk_level).toBe("HIGH");
-    expect(req.tags).toContain("cancel");
-    expect(req.tags).toContain("taskpilot");
-    expect(req.idempotency_key).toContain("task_move_PROJ-42");
+    expect(req.tags).toEqual(["taskpilot", "move.task"]);
+    expect(req.idempotency_key).toMatch(/^taskpilot:task-1:move_task:[0-9a-f]{16}$/);
+    expect(req.metadata.identifier).toBe("PROJ-42");
     expect(req.tool_args_redacted).toEqual(req.tool_args);
     expect(req.environment).toBe("production");
     expect(req.metadata).toBeDefined();
     expect(req.webhook).toBeDefined();
     expect(req.webhook.url).toBe("");
+  });
+
+  // The key is what lets the gateway drop a resubmitted request instead of
+  // paging the human twice. It must be stable for one call, and must differ
+  // for a different call on the same task — a resumed agent run's next write
+  // must never match (and ride on) the approval its previous write got.
+  it("keys an approval request by task, tool and exact args", () => {
+    const base = { toolName: "create_task", userId: "u", taskId: "task-9", contextSummary: "s" };
+    const a = buildApprovalRequest({ ...base, toolArgs: { title: "A" } });
+    const again = buildApprovalRequest({ ...base, toolArgs: { title: "A" } });
+    const other = buildApprovalRequest({ ...base, toolArgs: { title: "B" } });
+    expect(again.idempotency_key).toBe(a.idempotency_key);
+    expect(other.idempotency_key).not.toBe(a.idempotency_key);
+  });
+
+  it("shows the approver the target project", () => {
+    const req = buildApprovalRequest({
+      toolName: "page_create",
+      toolArgs: { title: "Canary" },
+      userId: "u",
+      taskId: "t",
+      contextSummary: "s",
+      project: "GUARDIANAI",
+    });
+    expect(req.metadata.project).toBe("GUARDIANAI");
+    expect(Object.values(req.metadata).every((v) => typeof v === "string")).toBe(true);
   });
 
   it("interprets APPROVED decision", () => {

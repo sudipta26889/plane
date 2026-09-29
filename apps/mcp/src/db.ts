@@ -144,6 +144,10 @@ async function initA2aDatabase(client: any): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_context_id ON a2a_tasks(context_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_client_state ON a2a_tasks(client_id, state);
     CREATE INDEX IF NOT EXISTS idx_a2a_tasks_idempotency ON a2a_tasks(idempotency_key);
+    -- One task per client per key: the lookup before insert makes a sequential
+    -- retry cheap, but only this makes two concurrent identical sends safe.
+    CREATE UNIQUE INDEX IF NOT EXISTS uq_a2a_tasks_client_idempotency
+      ON a2a_tasks(client_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
     CREATE INDEX IF NOT EXISTS idx_a2a_task_history_task_id ON a2a_task_history(task_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_approvals_task_id ON a2a_approvals(task_id);
     CREATE INDEX IF NOT EXISTS idx_a2a_approvals_status ON a2a_approvals(status);

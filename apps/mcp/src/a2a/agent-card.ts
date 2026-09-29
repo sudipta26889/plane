@@ -1,8 +1,8 @@
 import { getAllSkills } from "./skill-registry.js";
 
 const SCOPES = {
-  "taskpilot:read": "Read projects, tasks, members, labels, cycles",
-  "taskpilot:write": "Create/update/move tasks, assign, label, write and archive pages, triage intake, link work items",
+  "taskpilot:read": "Read projects, tasks, pages, members, labels, cycles",
+  "taskpilot:write": "Create projects; create/update/move tasks, assign, label, comment; write and archive pages; triage intake; link work items",
 };
 
 export function buildAgentCard(baseUrl: string) {
@@ -231,7 +231,7 @@ the request is refused rather than silently answered without history.
 
 **\`messageId\` doubles as the idempotency key.** Resending the same messageId
 returns the original task instead of doing the work twice, so a retry after a
-timeout is safe.
+timeout is safe. See "Idempotency and safe retries" below.
 
 ## Response Format
 
@@ -338,19 +338,119 @@ MQTT authenticates a connection, not a request, so anything able to reach the
 broker could publish the bytes that approve an action as you. Approvals travel
 only over the authenticated DharaHIL API.
 
-## Human-in-the-Loop Approvals
+## Writes, approvals and how to get the result
 
-Some actions require human approval — cancelling a task via task.move, task.bulk_cancel, archiving a page via page.archive, and rejecting an item via intake.triage:
-1. Task enters **auth_required** state
-2. Human receives notification via Slack/Telegram (DharaHIL gateway)
-3. Human can: APPROVE (execute), REJECT (deny), or REVISE (request changes)
-4. Timeout based on risk level (set by DharaHIL gateway)
-5. If timeout: Task auto-rejected (fail-safe)
+**Every write by a \`peer_\` client waits for a human.** \`project.create\`,
+cancelling, archiving and rejecting intake wait for a human whoever calls them.
+
+### The lifecycle
+
+1. You send the write with \`message/send\`. TaskPilot checks the token, the
+   scope, the input and the target project **before** anyone is asked. A bad
+   project or a missing field is an immediate JSON-RPC error (-32602); no task
+   is created and nobody is paged.
+2. The reply has \`state: "auth_required"\`, the \`taskId\`, the DharaHIL
+   \`approval.id\` and the resolved \`project\`:
+   \`\`\`json
+   {"taskId": "task_…", "contextId": "…", "state": "auth_required",
+    "approval": {"id": "…", "status": "pending", "expiresAt": "…"},
+    "project": {"id": "…", "identifier": "GUARDIANAI", "name": "GuardianAI"},
+    "message": "Waiting for a human to approve this in DharaHIL. This is NOT an authentication error…"}
+   \`\`\`
+   **\`auth_required\` is not an authentication problem.** Your token is fine.
+   Do not re-authenticate, do not ask for a new token, and do not re-send.
+3. A human approves or rejects in DharaHIL (Slack/Telegram).
+4. On approval TaskPilot runs **your original request, on the same taskId**,
+   usually within a few seconds (at most ~30s). You never send it again.
+5. Get the outcome with \`tasks/get\` (or \`GetTask\`) and that \`taskId\`. Poll
+   every 10–30 seconds until the state is terminal.
+
+### Terminal states: exactly one per task
+
+| state | A2A v1 name | meaning |
+|---|---|---|
+| \`completed\` | TASK_STATE_COMPLETED | Approved and written. \`result\` has the entity (\`id\`, \`identifier\`, \`project\`). |
+| \`rejected\` | TASK_STATE_REJECTED | A human rejected it, or the approval expired. Nothing was written. Do not retry unless the human asks. |
+| \`failed\` | TASK_STATE_FAILED | Approved but the write failed, or wrote nothing (e.g. a suspected duplicate). \`error.message\` says why. |
+| \`canceled\` | TASK_STATE_CANCELED | You cancelled it with \`tasks/cancel\` before it ran. |
+
+Non-terminal: \`auth_required\` (TASK_STATE_AUTH_REQUIRED, waiting for a human),
+\`submitted\` / \`working\` (approved, running now).
+
+The approved write runs **at most once**. If the server stops while it is
+running, the task ends \`failed\` with "may or may not have happened". Check
+(\`task.find\`, \`page.list\`) before you retry.
+
+### Other ways to hear about completion (optional)
+
+- SSE: \`GET ${baseUrl}/a2a/stream?taskId=…\`
+- Webhooks, if the operator has configured one for your client: HMAC-signed
+  \`task.completed\` / \`task.failed\` / \`task.rejected\` carrying \`context_id\`,
+  the task id, the state and the result.
+
+Polling \`tasks/get\` always works and needs no setup.
+
+### Three different "no"s
+
+| You see | It means | What to do |
+|---|---|---|
+| HTTP 401, code -32002 | Token missing, invalid or expired | Fix the credential |
+| HTTP 403, code -32005 | Token is valid but lacks the skill's scope (\`error.data.requiredScope\`) | Ask the operator for a token with that scope. Waiting will not help. |
+| \`state: "auth_required"\` | A human is deciding | Poll \`tasks/get\`. Change nothing. |
+
+## Idempotency and safe retries
+
+- Send a unique \`messageId\` per logical request. Resending the same one returns
+  the original task (\`replayed: true\`) and never writes twice, before or after
+  approval.
+- **Writes without a messageId are still deduplicated**, on
+  (contextId, skill, input): an identical write in the same conversation returns
+  the first task. To perform the same write twice on purpose, give each its own
+  messageId.
+- Reusing a messageId for a **different** request is refused with -32009.
+- Keys are per client and stored in the database, so they survive restarts.
+- Safe to retry: any request that timed out or got no response. Resend it
+  unchanged. Not safe: resending with a new messageId after an unclear
+  outcome. Poll the original taskId instead.
+
+## Project scoping
+
+Every project-scoped skill (\`project.list_tasks\`, \`task.find\`,
+\`project.list_states\`, \`page.list\`, …) takes a project as its id, its
+identifier (e.g. \`GUARDIANAI\`) or its exact name, under \`project\`,
+\`project_id\` or \`project_hint\`. Matching is exact and case-insensitive,
+never partial. A project that matches nothing, or more than one, is an error.
+It never falls back to listing the whole workspace. Prefer the immutable
+project id once you have it.
+
+## Example: Create a Page and Get the Result
+
+\`\`\`json
+POST ${baseUrl}/a2a
+{"jsonrpc": "2.0", "id": 1, "method": "SendMessage",
+ "params": {"message": {"contextId": "guardianai", "messageId": "page-canary-1",
+   "parts": [{"data": {"skill": "page.create",
+     "input": {"title": "GuardianAI A2A Write Canary", "content": "<p>…</p>", "project_hint": "GUARDIANAI"}}}]}}}
+\`\`\`
+→ \`{"taskId": "task_…", "state": "auth_required", "approval": {…}}\`. Then, after the human approves:
+\`\`\`json
+{"jsonrpc": "2.0", "id": 2, "method": "GetTask", "params": {"taskId": "task_…"}}
+\`\`\`
+→ \`{"state": "completed", "result": {"id": "<page uuid>", "name": "GuardianAI A2A Write Canary", "project": "GUARDIANAI"}}\`
+
+## Example: Create a Project
+
+\`\`\`json
+{"skill": "project.create", "input": {"name": "GuardianAI", "identifier": "GUARDIANAI", "description": "…"}}
+\`\`\`
+Always approval-gated. If a project with exactly that name and identifier
+already exists, it completes immediately with \`status: "exists"\` and nothing
+is written. A clash on the name alone or the identifier alone is refused.
 
 ## OAuth Scopes
 
-- taskpilot:read — Read projects, tasks, members, labels, cycles
-- taskpilot:write — Create/update/move tasks, assign, label, write and archive pages, triage intake, link work items
+- taskpilot:read — every read skill (lists, gets, searches, summaries)
+- taskpilot:write — every write skill; for a \`peer_\` client each write also waits for human approval
 
 ## Error Codes
 
@@ -360,9 +460,14 @@ JSON-RPC standard error codes:
 - -32601: Method not found (unknown skill)
 - -32602: Invalid params (validation failed)
 - -32603: Internal error (server error)
-- -32002: Authentication required (invalid token)
-- -32003: Rate limit exceeded
-- -32004: Approval required (HITL)
+- -32001: Task not found (also returned for another client's task)
+- -32002: Authentication required: token missing, invalid or expired (HTTP 401)
+- -32003: Rate limit exceeded (HTTP 429)
+- -32005: Insufficient scope: token valid but lacks the skill's scope (HTTP 403)
+- -32009: Idempotency conflict: messageId reused for a different request
+
+A pending human approval is **not** an error. It is a normal result with
+\`state: "auth_required"\`.
 
 ## Example: Create a Task with Smart Routing
 
@@ -412,8 +517,9 @@ POST ${baseUrl}/a2a
 2. Task enters "auth_required" state
 3. Human receives Slack/Telegram notification with task details
 4. Human approves or rejects
-5. Task transitions to "completed" (if approved) or "rejected"
-6. Poll via task.get or use SSE to get final result
+5. The same task transitions to "completed" (approved and done), "failed"
+   (approved but the move failed) or "rejected"
+6. Poll tasks/get with the taskId, or use SSE, to get the final result
 
 ## Security Features
 
@@ -456,7 +562,7 @@ POST ${baseUrl}/a2a
 5. Handle rate limits (check X-RateLimit-* headers)
 6. Implement retry logic for transient errors
 7. Use SSE or webhooks for real-time updates (optional)
-8. Handle approval workflow for cancellation operations
+8. Handle the approval workflow for writes: on auth_required, poll tasks/get; never re-send
 9. Monitor audit logs for security
 
 ## Compliance & Audit

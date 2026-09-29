@@ -4,11 +4,40 @@ import { runAgent } from "../agent/loop.js";
 import { clearRunState, loadRunState, saveRunState } from "../agent/state.js";
 import { interpretDecision, applyRevisionInstructions } from "./dharahil.js";
 import { transitionState, executeA2aTask, settleAgentRun } from "./task-executor.js";
-import { deliverWebhook } from "./webhooks.js";
+import { deliverWebhook, queueWebhookDeliveries } from "./webhooks.js";
 import { logAuditEvent } from "./audit-log.js";
 import { sseManager } from "./sse.js";
 import { syncWorkItems, syncPages } from "../knowledge/index-sync.js";
 import { embed } from "../knowledge/embeddings.js";
+
+// The approval worker's heartbeat, for /health. A worker that stopped ticking
+// looks, from the outside, exactly like one with nothing to approve.
+let pollInFlight = false;
+let lastPollAt: number | null = null;
+let lastPollError: string | null = null;
+
+export function getApprovalWorkerStatus(): { ok: boolean; detail: string } {
+  if (!config.dharahilEnabled) return { ok: true, detail: "DharaHIL disabled; writes are not approval-gated" };
+  if (lastPollError) return { ok: false, detail: `last approval poll failed: ${lastPollError}` };
+  if (lastPollAt === null) return { ok: true, detail: "starting" };
+  const age = Math.round((Date.now() - lastPollAt) / 1000);
+  // Ticks every 30s; three missed ticks means it has stopped.
+  return age > 90 ? { ok: false, detail: `no approval poll for ${age}s` } : { ok: true, detail: `polled ${age}s ago` };
+}
+
+/** Tell a peer's webhook that a task ended rejected; polling alone is not the only way to learn. */
+function notifyRejected(task: any, reason: string) {
+  sseManager.notify(task.task_id, "task.rejected", { taskId: task.task_id, state: "rejected", reason });
+  return queueWebhookDeliveries(task.task_id, "task.rejected", {
+    task_id: task.task_id,
+    context_id: task.context_id,
+    skill: task.skill,
+    state: "rejected",
+    error: { message: reason },
+    created_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+  }, task.client_id);
+}
 
 /**
  * Poll DharaHIL for pending HITL decisions and handle expired approvals.
@@ -16,6 +45,10 @@ import { embed } from "../knowledge/embeddings.js";
  */
 export async function pollHitlDecisions() {
   if (!config.dharahilEnabled) return;
+  // A tick that outlives the interval (a slow write, a slow gateway) must not
+  // overlap the next: two ticks would both find the same approved task.
+  if (pollInFlight) return;
+  pollInFlight = true;
 
   try {
     // Find tasks awaiting approval
@@ -37,7 +70,7 @@ export async function pollHitlDecisions() {
           [task.task_id]
         );
         await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.expired", taskId: task.task_id, skill: task.skill, success: false });
-        sseManager.notify(task.task_id, "task.rejected", { taskId: task.task_id, state: "rejected", reason: "Approval expired" });
+        await notifyRejected(task, "Approval expired");
         continue;
       }
 
@@ -58,11 +91,14 @@ export async function pollHitlDecisions() {
         const decision = interpretDecision({ action: data.action || data.status, reason: data.reason || data.last_decision_note, revise_input: data.last_decision_revise_input || data.revise_input });
 
         if (decision.shouldProceed) {
-          // Approved — transition back to submitted, then execute
-          await db.query(
-            `UPDATE a2a_approvals SET status = 'approved', responded_at = NOW(), responded_by = $2 WHERE task_id = $1`,
+          // Approved. Claiming the approval row is conditional on it still
+          // being pending, so an approval observed twice — a duplicate
+          // callback, an overlapping worker — is acted on once.
+          const claim = await db.query(
+            `UPDATE a2a_approvals SET status = 'approved', responded_at = NOW(), responded_by = $2 WHERE task_id = $1 AND status = 'pending'`,
             [task.task_id, data.approver || null]
           );
+          if (claim.rowCount === 0) continue;
           await transitionState(task.task_id, "submitted", "Approved by human");
 
           // Logged here, before the work runs, not after it settles. The
@@ -90,7 +126,11 @@ export async function pollHitlDecisions() {
             });
             await settleAgentRun(task.task_id, task.context_id, result, auth);
           } else {
-            await executeA2aTask(task.task_id, task.skill, input, auth);
+            // A failed write is already recorded on the task (failed, with its
+            // error); it is not a polling failure, so it is not logged as one.
+            await executeA2aTask(task.task_id, task.skill, input, auth).catch((err: any) => {
+              console.error(`[a2a] Approved task ${task.task_id} failed: ${err.message}`);
+            });
           }
 
         } else if (decision.shouldRevise) {
@@ -195,14 +235,51 @@ export async function pollHitlDecisions() {
           await transitionState(task.task_id, "rejected", decision.reason);
 
           await logAuditEvent({ userId: task.user_id, clientId: task.client_id, ipAddress: "", operation: "approval.rejected", taskId: task.task_id, skill: task.skill, success: false, errorMessage: decision.reason });
-          sseManager.notify(task.task_id, "task.rejected", { taskId: task.task_id, state: "rejected", reason: decision.reason });
+          await notifyRejected(task, decision.reason);
         }
       } catch (err) {
         console.error(`[a2a] Failed to poll DharaHIL for ${task.task_id}:`, err);
       }
     }
-  } catch (err) {
+    lastPollAt = Date.now();
+    lastPollError = null;
+  } catch (err: any) {
+    lastPollError = err?.message ? String(err.message).slice(0, 200) : "unknown error";
     console.error("[a2a] HITL polling error:", err);
+  } finally {
+    pollInFlight = false;
+  }
+}
+
+/**
+ * Fail tasks nothing will ever finish, so a caller polling them gets an answer.
+ *
+ * - `auth_required` with no approval request behind it: nothing can decide it.
+ * - `submitted`/`working` long after any run could still be going: the server
+ *   stopped mid-run. Execution is at-most-once — the write is NOT retried,
+ *   because it may already have happened — so the caller is told to check.
+ */
+export async function failStrandedTasks() {
+  try {
+    const stranded = await db.query(
+      `SELECT t.task_id, t.state FROM a2a_tasks t
+       LEFT JOIN a2a_approvals a ON a.task_id = t.task_id
+       WHERE (t.state = 'auth_required' AND a.task_id IS NULL AND t.updated_at < NOW() - INTERVAL '10 minutes')
+          OR (t.state IN ('submitted', 'working') AND t.updated_at < NOW() - INTERVAL '30 minutes')`
+    );
+    for (const task of stranded.rows) {
+      const reason = task.state === "auth_required"
+        ? "No approval request was ever opened for this task, so nothing could approve it. Nothing was written; send it again."
+        : "Interrupted: the server stopped while this task ran. The write may or may not have happened — check (e.g. task.find, page.list) before retrying.";
+      try {
+        await clearRunState(task.task_id);
+        await transitionState(task.task_id, "failed", reason);
+      } catch (err: any) {
+        console.error(`[a2a] Could not fail stranded task ${task.task_id}: ${err.message}`);
+      }
+    }
+  } catch (err) {
+    console.error("[a2a] Stranded-task sweep error:", err);
   }
 }
 

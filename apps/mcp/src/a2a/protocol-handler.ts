@@ -10,8 +10,11 @@ import {
   listA2aTasks,
   requestApproval,
   settleAgentRun,
+  storeError,
+  storeResult,
   transitionState,
 } from "./task-executor.js";
+import { precheckToolCall } from "../tools/handlers.js";
 import { logAuditEvent } from "./audit-log.js";
 import { queueWebhookDeliveries } from "./webhooks.js";
 import { hasRequiredScope } from "./auth.js";
@@ -99,6 +102,130 @@ function jsonRpcResult(id: string | number, result: any) {
   };
 }
 
+// --- Idempotency ---
+
+/** JSON with object keys sorted, so two equal inputs compare equal however they were spelled. */
+export function stableJson(value: any): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableJson(value[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(value ?? null);
+}
+
+/**
+ * The key a write is deduplicated on when the caller sent none. Two identical
+ * writes in one conversation are, in practice, always a retry — a gateway
+ * timeout, an agent re-running its last step — and a duplicate ticket is the
+ * expensive outcome. A caller that really wants the same write twice sends a
+ * distinct messageId.
+ */
+export function derivedIdempotencyKey(contextId: string, skill: string, input: any): string {
+  const digest = crypto.createHash("sha256").update(`${contextId}\n${skill}\n${stableJson(input)}`).digest("hex");
+  return `auto:${digest.slice(0, 40)}`;
+}
+
+/** Whether a stored task is the same request as the one being replayed. */
+export function sameRequest(task: any, request: { skill?: string; input?: any; text?: string }): boolean {
+  const input = typeof task.input === "string" ? JSON.parse(task.input) : task.input;
+  if (task.skill === AGENT_SKILL) return !request.skill && input?.text === request.text;
+  // Free text resolved to a skill by the intent adapter: the text itself was
+  // not kept, so a replay of text against it cannot be compared. Accept it.
+  if (!request.skill) return true;
+  return task.skill === request.skill && stableJson(input ?? {}) === stableJson(request.input ?? {});
+}
+
+const AWAITING_APPROVAL =
+  "Waiting for a human to approve this in DharaHIL. This is NOT an authentication error: do not re-authenticate and do not re-send the request. Poll tasks/get with this taskId; once approved, the write runs on this same task and it ends completed, rejected or failed.";
+
+async function getApproval(taskId: string): Promise<any | null> {
+  const rows = await db.query(
+    `SELECT dharahil_request_id, status, expires_at, responded_at FROM a2a_approvals WHERE task_id = $1`,
+    [taskId],
+  );
+  return rows.rows[0] ?? null;
+}
+
+/** The one shape a task is reported in: send replies, replays and tasks/get alike. */
+export function taskView(task: any, approval: any | null) {
+  return {
+    taskId: task.task_id,
+    contextId: task.context_id,
+    skill: task.skill,
+    state: task.state,
+    stateReason: task.state_reason,
+    result: task.result,
+    error: task.error,
+    ...(approval
+      ? {
+          approval: {
+            id: approval.dharahil_request_id,
+            status: approval.status,
+            expiresAt: approval.expires_at,
+            respondedAt: approval.responded_at,
+          },
+        }
+      : {}),
+    ...(task.state === "auth_required" ? { message: AWAITING_APPROVAL } : {}),
+    createdAt: task.created_at,
+    updatedAt: task.updated_at,
+    completedAt: task.completed_at,
+  };
+}
+
+/** The earlier task for this key, as a reply — or a conflict, or null if there is none. */
+async function replayIdempotent(
+  id: string | number,
+  key: string,
+  auth: AuthContext,
+  request: { skill?: string; input?: any; text?: string },
+) {
+  const existing = await db.query(
+    `SELECT * FROM a2a_tasks WHERE idempotency_key = $1 AND client_id = $2`,
+    [key, auth.clientId],
+  );
+  const task = existing.rows[0];
+  console.log(JSON.stringify({ evt: "a2a.idempotency", hit: Boolean(task), client_id: auth.clientId, ...(task ? { task_id: task.task_id } : {}) }));
+  if (!task) return null;
+
+  if (!sameRequest(task, request)) {
+    return jsonRpcError(
+      id,
+      A2A_ERROR_CODES.IDEMPOTENCY_CONFLICT,
+      `Idempotency key already used for a different request (task ${task.task_id}, skill ${task.skill}). Send a new messageId for a new request.`,
+    );
+  }
+  return jsonRpcResult(id, { ...taskView(task, await getApproval(task.task_id)), replayed: true });
+}
+
+/**
+ * Insert the task, or — when an identical concurrent request won the insert —
+ * answer with that one. The unique index on (client_id, idempotency_key) is
+ * what makes "exactly one" hold under a race; the lookup before it only makes
+ * the common, sequential retry cheap.
+ */
+async function createTaskOnce(
+  id: string | number,
+  params: Parameters<typeof createA2aTask>[0],
+  auth: AuthContext,
+): Promise<{ taskId: string } | { response: any }> {
+  try {
+    return { taskId: await createA2aTask(params) };
+  } catch (err: any) {
+    if (err?.code === "23505" && params.idempotencyKey) {
+      const replay = await replayIdempotent(id, params.idempotencyKey, auth, { skill: params.skill, input: params.input });
+      if (replay) return { response: replay };
+    }
+    throw err;
+  }
+}
+
+/** One line for the approver: who, what, which item, where. */
+function describeWrite(auth: AuthContext, skill: string, input: any, project?: { identifier: string }): string {
+  const subject = input?.title ?? input?.name ?? input?.identifier ?? input?.page_id;
+  return `${auth.clientId} requests ${skill}${subject ? ` "${String(subject).slice(0, 120)}"` : ""}${project ? ` in project ${project.identifier}` : ""}`;
+}
+
 // --- Method handlers ---
 
 function handleInitialize(body: any) {
@@ -156,14 +283,8 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
   // Checked before anything else now, not just before dispatch: an agent run
   // costs model calls, and a client's retry must not buy a second one.
   if (idempotencyKey) {
-    const existing = await db.query(
-      `SELECT * FROM a2a_tasks WHERE idempotency_key = $1 AND client_id = $2`,
-      [idempotencyKey, auth.clientId],
-    );
-    if (existing.rows.length > 0) {
-      const task = existing.rows[0];
-      return jsonRpcResult(body.id, { taskId: task.task_id, state: task.state, result: task.result });
-    }
+    const replay = await replayIdempotent(body.id, idempotencyKey, auth, { skill, input, text: params.text });
+    if (replay) return replay;
   }
 
   // Free text goes to the ReAct loop, which can chain tool calls — look an item
@@ -252,40 +373,57 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
   }
 
   if (!hasRequiredScope(auth.scopes, skillDef.scope)) {
-    return jsonRpcError(body.id, A2A_ERROR_CODES.AUTH_REQUIRED, `Missing required scope: ${skillDef.scope}`);
+    return jsonRpcError(
+      body.id,
+      A2A_ERROR_CODES.INSUFFICIENT_SCOPE,
+      `This token lacks the ${skillDef.scope} scope that ${skill} requires. This is not an approval wait and re-sending will not help: ask the TaskPilot operator for a token that carries ${skillDef.scope}.`,
+      { requiredScope: skillDef.scope, grantedScopes: auth.scopes },
+    );
   }
 
   const taskInput = input || {};
+  // Writes are always deduplicated; reads have nothing to protect.
+  const key =
+    idempotencyKey ?? (skillDef.scope === "taskpilot:write" ? derivedIdempotencyKey(contextId, skill, taskInput) : undefined);
+  if (key && !idempotencyKey) {
+    const replay = await replayIdempotent(body.id, key, auth, { skill, input: taskInput });
+    if (replay) return replay;
+  }
+  const taskParams = {
+    contextId,
+    clientId: auth.clientId,
+    userId: auth.userId,
+    workspaceSlug: auth.workspaceSlug,
+    skill,
+    input: taskInput,
+    idempotencyKey: key,
+  };
 
   if (requiresApproval(skill, taskInput, auth.clientId)) {
-    // Create task in auth_required state
-    const taskId = await createA2aTask({
-      contextId,
-      clientId: auth.clientId,
-      userId: auth.userId,
-      workspaceSlug: auth.workspaceSlug,
-      skill,
-      input: taskInput,
-      state: "auth_required",
-      requiresApproval: true,
-      idempotencyKey,
-    });
-
-    // Submit approval request
-    try {
-      await requestApproval({
-        taskId,
-        skill,
-        toolName: skillDef.mcpTool,
-        toolArgs: taskInput,
-        userId: auth.userId,
-        contextSummary: `A2A ${skill} request`,
-      });
-    } catch (err: any) {
-      console.error("[a2a] Failed to submit approval:", err);
+    // Validate before a human is asked. A refusal here is a plain error: no
+    // task was created and nothing is waiting on anyone.
+    const check = await precheckToolCall(skillDef.mcpTool, taskInput, auth);
+    if (check.error) {
+      return jsonRpcError(body.id, A2A_ERROR_CODES.INVALID_PARAMS, `${skill} refused before approval: ${check.error}`);
     }
 
-    // Audit & webhooks
+    if (check.result) {
+      // Already satisfied (e.g. that exact project exists): nothing to write,
+      // so nothing to approve. Recorded as a task so the reply is replayable.
+      const created = await createTaskOnce(body.id, taskParams, auth);
+      if ("response" in created) return created.response;
+      await transitionState(created.taskId, "working");
+      await storeResult(created.taskId, check.result);
+      await transitionState(created.taskId, "completed", "Already satisfied; nothing to write");
+      return jsonRpcResult(body.id, { taskId: created.taskId, contextId, state: "completed", result: check.result });
+    }
+
+    const created = await createTaskOnce(body.id, { ...taskParams, state: "auth_required", requiresApproval: true }, auth);
+    if ("response" in created) return created.response;
+    const { taskId } = created;
+
+    // Logged before the approval is requested: the request is a fact the
+    // moment it is accepted, whatever DharaHIL then does with it.
     await logAuditEvent({
       userId: auth.userId,
       clientId: auth.clientId,
@@ -294,8 +432,29 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
       taskId,
       skill,
       success: true,
-      metadata: { requires_approval: true },
+      metadata: { requires_approval: true, project: check.project?.identifier },
     });
+
+    let approval: { requestId: string; expiresAt: string };
+    try {
+      approval = await requestApproval({
+        taskId,
+        skill,
+        toolName: skillDef.mcpTool,
+        toolArgs: taskInput,
+        userId: auth.userId,
+        contextSummary: describeWrite(auth, skill, taskInput, check.project),
+        project: check.project?.identifier,
+      });
+    } catch (err: any) {
+      // Parked with no approval request behind it, the task would wait
+      // forever. Fail it now; the write never ran.
+      const message = `Could not open the human approval request: ${err.message}`;
+      console.error(`[a2a] ${message} (task ${taskId})`);
+      await storeError(taskId, { message });
+      await transitionState(taskId, "failed", message);
+      return jsonRpcResult(body.id, { taskId, contextId, state: "failed", error: { message } });
+    }
 
     await queueWebhookDeliveries(taskId, "task.approval_required", {
       task_id: taskId,
@@ -307,20 +466,18 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
 
     return jsonRpcResult(body.id, {
       taskId,
+      contextId,
       state: "auth_required",
+      approval: { id: approval.requestId, status: "pending", expiresAt: approval.expiresAt },
+      ...(check.project ? { project: check.project } : {}),
+      message: AWAITING_APPROVAL,
     });
   }
 
   // No approval needed — create and execute inline
-  const taskId = await createA2aTask({
-    contextId,
-    clientId: auth.clientId,
-    userId: auth.userId,
-    workspaceSlug: auth.workspaceSlug,
-    skill,
-    input: taskInput,
-    idempotencyKey,
-  });
+  const created = await createTaskOnce(body.id, taskParams, auth);
+  if ("response" in created) return created.response;
+  const { taskId } = created;
 
   try {
     const result = await executeA2aTask(taskId, skill, taskInput, auth);
@@ -337,6 +494,7 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
 
     return jsonRpcResult(body.id, {
       taskId,
+      contextId,
       state: "completed",
       result,
     });
@@ -354,6 +512,7 @@ async function handleMessageSend(body: any, auth: AuthContext, ipAddress: string
 
     return jsonRpcResult(body.id, {
       taskId,
+      contextId,
       state: "failed",
       error: { message: err.message },
     });
@@ -370,25 +529,16 @@ async function handleTaskGet(body: any, auth: AuthContext) {
 
   const task = await getA2aTask(taskId);
   if (!task) {
-    return jsonRpcError(body.id, A2A_ERROR_CODES.INVALID_PARAMS, `Task not found: ${taskId}`);
+    return jsonRpcError(body.id, A2A_ERROR_CODES.TASK_NOT_FOUND, `Task not found: ${taskId}`);
   }
 
+  // Someone else's task reads exactly like a missing one: a task id must not
+  // reveal whether another client's work exists.
   if (task.client_id !== auth.clientId) {
-    return jsonRpcError(body.id, A2A_ERROR_CODES.AUTH_REQUIRED, "Task does not belong to this client");
+    return jsonRpcError(body.id, A2A_ERROR_CODES.TASK_NOT_FOUND, `Task not found: ${taskId}`);
   }
 
-  return jsonRpcResult(body.id, {
-    taskId: task.task_id,
-    contextId: task.context_id,
-    skill: task.skill,
-    state: task.state,
-    stateReason: task.state_reason,
-    result: task.result,
-    error: task.error,
-    createdAt: task.created_at,
-    updatedAt: task.updated_at,
-    completedAt: task.completed_at,
-  });
+  return jsonRpcResult(body.id, taskView(task, await getApproval(task.task_id)));
 }
 
 async function handleTaskList(body: any, auth: AuthContext) {
@@ -424,11 +574,11 @@ async function handleTaskCancel(body: any, auth: AuthContext, ipAddress: string)
 
   const task = await getA2aTask(taskId);
   if (!task) {
-    return jsonRpcError(body.id, A2A_ERROR_CODES.INVALID_PARAMS, `Task not found: ${taskId}`);
+    return jsonRpcError(body.id, A2A_ERROR_CODES.TASK_NOT_FOUND, `Task not found: ${taskId}`);
   }
 
   if (task.client_id !== auth.clientId) {
-    return jsonRpcError(body.id, A2A_ERROR_CODES.AUTH_REQUIRED, "Task does not belong to this client");
+    return jsonRpcError(body.id, A2A_ERROR_CODES.TASK_NOT_FOUND, `Task not found: ${taskId}`);
   }
 
   if (isTerminalState(task.state)) {

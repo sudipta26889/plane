@@ -199,6 +199,15 @@ export async function routeWorkItem(
         source: "hint",
       };
     }
+    // A caller who named a project meant THAT project. Routing their item
+    // somewhere else by similarity is a write to a place they never chose.
+    return {
+      projectId: null,
+      confidence: 0,
+      reason: `project_hint '${input.projectHint}' matches no project exactly. Use a project id, identifier or name.`,
+      candidates: projects,
+      source: "undecided",
+    };
   }
 
   if (projects.length === 1) {

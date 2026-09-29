@@ -20,7 +20,8 @@ export const TERMINAL_STATES: ReadonlySet<A2aTaskState> = new Set([
 const VALID_TRANSITIONS: Record<string, A2aTaskState[]> = {
   submitted: ["working", "auth_required", "canceled", "failed"],
   working: ["completed", "failed"],
-  auth_required: ["submitted", "rejected", "canceled"],
+  // -> failed: the approval request could never be opened, or was stranded.
+  auth_required: ["submitted", "rejected", "canceled", "failed"],
 };
 
 export function isTerminalState(state: string): boolean {
@@ -77,7 +78,17 @@ export const A2A_ERROR_CODES = {
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
   INTERNAL_ERROR: -32603,
+  // A2A's TaskNotFoundError. Also returned for another client's task, so a
+  // task id cannot be used to probe whether someone else's work exists.
+  TASK_NOT_FOUND: -32001,
+  // The bearer token is missing, invalid or expired (HTTP 401). The ONLY code
+  // that means "fix your credentials".
   AUTH_REQUIRED: -32002,
   RATE_LIMITED: -32003,
   APPROVAL_REQUIRED: -32004,
+  // The token is valid but lacks the skill's scope (HTTP 403). Not an approval
+  // wait: no human can grant it, only a token with the scope can.
+  INSUFFICIENT_SCOPE: -32005,
+  // An idempotency key (or messageId) reused for a DIFFERENT request.
+  IDEMPOTENCY_CONFLICT: -32009,
 } as const;
