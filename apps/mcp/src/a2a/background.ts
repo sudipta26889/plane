@@ -402,6 +402,17 @@ export async function syncKnowledgeIndex() {
   }
 }
 
+// Outcome of the last keepalive, which is a real embed. The embedder sits
+// behind a wake-on-request proxy whose own /health answers 200 even when it
+// cannot start the model — so that probe alone said "ok" for a week of failures.
+let lastEmbedAt: number | null = null;
+let lastEmbedError: string | null = null;
+
+export function getEmbedderStatus(): { ok: boolean; detail: string } {
+  if (lastEmbedError) return { ok: false, detail: `last embed failed: ${lastEmbedError}` };
+  return { ok: true, detail: lastEmbedAt === null ? "starting" : "last embed ok" };
+}
+
 /**
  * The embedding server unloads the model after 300s idle and takes ~10.5s to
  * reload. A cheap embed every few minutes keeps it resident.
@@ -411,7 +422,10 @@ export async function keepEmbedderWarm() {
 
   try {
     await embed("keepalive");
+    lastEmbedAt = Date.now();
+    lastEmbedError = null;
   } catch (err: any) {
-    console.warn(`[knowledge] Keepalive failed: ${err.message}`);
+    lastEmbedError = err?.message ? String(err.message).slice(0, 200) : "unknown error";
+    console.warn(`[knowledge] Keepalive failed: ${lastEmbedError}`);
   }
 }

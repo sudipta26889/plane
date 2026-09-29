@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import { db } from "./db.js";
 import { config } from "./config.js";
 import { getLlmConfig } from "./tools/smart-router.js";
-import { getIndexSyncStatus, getApprovalWorkerStatus } from "./a2a/background.js";
+import { getIndexSyncStatus, getApprovalWorkerStatus, getEmbedderStatus } from "./a2a/background.js";
 import { ping as longmemoryPing } from "./agent/longmemory.js";
 import { ping as mqttPing, publish as publishMqtt, TOPIC as MQTT_TOPIC } from "./agent/mqtt.js";
 import { getIngestStatus } from "./agent/ingest.js";
@@ -134,7 +134,7 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
   // fails every tick surfaces here instead of only in the logs.
   // approvalWorker is the resumption path itself: an approved write only ever
   // runs because that loop picked it up.
-  const dependencies = { database, llm, qdrant, redis, longmemory, mqtt, embeddings, dharahil, approvalWorker: getApprovalWorkerStatus(), indexSync: getIndexSyncStatus(), liveIndex: getLiveIndexStatus(), ingest: getIngestStatus() };
+  const dependencies = { database, llm, qdrant, redis, longmemory, mqtt, embeddings, dharahil, approvalWorker: getApprovalWorkerStatus(), indexSync: getIndexSyncStatus(), embedder: getEmbedderStatus(), liveIndex: getLiveIndexStatus(), ingest: getIngestStatus() };
   const report: HealthReport = {
     status: summarize(dependencies),
     server: "taskpilot-mcp",
