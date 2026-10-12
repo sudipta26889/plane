@@ -18,6 +18,7 @@ describe("pickDuplicate", () => {
       issueId: "i1",
       identifier: "SUDIPTASCF-1",
       score: 0.93,
+      stateGroup: "",
     });
   });
 
@@ -73,7 +74,7 @@ describe("findDuplicate", () => {
 
     const result = await findDuplicate("fix the login bug", { projectIds: ["p1", "p2"] });
 
-    expect(result).toEqual({ issueId: "i1", identifier: "SUDIPTASCF-1", score: 0.96 });
+    expect(result).toEqual({ match: { issueId: "i1", identifier: "SUDIPTASCF-1", score: 0.96, stateGroup: "" } });
 
     const [, searchInit] = spy.mock.calls[1];
     const body = JSON.parse(searchInit.body);
@@ -91,13 +92,15 @@ describe("findDuplicate", () => {
     // No means of scoping the search safely -> skip the check rather than
     // risk matching a work item in someone else's workspace.
     const spy = stubFetch([]);
-    expect(await findDuplicate("fix the login bug", { projectIds: [] })).toBeNull();
+    expect(await findDuplicate("fix the login bug", { projectIds: [] })).toMatchObject({ match: null, skipped: expect.any(String) });
     expect(spy).not.toHaveBeenCalled();
   });
 
   it("returns null instead of throwing when the embedding service is down", async () => {
     const spy = stubFetch([{ __status: 500, error: "down" }]);
-    expect(await findDuplicate("fix the login bug", { projectIds: ["p1"] })).toBeNull();
+    // Reported as skipped, not as "no duplicate": a silent skip let a week-long
+    // embedder outage file every repeat alert as new work.
+    expect(await findDuplicate("fix the login bug", { projectIds: ["p1"] })).toMatchObject({ match: null, skipped: expect.stringMatching(/embedding/i) });
     expect(spy).toHaveBeenCalledTimes(1);
   });
 });

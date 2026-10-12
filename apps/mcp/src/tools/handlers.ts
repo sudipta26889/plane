@@ -8,6 +8,7 @@ import { isCriticalAction, getWriteTools, requiresHumanApproval, isExternalPeer 
 import { runApprovalLoop } from "../a2a/dharahil.js";
 import { logAuditEvent } from "../a2a/audit-log.js";
 import { config } from "../config.js";
+import { db } from "../db.js";
 
 interface AuthContext {
   userId: string;
@@ -345,9 +346,15 @@ const TOOLS = [
         description: { type: "string", description: "Detailed description (optional)" },
         priority: { type: "string", enum: ["urgent", "high", "medium", "low", "none"], description: "Priority level" },
         project_hint: { type: "string", description: "Project name or identifier to route to (optional)" },
+        dedup_key: {
+          type: "string",
+          description:
+            "Stable key for something that can be reported repeatedly, e.g. a monitor's incident name ('paperclip-health:egress'). While an item with this key is open, a new report is added to it as a comment instead of creating another item. Do not put timestamps in it.",
+        },
         force_create: {
           type: "boolean",
-          description: "Create even if a near-duplicate exists. Default false.",
+          description:
+            "Only for genuinely separate work that was flagged as a possible duplicate. Never use it to file a repeat report of an open problem. Ignored when dedup_key matches an open item. Default false.",
         },
       },
       required: ["title"],
@@ -821,7 +828,62 @@ export function resolveIntakeProject(
   return project ? project.id : null;
 }
 
-async function handleCreateTask(args: any, client: TaskPilotClient, workspace: string) {
+const DEDUP_SOURCE = "taskpilot-dedup";
+const OPEN_STATE_GROUPS = new Set(["backlog", "unstarted", "started", "triage"]);
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+/** The newest item filed under this dedup key in the workspace, if any. */
+async function findByDedupKey(workspace: string, key: string) {
+  const result = await db.query(
+    `SELECT i.id::text, i.project_id::text, p.identifier || '-' || i.sequence_id AS identifier, s.group AS state_group
+     FROM issues i
+     JOIN projects p ON p.id = i.project_id
+     JOIN workspaces w ON w.id = i.workspace_id
+     LEFT JOIN states s ON s.id = i.state_id
+     WHERE w.slug = $1 AND i.deleted_at IS NULL AND i.external_source = $2
+       AND (i.external_id = $3 OR i.external_id LIKE $3 || '@%')
+     ORDER BY i.created_at DESC LIMIT 1`,
+    [workspace, DEDUP_SOURCE, key],
+  );
+  return result.rows[0] as { id: string; project_id: string; identifier: string; state_group: string } | undefined;
+}
+
+/**
+ * A repeat report of something already open is recorded on that item, the
+ * way PagerDuty/Opsgenie/Sentry absorb a recurring alert into the open
+ * incident. Refusing with a "force_create to file anyway" hint did not work:
+ * an automated caller read the hint and forced, filing one ticket per day for
+ * a single outage (96 of them).
+ */
+async function recordOccurrence(
+  client: TaskPilotClient,
+  existing: { id: string; projectId: string; identifier: string },
+  args: any,
+  matchedBy: "dedup_key" | "same_work",
+) {
+  const body = args.description ? `<br>${escapeHtml(String(args.description).slice(0, 2000))}` : "";
+  await client.addComment(existing.projectId, existing.id, `Reported again: <b>${escapeHtml(args.title)}</b>${body}`);
+  return {
+    status: "recorded_on_existing",
+    identifier: existing.identifier,
+    id: existing.id,
+    matched_by: matchedBy,
+    hint: "This repeats an item that is still open, so it was added to that item as a comment instead of filed again.",
+  };
+}
+
+export async function handleCreateTask(args: any, client: TaskPilotClient, workspace: string) {
+  // An exact key outranks everything else: a monitor that names its incident
+  // never needs similarity, and force_create cannot split an open incident.
+  const dedupKey = typeof args.dedup_key === "string" ? args.dedup_key.trim().slice(0, 200) : "";
+  const keyed = dedupKey ? await findByDedupKey(workspace, dedupKey) : undefined;
+  if (keyed && OPEN_STATE_GROUPS.has(keyed.state_group)) {
+    return recordOccurrence(client, { id: keyed.id, projectId: keyed.project_id, identifier: keyed.identifier }, args, "dedup_key");
+  }
+
   const decision = await routeWorkItem(
     {
       workspace,
@@ -835,27 +897,57 @@ async function handleCreateTask(args: any, client: TaskPilotClient, workspace: s
   const data: any = { name: args.title };
   if (args.description) data.description_html = `<p>${args.description}</p>`;
   if (args.priority) data.priority = args.priority;
+  if (dedupKey) {
+    data.external_source = DEDUP_SOURCE;
+    // Plane refuses a second item with the same external_id, so a recurrence
+    // after the first was closed carries a dated suffix; findByDedupKey
+    // matches both forms.
+    data.external_id = keyed ? `${dedupKey}@${new Date().toISOString()}` : dedupKey;
+  }
 
   if (decision.projectId) {
     const project = decision.candidates.find((candidate) => candidate.id === decision.projectId);
 
     // Reuse the router's embedding: it was computed from this exact text, and
     // the CPU embedder is the slowest step in creating an item.
-    const duplicate = await findDuplicate(
-      buildIndexText({ name: args.title, description_stripped: args.description ?? null }),
-      { projectIds: [decision.projectId], vector: decision.vector },
-    );
+    const check = dedupKey
+      ? { match: null }
+      : await findDuplicate(
+          buildIndexText({ name: args.title, description_stripped: args.description ?? null }),
+          { projectIds: [decision.projectId], vector: decision.vector },
+        );
+    const duplicate = check.match;
 
     if (duplicate && !args.force_create) {
-      return {
-        status: "possible_duplicate",
-        duplicate_of: duplicate.identifier,
-        score: duplicate.score,
-        hint: "Comment on the existing item, or pass force_create: true to file anyway.",
-      };
+      const open = OPEN_STATE_GROUPS.has(duplicate.stateGroup || "");
+      // Only a judged match is absorbed. The similarity-only fallback (Jev
+      // unavailable) blocks real work too often to act on silently, so it
+      // still asks the caller.
+      if (open && duplicate.probability !== undefined) {
+        return recordOccurrence(client, { id: duplicate.issueId, projectId: decision.projectId, identifier: duplicate.identifier }, args, "same_work");
+      }
+      if (open) {
+        return {
+          status: "possible_duplicate",
+          duplicate_of: duplicate.identifier,
+          score: duplicate.score,
+          hint: "Comment on the existing item if this is the same work. Pass force_create: true only if it is genuinely separate work.",
+        };
+      }
     }
 
     const issue = await client.createIssue(decision.projectId, data);
+    // The same work recurring after the earlier item was completed: a new
+    // item, linked, as an incident system opens a new incident after
+    // resolution rather than reopening the old one.
+    const previous = keyed ?? (duplicate && !OPEN_STATE_GROUPS.has(duplicate.stateGroup || "")
+      ? { id: duplicate.issueId, identifier: duplicate.identifier }
+      : undefined);
+    if (previous) {
+      await client.createRelation(decision.projectId, issue.id, "relates_to", [previous.id]).catch((err: any) =>
+        console.warn(`[create_task] Could not link recurrence to ${previous.identifier}: ${err.message}`),
+      );
+    }
 
     const identifier = `${project?.identifier || "?"}-${issue.sequence_id || "?"}`;
     void publishMqtt(MQTT_TOPIC.taskCreated, {
@@ -876,6 +968,8 @@ async function handleCreateTask(args: any, client: TaskPilotClient, workspace: s
         reason: decision.reason,
         source: decision.source,
       },
+      ...(previous ? { recurrence_of: previous.identifier } : {}),
+      ...(check.skipped ? { duplicate_check: `skipped: ${check.skipped}` } : {}),
     };
   }
 

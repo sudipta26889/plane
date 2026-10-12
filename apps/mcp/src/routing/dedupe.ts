@@ -11,6 +11,18 @@ export interface DuplicateMatch {
   score: number;
   /** Jev's probability that this is the same work, when Jev judged it. */
   probability?: number;
+  /** The existing item's state group ("completed", "started", ...). */
+  stateGroup?: string;
+}
+
+/**
+ * The outcome of a duplicate check. `skipped` says the check could not run,
+ * which is different from "no duplicate": failing open silently let a
+ * week-long embedder outage file every repeat alert as new work.
+ */
+export interface DuplicateCheck {
+  match: DuplicateMatch | null;
+  skipped?: string;
 }
 
 const CANDIDATE_LIMIT = 10;
@@ -26,6 +38,7 @@ export function pickDuplicate(hits: QdrantHit[], threshold: number): DuplicateMa
     issueId: String(best.payload.issue_id),
     identifier: String(best.payload.identifier || ""),
     score: best.score,
+    stateGroup: String(best.payload.state_group || ""),
   };
 }
 
@@ -59,10 +72,15 @@ async function judgeWithJev(text: string, candidates: QdrantHit[], sink: JevSink
 
   const question = (index: number): Question => ({
     type: "noul",
-    instructions: `Is \`new_item\` the same piece of work as \`existing_items[${index}]\`, so that filing it would create a duplicate?`,
+    // "Same piece of work" alone read a recurring alert as a new event: 96
+    // daily "[Paperclip Health] ... at <time>" tickets for one outage were
+    // judged distinct. Naming the repeat-report case lifted recall on the 143
+    // labelled pairs from 0.907 to 1.000 at precision 1.000; the false side
+    // names what must stay separate (next quarter's filing, gap fix 3 vs 2).
+    instructions: `Would filing \`new_item\` duplicate \`existing_items[${index}]\`: the same task filed twice, or another report of the same ongoing problem that it already tracks?`,
     criteria: {
-      true: "Both describe the same task; doing one would complete the other.",
-      false: "They are different tasks, even if they share a topic, project or workstream.",
+      true: "The same task, or a repeat report of the same unresolved problem (the same failure seen again at a later time); resolving the existing item resolves the new one.",
+      false: "Separate work that must be done on its own: a different period, quarter, phase, number, component or sub-task, even when the wording is almost identical.",
     },
   });
   const answers = await askJev(
@@ -82,14 +100,20 @@ async function judgeWithJev(text: string, candidates: QdrantHit[], sink: JevSink
   });
   if (!best) return null;
   const { hit, p } = best as { hit: QdrantHit; p: number };
-  return { issueId: String(hit.payload.issue_id), identifier: String(hit.payload.identifier || ""), score: hit.score, probability: p };
+  return {
+    issueId: String(hit.payload.issue_id),
+    identifier: String(hit.payload.identifier || ""),
+    score: hit.score,
+    probability: p,
+    stateGroup: String(hit.payload.state_group || ""),
+  };
 }
 
 export async function findDuplicate(
   text: string,
   opts: { projectIds: string[]; vector?: number[] },
-): Promise<DuplicateMatch | null> {
-  if (opts.projectIds.length === 0) return null;
+): Promise<DuplicateCheck> {
+  if (opts.projectIds.length === 0) return { match: null, skipped: "no project to search" };
 
   try {
     // Reuse the router's embedding when the caller already has one for this
@@ -113,19 +137,20 @@ export async function findDuplicate(
     });
     const byThreshold = async () => pickDuplicate(hits, config.dedupeSimilarityThreshold);
     const candidates = hits.filter((hit) => hit.payload?.issue_id && hit.score >= RECALL_SIMILARITY).slice(0, MAX_JUDGED);
-    if (candidates.length === 0) return null;
+    if (candidates.length === 0) return { match: null };
 
     // The similarity threshold is the incumbent: it decides when Jev is off,
     // shadowed, or fails.
-    return await decide({
+    const match = await decide({
       feature: "dedupe",
       subject: text.slice(0, 255),
       jev: (sink) => judgeWithJev(text, candidates, sink),
       fallback: byThreshold,
       same: (jev, threshold) => (jev?.issueId ?? null) === (threshold?.issueId ?? null),
     });
+    return { match };
   } catch (err: any) {
     console.warn(`[dedupe] Skipped duplicate check: ${err.message}`);
-    return null;
+    return { match: null, skipped: String(err.message).slice(0, 200) };
   }
 }

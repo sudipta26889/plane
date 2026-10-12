@@ -26,7 +26,7 @@ vi.mock("../../tools/smart-router.js", () => ({
 
 import { findDuplicate } from "../dedupe.js";
 
-const hit = (id: string, score: number) => ({ id, score, payload: { issue_id: id, identifier: `FIN-${id}` } });
+const hit = (id: string, score: number) => ({ id, score, payload: { issue_id: id, identifier: `FIN-${id}`, state_group: "backlog" } });
 
 function stubNetwork(hits: unknown[], jev: Record<string, number> | "fail") {
   const calls: string[] = [];
@@ -57,23 +57,23 @@ const opts = { projectIds: ["p1"], vector: [0.1, 0.2, 0.3] };
 describe("findDuplicate with Jev judging", () => {
   it("does not block a look-alike Jev says is different work, however similar", async () => {
     stubNetwork([hit("q2", 0.971)], { duplicate_0: 0.08 });
-    expect(await findDuplicate("GSTR-1 Jul-Sep 2026", opts)).toBeNull();
+    expect(await findDuplicate("GSTR-1 Jul-Sep 2026", opts)).toEqual({ match: null });
   });
 
   it("returns the candidate Jev judges the same work, with its probability", async () => {
     stubNetwork([hit("a", 0.95), hit("b", 0.93)], { duplicate_0: 0.2, duplicate_1: 0.81 });
-    expect(await findDuplicate("restore prod", opts)).toEqual({ issueId: "b", identifier: "FIN-b", score: 0.93, probability: 0.81 });
+    expect(await findDuplicate("restore prod", opts)).toEqual({ match: { issueId: "b", identifier: "FIN-b", score: 0.93, probability: 0.81, stateGroup: "backlog" } });
   });
 
   it("never asks Jev when nothing clears the recall floor", async () => {
     const calls = stubNetwork([hit("a", 0.89)], {});
-    expect(await findDuplicate("something new", opts)).toBeNull();
+    expect(await findDuplicate("something new", opts)).toEqual({ match: null });
     expect(calls.some((url) => url.endsWith("/systemone"))).toBe(false);
   });
 
   it("falls back to the similarity threshold when Jev fails", async () => {
     stubNetwork([hit("a", 0.96)], "fail");
-    expect(await findDuplicate("restore prod", opts)).toEqual({ issueId: "a", identifier: "FIN-a", score: 0.96 });
+    expect(await findDuplicate("restore prod", opts)).toEqual({ match: { issueId: "a", identifier: "FIN-a", score: 0.96, stateGroup: "backlog" } });
   });
 
   it("excludes cancelled items from the candidates", async () => {
