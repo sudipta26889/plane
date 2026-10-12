@@ -69,6 +69,26 @@ export async function getLlmConfig(): Promise<LlmConfig> {
   return cachedLlmConfig;
 }
 
+// --- Model input hygiene ---
+
+/**
+ * Ollama's nemotron-3-nano renderer treats "/think" and "/no_think" anywhere in
+ * a system or user message as a reasoning switch that overrides the request,
+ * and deletes the token from the prompt. User text, tool output and URLs
+ * (".../thinking-tools") can contain it by accident. A zero-width space after
+ * the slash keeps the text readable and inert.
+ */
+export function defuseThinkToggles(text: string): string {
+  return text.replace(/\/(no_)?think/gi, (match) => `/\u200b${match.slice(1)}`);
+}
+
+/** Applies defuseThinkToggles to every string message content, returning a copy. */
+export function defuseMessages<T extends { content?: unknown }>(messages: T[]): T[] {
+  return messages.map((message) =>
+    typeof message.content === "string" ? { ...message, content: defuseThinkToggles(message.content) } : message,
+  );
+}
+
 // --- Routing ---
 
 /**

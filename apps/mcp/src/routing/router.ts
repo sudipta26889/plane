@@ -8,8 +8,9 @@ import {
   formatProjectsForPrompt,
   type ProjectSummary,
 } from "../knowledge/context.js";
-import { getLlmConfig } from "../tools/smart-router.js";
-import { askJev, decide, JevUncertainError } from "../decisions/jev.js";
+import { getLlmConfig, defuseMessages } from "../tools/smart-router.js";
+import { askJev, decide, JevUncertainError, type JevSink } from "../decisions/jev.js";
+import { db } from "../db.js";
 import type { TaskPilotClient } from "../tools/taskpilot-client.js";
 
 export interface RouteDecision {
@@ -41,7 +42,7 @@ export const LLM_MAX_TOKENS = 8192;
 
 const NEIGHBOUR_LIMIT = 20;
 
-const ROUTING_SYSTEM_PROMPT = `You route work items to projects in TaskPilot.
+export const ROUTING_SYSTEM_PROMPT = `You route work items to projects in TaskPilot.
 
 You are given two things: the projects with their descriptions, and a summary of
 where the most similar EXISTING work items are actually filed.
@@ -193,7 +194,7 @@ async function pickProjectWithLlm(text: string, projects: ProjectSummary[], hits
   const llm = new OpenAI({ baseURL: llmConfig.baseUrl, apiKey: llmConfig.apiKey });
   const response = await llm.chat.completions.create({
     model: llmConfig.model,
-    messages: [
+    messages: defuseMessages([
       { role: "system", content: ROUTING_SYSTEM_PROMPT },
       {
         role: "user",
@@ -202,7 +203,10 @@ async function pickProjectWithLlm(text: string, projects: ProjectSummary[], hits
           projects,
         )}\n\nWork item:\n${text}`,
       },
-    ],
+    ]),
+    // Measured with LiteLLM's cache bypassed, 60 items x repeats: temperature 0
+    // was right 58/60 and changed its pick on 7% of items between runs; 1.0
+    // (NVIDIA's reasoning default) was right 53-54/60 and changed on 22%.
     temperature: 0,
     max_tokens: LLM_MAX_TOKENS,
   }, { timeout: LLM_TIMEOUT_MS, maxRetries: 1 });
@@ -217,36 +221,75 @@ async function pickProjectWithLlm(text: string, projects: ProjectSummary[], hits
   };
 }
 
-async function pickProjectWithJev(text: string, projects: ProjectSummary[], hits: QdrantHit[]): Promise<ProjectPick> {
+// Jev reads option keys, leans toward the first option, and handles numbers
+// poorly (TypeSafe's Jev 1.13 limitations page). So: identifiers as keys in
+// a fixed alphabetical order, an explicit way out, and evidence as a list of
+// where similar items are filed rather than similarity scores.
+const JEV_UNCLEAR = "unclear";
+const JEV_EVIDENCE_ITEMS = 10;
+
+async function pickProjectWithJev(
+  item: { title: string; description?: string },
+  projects: ProjectSummary[],
+  hits: QdrantHit[],
+  sink: JevSink,
+): Promise<ProjectPick> {
+  const evidence = hits.filter((hit) => hit.payload?.issue_id).slice(0, JEV_EVIDENCE_ITEMS);
+  const titles = new Map<string, string>(
+    evidence.length
+      ? (await db.query(`SELECT id::text, name FROM issues WHERE id = ANY($1::uuid[])`, [evidence.map((hit) => String(hit.payload.issue_id))])).rows.map(
+          (row: any) => [row.id, row.name],
+        )
+      : [],
+  );
+  const identifierOf = new Map(projects.map((project) => [project.id, project.identifier]));
+  const ordered = [...projects].sort((a, b) => a.identifier.localeCompare(b.identifier));
+
   const answers = await askJev(
-    { work_item: text, evidence: formatEvidence(hits, projects) },
+    {
+      work_item: { title: item.title, description: (item.description || "").slice(0, 2000) },
+      similar_existing_items: evidence.map((hit) => ({
+        project: identifierOf.get(String(hit.payload.project_id)),
+        title: titles.get(String(hit.payload.issue_id)) || "",
+      })),
+    },
     {
       project: {
         type: "choice",
         instructions:
-          "Which project should `work_item` be filed in? `evidence` shows where the most similar existing work items are filed; when it disagrees with a project's description, follow the evidence.",
-        criteria: Object.fromEntries(
-          projects.map((project) => [project.id, `${project.name} (${project.identifier})${project.description ? `: ${project.description}` : ""}`]),
-        ),
+          "Which project should `work_item` be filed in? `similar_existing_items` lists where the most similar existing work is filed; when it disagrees with a project's description, follow where similar work is filed.",
+        criteria: {
+          ...Object.fromEntries(ordered.map((project) => [project.identifier, `${project.name}${project.description ? `: ${project.description.slice(0, 400)}` : ""}`])),
+          [JEV_UNCLEAR]: "The work item does not clearly belong to any listed project.",
+        },
       },
     },
+    sink,
   );
 
   const answer = answers.project;
   if (answer?.type !== "choice") throw new Error("Jev response is missing the project answer");
-  if (answer.confidence < config.decisionMinConfidence) {
-    throw new JevUncertainError(`Jev project concentration ${answer.confidence.toFixed(2)} is below ${config.decisionMinConfidence}`);
+  const chosen = ordered.find((project) => project.identifier === answer.choice);
+  if (!chosen || answer.confidence < config.decisionMinConfidence) {
+    throw new JevUncertainError(`Jev chose ${answer.choice} at concentration ${answer.confidence.toFixed(2)}`);
   }
   return {
-    projectId: answer.choice,
+    projectId: chosen.id,
     confidence: answer.confidence,
-    reason: `Jev chose this project (concentration ${answer.confidence.toFixed(2)}).`,
+    reason: `Jev chose ${chosen.identifier} (concentration ${answer.confidence.toFixed(2)}).`,
     source: "jev",
   };
 }
 
 export async function routeWorkItem(
-  input: { workspace: string; title: string; description?: string; projectHint?: string },
+  input: {
+    workspace: string;
+    title: string;
+    description?: string;
+    projectHint?: string;
+    /** Items to leave out of the evidence: an eval routing an item already in the index must not find itself. */
+    excludeIds?: string[];
+  },
   client: TaskPilotClient,
 ): Promise<RouteDecision> {
   const { projects } = await getWorkspaceContext(input.workspace, client);
@@ -319,7 +362,15 @@ export async function routeWorkItem(
         // and the fallback would progressively teach the router to stop
         // falling back — invisibly, since the eval treats an item's current
         // project as ground truth.
-        must_not: [{ key: "state_group", match: { value: "triage" } }],
+        //
+        // Cancelled items are excluded for a similar reason: on this instance
+        // they include whole sets of copies filed into the wrong project and
+        // then abandoned, which would vote for that project.
+        must_not: [
+          { key: "state_group", match: { value: "triage" } },
+          { key: "state_group", match: { value: "cancelled" } },
+          ...(input.excludeIds?.length ? [{ has_id: input.excludeIds }] : []),
+        ],
       },
     });
     neighbourHits = hits;
@@ -336,7 +387,7 @@ export async function routeWorkItem(
     const pick = await decide({
       feature: "route_project",
       subject: input.title.slice(0, 255),
-      jev: () => pickProjectWithJev(text, projects, neighbourHits),
+      jev: (sink) => pickProjectWithJev(input, projects, neighbourHits, sink),
       fallback: () => pickProjectWithLlm(text, projects, neighbourHits),
       same: (jev, llm) => jev.projectId === llm.projectId,
     });

@@ -55,7 +55,7 @@ async function main() {
   // history, not the router. Triage items are excluded for the same reason —
   // they are precisely the ones nothing could place.
   const items = await db.query(
-    `SELECT i.name, i.description_stripped, i.project_id, p.identifier
+    `SELECT i.id, i.name, i.description_stripped, i.project_id, p.identifier
      FROM issues i
      JOIN projects p ON p.id = i.project_id
      LEFT JOIN states s ON s.id = i.state_id
@@ -77,6 +77,10 @@ async function main() {
         workspace,
         title: item.name,
         description: item.description_stripped || undefined,
+        // Every item here is already in the index; without this its own
+        // vector is the top neighbour at similarity 1.0 and the eval
+        // measures recall of itself, not routing.
+        excludeIds: [String(item.id)],
       },
       client,
     );

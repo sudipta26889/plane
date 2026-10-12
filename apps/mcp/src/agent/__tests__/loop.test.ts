@@ -28,6 +28,7 @@ vi.mock("../../tools/handlers.js", async (importOriginal) => ({
 }));
 
 vi.mock("../../tools/smart-router.js", () => ({
+  defuseMessages: (messages: any[]) => messages,
   getLlmConfig: async () => ({ apiKey: "test-key", baseUrl: "http://llm.test/v1", model: "test-model" }),
 }));
 

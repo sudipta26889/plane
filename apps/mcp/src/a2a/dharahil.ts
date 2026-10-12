@@ -116,45 +116,18 @@ export async function applyRevisionInstructions(
   originalArgs: Record<string, any>,
   reviseInput: string,
 ): Promise<Record<string, any>> {
-  // Dynamically import to reuse LLM config pattern from smart-router
+  // Dynamic: smart-router pulls in the database pool, which this module's
+  // other exports (and their tests) do not need.
   const OpenAI = (await import("openai")).default;
-  const { db: database } = await import("../db.js");
-
-  // Get LLM config (same pattern as smart-router)
-  const result = await database.query(
-    `SELECT key, value, is_encrypted FROM instance_configurations WHERE key IN ('LLM_API_KEY', 'LLM_API_BASE_URL', 'LLM_MODEL')`,
-  );
-
-  let apiKey = "";
-  let baseUrl = config.llmApiBaseUrl;
-  let model = config.llmModel;
-
-  function decryptInstanceValue(encrypted: string): string {
-    const dk = crypto.pbkdf2Sync(config.jwtSecret, "salt", 100000, 32, "sha256");
-    const encryptionKey = dk.subarray(16, 32);
-    const tokenBytes = Buffer.from(encrypted, "base64");
-    const iv = tokenBytes.subarray(9, 25);
-    const ciphertext = tokenBytes.subarray(25, tokenBytes.length - 32);
-    const decipher = crypto.createDecipheriv("aes-128-cbc", encryptionKey, iv);
-    return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
-  }
-
-  for (const row of result.rows) {
-    let val = row.value || "";
-    if (row.is_encrypted && val) {
-      try { val = decryptInstanceValue(val); } catch { continue; }
-    }
-    if (row.key === "LLM_API_KEY") apiKey = val;
-    if (row.key === "LLM_API_BASE_URL") baseUrl = val || baseUrl;
-    if (row.key === "LLM_MODEL") model = val || model;
-  }
+  const { getLlmConfig, defuseMessages } = await import("../tools/smart-router.js");
+  const { apiKey, baseUrl, model } = await getLlmConfig();
 
   const openai = new OpenAI({ apiKey, baseURL: baseUrl });
 
   const response = await openai.chat.completions.create({
     model,
     temperature: 0,
-    messages: [
+    messages: defuseMessages([
       {
         role: "system",
         content: `You are a tool argument modifier. Given a tool name, its original arguments (JSON), and human revision instructions, return ONLY the modified arguments as valid JSON. Do not explain. Do not wrap in markdown. Return ONLY the JSON object.`,
@@ -167,7 +140,9 @@ Human revision instructions: ${reviseInput}
 
 Return the modified args as JSON:`,
       },
-    ],
+    ]),
+    // Reasoning tokens count against this; an unset cap left it to the provider.
+    max_tokens: 8192,
   });
 
   const content = response.choices[0]?.message?.content?.trim() || "";

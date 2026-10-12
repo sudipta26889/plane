@@ -33,9 +33,20 @@ export type Answer =
 /** Thrown by a Jev decider when its answer is too spread out to act on. */
 export class JevUncertainError extends Error {}
 
+/**
+ * Where a decider's raw Jev answers land, so decision_model_runs keeps them
+ * for every outcome. Uncertain answers are exactly the ones calibration needs,
+ * and they never reach a decided result.
+ */
+export interface JevSink {
+  answers?: Record<string, Answer>;
+  model?: string;
+}
+
 export async function askJev(
   state: Record<string, unknown>,
   questions: Record<string, Question>,
+  sink?: JevSink,
 ): Promise<Record<string, Answer>> {
   const llm = await getLlmConfig();
   // LiteLLM's /systemone route passes System One straight through to TypeSafe
@@ -51,11 +62,23 @@ export async function askJev(
   // The body is work-item text, so it stays out of the error.
   if (!response.ok) throw new Error(`Jev request failed with status ${response.status}`);
 
-  const answers: Record<string, any> = (await response.json())?.answers ?? {};
-  for (const [id, answer] of Object.entries(answers)) {
-    // Providers that omit confidence fall back to the chosen option's probability.
-    if (answer?.type === "choice") answer.confidence ??= answer.probabilities?.[answer.choice] ?? 0;
-    answers[id] = answer;
+  const body: any = await response.json();
+  const answers: Record<string, any> = body?.answers ?? {};
+  for (const answer of Object.values(answers)) {
+    // TypeSafe's own definition, (p_max - 1/n) / (1 - 1/n): 0 for a uniform
+    // spread. The chosen option's raw probability is a different scale.
+    if (answer?.type === "choice" && answer.confidence === undefined) {
+      const n = Object.keys(answer.probabilities ?? {}).length;
+      const p = answer.probabilities?.[answer.choice] ?? 0;
+      answer.confidence = n > 1 ? Math.max((p - 1 / n) / (1 - 1 / n), 0) : p;
+    }
+  }
+  // We use typesafe/jev-latest as LiteLLM serves it. The alias moves between
+  // releases, so record the version that answered: an upgrade then shows up
+  // next to the thresholds it may shift.
+  if (sink) {
+    sink.answers = answers;
+    sink.model = body?.model;
   }
   return answers;
 }
@@ -71,14 +94,15 @@ export function isLive(feature: string): boolean {
 export async function decide<T>(opts: {
   feature: string;
   subject?: string;
-  jev: () => Promise<T>;
+  jev: (sink: JevSink) => Promise<T>;
   fallback: () => Promise<T>;
   same: (jev: T, fallback: T) => boolean;
 }): Promise<T> {
   if (!config.decisionModel) return opts.fallback();
 
   const started = Date.now();
-  const jevRun = opts.jev().then(
+  const sink: JevSink = {};
+  const jevRun = opts.jev(sink).then(
     (result) => ({ ok: true as const, result, ms: Date.now() - started }),
     (error: unknown) => ({ ok: false as const, error, ms: Date.now() - started }),
   );
@@ -91,7 +115,7 @@ export async function decide<T>(opts: {
       // Still the existing decider's failure to report, but keep Jev's answer:
       // these are the cases where the comparison matters most.
       void jevRun.then((run) =>
-        record(opts, "shadow", "fallback-error", run.ms, run.ok ? run.result : undefined, undefined, `${message(fallbackError)}${run.ok ? "" : ` | Jev: ${message(run.error)}`}`),
+        record(sink, opts, "shadow", "fallback-error", run.ms, run.ok ? run.result : undefined, undefined, `${message(fallbackError)}${run.ok ? "" : ` | Jev: ${message(run.error)}`}`),
       );
       throw fallbackError;
     }
@@ -100,6 +124,7 @@ export async function decide<T>(opts: {
     // change a decision that was already made.
     void jevRun.then((run) =>
       record(
+        sink,
         opts,
         "shadow",
         run.ok ? (opts.same(run.result, fallbackResult) ? "agree" : "disagree") : run.error instanceof JevUncertainError ? "uncertain" : "error",
@@ -114,7 +139,7 @@ export async function decide<T>(opts: {
 
   const run = await jevRun;
   if (run.ok) {
-    void record(opts, "live", "decided", run.ms, run.result);
+    void record(sink, opts, "live", "decided", run.ms, run.result);
     return run.result;
   }
 
@@ -122,11 +147,12 @@ export async function decide<T>(opts: {
     console.warn(`[jev] ${opts.feature} failed, falling back: ${message(run.error)}`);
   }
   const result = await opts.fallback();
-  void record(opts, "live", run.error instanceof JevUncertainError ? "escalated" : "fallback", run.ms, undefined, result, message(run.error));
+  void record(sink, opts, "live", run.error instanceof JevUncertainError ? "escalated" : "fallback", run.ms, undefined, result, message(run.error));
   return result;
 }
 
 async function record(
+  sink: JevSink,
   opts: { feature: string; subject?: string },
   mode: "shadow" | "live",
   outcome: string,
@@ -137,9 +163,9 @@ async function record(
 ): Promise<void> {
   try {
     await db.query(
-      `INSERT INTO decision_model_runs (feature, subject, model, mode, outcome, jev_result, fallback_result, latency_ms, error)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [opts.feature, opts.subject ?? null, config.decisionModel, mode, outcome, toJson(jevResult), toJson(fallbackResult), latencyMs, error ?? null],
+      `INSERT INTO decision_model_runs (feature, subject, model, mode, outcome, jev_result, fallback_result, answers, latency_ms, error)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [opts.feature, opts.subject ?? null, sink.model ?? config.decisionModel, mode, outcome, toJson(jevResult), toJson(fallbackResult), toJson(sink.answers), latencyMs, error ?? null],
     );
   } catch (err) {
     console.warn(`[jev] Could not record ${opts.feature} run: ${message(err)}`);

@@ -3,12 +3,14 @@ import { embed } from "../knowledge/embeddings.js";
 import { search, type QdrantHit } from "../knowledge/qdrant.js";
 import { buildIndexText } from "../knowledge/index-sync.js";
 import { db } from "../db.js";
-import { askJev, decide, JevUncertainError } from "../decisions/jev.js";
+import { askJev, decide, type JevSink, type Question } from "../decisions/jev.js";
 
 export interface DuplicateMatch {
   issueId: string;
   identifier: string;
   score: number;
+  /** Jev's probability that this is the same work, when Jev judged it. */
+  probability?: number;
 }
 
 const CANDIDATE_LIMIT = 10;
@@ -38,36 +40,49 @@ export function pickDuplicate(hits: QdrantHit[], threshold: number): DuplicateMa
  * actually belongs to a different tenant. Mirrors the `{ any: [...] }` scope
  * filter `routeWorkItem` already applies in `router.ts`.
  */
-// Inbox's cold-email bands: between these Jev is unsure and the threshold decides.
-const MIN_DUPLICATE_PROBABILITY = 0.75;
-const MAX_DISTINCT_PROBABILITY = 0.25;
+// Two stages, measured on 143 hand-labelled real pairs (2026-10-12):
+// similarity alone cannot tell "the same task filed twice" from "the next
+// quarter's filing of the same form" or "gap fix 3 vs gap fix 2" — at any
+// cutoff it blocked real work (0.945: precision 0.94, 5 false blocks). So
+// similarity only RECALLS candidates (>= 0.90 caught every true duplicate),
+// and Jev JUDGES them: p >= 0.5 gave precision 1.00, recall 0.85.
+const RECALL_SIMILARITY = 0.9;
+const MAX_JUDGED = 3;
+const DUPLICATE_PROBABILITY = 0.5;
 
-async function isDuplicateByJev(text: string, nearest: QdrantHit): Promise<DuplicateMatch | null> {
-  const existing = await db.query(`SELECT name, description_stripped FROM issues WHERE id = $1`, [nearest.payload.issue_id]);
-  if (existing.rows.length === 0) throw new Error("Nearest work item no longer exists");
+async function judgeWithJev(text: string, candidates: QdrantHit[], sink: JevSink): Promise<DuplicateMatch | null> {
+  const ids = candidates.map((hit) => String(hit.payload.issue_id));
+  const rows = await db.query(`SELECT id::text, name, description_stripped FROM issues WHERE id = ANY($1::uuid[])`, [ids]);
+  const byId = new Map(rows.rows.map((row: any) => [row.id, row]));
+  const judged = candidates.filter((hit) => byId.has(String(hit.payload.issue_id)));
+  if (judged.length === 0) return null;
 
-  const answers = await askJev(
-    { new_item: text, existing_item: buildIndexText(existing.rows[0]) },
-    {
-      duplicate: {
-        type: "noul",
-        instructions: "Is `new_item` the same piece of work as `existing_item`, so that filing it would create a duplicate?",
-        criteria: {
-          true: "Both describe the same task; doing one would complete the other.",
-          false: "They are different tasks, even if they share a topic, project or workstream.",
-        },
-      },
+  const question = (index: number): Question => ({
+    type: "noul",
+    instructions: `Is \`new_item\` the same piece of work as \`existing_items[${index}]\`, so that filing it would create a duplicate?`,
+    criteria: {
+      true: "Both describe the same task; doing one would complete the other.",
+      false: "They are different tasks, even if they share a topic, project or workstream.",
     },
+  });
+  const answers = await askJev(
+    {
+      new_item: text,
+      existing_items: judged.map((hit) => buildIndexText(byId.get(String(hit.payload.issue_id)))),
+    },
+    Object.fromEntries(judged.map((_, index) => [`duplicate_${index}`, question(index)])),
+    sink,
   );
 
-  const answer = answers.duplicate;
-  if (answer?.type !== "noul") throw new Error("Jev response is missing the duplicate answer");
-  if (answer.noul > MAX_DISTINCT_PROBABILITY && answer.noul < MIN_DUPLICATE_PROBABILITY) {
-    throw new JevUncertainError(`Jev duplicate probability ${answer.noul.toFixed(2)} is inside the uncertain band`);
-  }
-  return answer.noul >= MIN_DUPLICATE_PROBABILITY
-    ? { issueId: String(nearest.payload.issue_id), identifier: String(nearest.payload.identifier || ""), score: nearest.score }
-    : null;
+  let best: { hit: QdrantHit; p: number } | null = null;
+  judged.forEach((hit, index) => {
+    const answer = answers[`duplicate_${index}`];
+    if (answer?.type !== "noul") throw new Error("Jev response is missing a duplicate answer");
+    if (answer.noul >= DUPLICATE_PROBABILITY && (!best || answer.noul > best.p)) best = { hit, p: answer.noul };
+  });
+  if (!best) return null;
+  const { hit, p } = best as { hit: QdrantHit; p: number };
+  return { issueId: String(hit.payload.issue_id), identifier: String(hit.payload.identifier || ""), score: hit.score, probability: p };
 }
 
 export async function findDuplicate(
@@ -91,18 +106,21 @@ export async function findDuplicate(
           { key: "entity_type", match: { value: "work_item" } },
           { key: "project_id", match: { any: opts.projectIds } },
         ],
+        // A cancelled item is work someone decided not to do; filing it again
+        // is not a duplicate. Several are known misfilings, too.
+        must_not: [{ key: "state_group", match: { value: "cancelled" } }],
       },
     });
-    const nearest = hits.find((hit) => hit.payload?.issue_id);
     const byThreshold = async () => pickDuplicate(hits, config.dedupeSimilarityThreshold);
-    if (!nearest) return byThreshold();
+    const candidates = hits.filter((hit) => hit.payload?.issue_id && hit.score >= RECALL_SIMILARITY).slice(0, MAX_JUDGED);
+    if (candidates.length === 0) return null;
 
-    // The similarity threshold is the incumbent decider here, not an LLM; Jev
-    // shadows it on the nearest candidate.
+    // The similarity threshold is the incumbent: it decides when Jev is off,
+    // shadowed, or fails.
     return await decide({
       feature: "dedupe",
       subject: text.slice(0, 255),
-      jev: () => isDuplicateByJev(text, nearest),
+      jev: (sink) => judgeWithJev(text, candidates, sink),
       fallback: byThreshold,
       same: (jev, threshold) => (jev?.issueId ?? null) === (threshold?.issueId ?? null),
     });

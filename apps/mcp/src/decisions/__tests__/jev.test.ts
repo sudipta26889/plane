@@ -65,7 +65,7 @@ describe("decide", () => {
 });
 
 describe("askJev", () => {
-  it("posts System One to LiteLLM's pass-through and fills a missing confidence", async () => {
+  it("posts System One to LiteLLM's pass-through and fills a missing confidence on TypeSafe's scale", async () => {
     const spy = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ answers: { project: { type: "choice", choice: "p2", probabilities: { p1: 0.1, p2: 0.9 } } } }),
@@ -76,7 +76,8 @@ describe("askJev", () => {
       project: { type: "choice", instructions: "Which?", criteria: { p1: "One", p2: "Two" } },
     });
 
-    expect(answers.project).toMatchObject({ choice: "p2", confidence: 0.9 });
+    // (p_max - 1/n) / (1 - 1/n) = (0.9 - 0.5) / 0.5: 0 would mean a uniform spread.
+    expect(answers.project).toMatchObject({ choice: "p2", confidence: 0.8 });
     const [url, init] = spy.mock.calls[0];
     expect(url).toBe("http://litellm.test/v1/systemone");
     expect(JSON.parse(init.body)).toEqual({

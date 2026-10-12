@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { config } from "../config.js";
 import { getAllSkills } from "./skill-registry.js";
 import { getToolDefinitions } from "../tools/handlers.js";
-import { getLlmConfig } from "../tools/smart-router.js";
+import { getLlmConfig, defuseMessages } from "../tools/smart-router.js";
 import { LLM_MAX_TOKENS } from "../routing/router.js";
 
 /**
@@ -100,10 +100,10 @@ export async function resolveIntent(text: string): Promise<IntentResult | null> 
     const llm = new OpenAI({ baseURL: llmConfig.baseUrl, apiKey: llmConfig.apiKey });
     const response = await llm.chat.completions.create({
       model: llmConfig.model,
-      messages: [
+      messages: defuseMessages([
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: `Skills:\n${buildIntentMenu()}\n\nMessage:\n${text}` },
-      ],
+      ]),
       temperature: 0,
       max_tokens: LLM_MAX_TOKENS,
     }, { timeout: LLM_TIMEOUT_MS, maxRetries: 1 });

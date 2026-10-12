@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { requiresHumanApproval } from "../a2a/skill-registry.js";
 import type { AuthContext } from "../a2a/types.js";
 import { executeToolCall } from "../tools/handlers.js";
-import { getLlmConfig } from "../tools/smart-router.js";
+import { getLlmConfig, defuseMessages } from "../tools/smart-router.js";
 import { recallForPrompt } from "./longmemory.js";
 import { loadConversation, recordTurn } from "./memory.js";
 import { clearRunState, saveRunState, type AgentRunState } from "./state.js";
@@ -302,7 +302,8 @@ export async function runAgent(input: {
       const response = await llm.chat.completions.create(
         {
           model: llmConfig.model,
-          messages,
+          // A copy: the stored history keeps the original text.
+          messages: defuseMessages(messages as any[]) as ChatMessage[],
           ...(tools.length ? { tools, tool_choice: "auto" as const } : {}),
           temperature: 0,
         },
