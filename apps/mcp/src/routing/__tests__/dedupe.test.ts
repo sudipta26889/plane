@@ -60,7 +60,7 @@ function stubFetch(responses: any[]) {
 
 describe("findDuplicate", () => {
   it("scopes the Qdrant search to the caller's candidate project ids", async () => {
-    // taskpilot_vector_db is one collection shared by every workspace, so a
+    // the vector collection (QDRANT_COLLECTION_NAME) is one collection shared by every workspace, so a
     // missing or empty scope must never fall through to a workspace-wide (or
     // instance-wide) search.
     const spy = stubFetch([

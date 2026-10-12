@@ -46,7 +46,7 @@ export function pickDuplicate(hits: QdrantHit[], threshold: number): DuplicateMa
  * Find an existing work item that this text duplicates. Returns null on any
  * failure — a missed duplicate is a far smaller problem than a false match.
  *
- * `taskpilot_vector_db` is one Qdrant collection shared by every workspace on
+ * The vector collection (QDRANT_COLLECTION_NAME) is one Qdrant collection shared by every workspace on
  * this instance, so `projectIds` (the caller's own candidate projects, e.g.
  * `routeWorkItem`'s `candidates`) is required rather than optional: without
  * it there is no way to keep a search from returning a "duplicate" that

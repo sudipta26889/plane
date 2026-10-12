@@ -37,7 +37,7 @@ export function toPageMatches(hits: QdrantHit[], limit: number): PageMatch[] {
 /**
  * Find pages matching a query, restricted to the caller's own projects.
  *
- * `projectIds` is required, not optional: taskpilot_vector_db is one collection
+ * `projectIds` is required, not optional: the vector collection (QDRANT_COLLECTION_NAME) is one collection
  * shared by every workspace on this instance, so an unscoped search would
  * return another tenant's pages. An empty list short-circuits rather than
  * searching everything.
