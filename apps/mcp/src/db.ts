@@ -108,6 +108,23 @@ async function initA2aDatabase(client: any): Promise<void> {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- One row per decision Jev was asked about, shadow or live. The rows are
+    -- the evidence for switching a feature live (see src/decisions/jev.ts).
+    CREATE TABLE IF NOT EXISTS decision_model_runs (
+      id BIGSERIAL PRIMARY KEY,
+      feature VARCHAR(64) NOT NULL,
+      subject VARCHAR(255),
+      model VARCHAR(128) NOT NULL,
+      mode VARCHAR(16) NOT NULL,
+      outcome VARCHAR(32) NOT NULL,
+      jev_result JSONB,
+      fallback_result JSONB,
+      latency_ms INT,
+      error TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS decision_model_runs_feature_idx ON decision_model_runs (feature, created_at);
+
     CREATE TABLE IF NOT EXISTS a2a_agent_runs (
       task_id VARCHAR(255) PRIMARY KEY,
       state JSONB NOT NULL,

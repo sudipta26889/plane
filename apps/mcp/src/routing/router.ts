@@ -9,6 +9,7 @@ import {
   type ProjectSummary,
 } from "../knowledge/context.js";
 import { getLlmConfig } from "../tools/smart-router.js";
+import { askJev, decide, JevUncertainError } from "../decisions/jev.js";
 import type { TaskPilotClient } from "../tools/taskpilot-client.js";
 
 export interface RouteDecision {
@@ -16,7 +17,7 @@ export interface RouteDecision {
   confidence: number;
   reason: string;
   candidates: ProjectSummary[];
-  source: "hint" | "single" | "llm" | "neighbours" | "undecided";
+  source: "hint" | "single" | "llm" | "jev" | "neighbours" | "undecided";
   /**
    * The embedding of this item's text, when one was computed. Handed back so a
    * caller doing dedupe on the same text does not pay a second embed — the CPU
@@ -25,13 +26,18 @@ export interface RouteDecision {
   vector?: number[];
 }
 
-// Measured against this instance: a routing call is 1-2s and an intent call
-// 1.3-1.7s. The OpenAI SDK defaults to a 600s timeout with 2 retries — up to 30
+// nemotron-3-nano-cloud reasons first: measured routing calls average ~10s and
+// reach 45s on the items it thinks longest about. The OpenAI SDK defaults to a 600s timeout with 2 retries — up to 30
 // minutes for one call — while the calling A2A peer gives up at 120s, so a hung
 // LLM held a connection open long after anyone was listening and then completed
-// work nobody received. 30s is ~20x the measured cost and well inside the
-// peer's budget.
-const LLM_TIMEOUT_MS = 30_000;
+// work nobody received. 60s covers the slowest measured call and stays well
+// inside the peer's budget.
+const LLM_TIMEOUT_MS = 60_000;
+
+// Reasoning tokens count against max_tokens. Over 24 real items routing spent
+// ~1900 on average, and 2 of them ran past 4096 with an empty reply — which
+// throws the decision away. At 8192 those two finished at ~2700.
+export const LLM_MAX_TOKENS = 8192;
 
 const NEIGHBOUR_LIMIT = 20;
 
@@ -172,6 +178,72 @@ export function formatEvidence(hits: QdrantHit[], projects: ProjectSummary[]): s
   return lines.join("\n");
 }
 
+interface ProjectPick {
+  projectId: string;
+  confidence: number;
+  reason: string;
+  source: "llm" | "jev";
+}
+
+async function pickProjectWithLlm(text: string, projects: ProjectSummary[], hits: QdrantHit[]): Promise<ProjectPick> {
+  const llmConfig = await getLlmConfig();
+  if (!llmConfig.apiKey) throw new Error("No LLM API key configured");
+
+  const llm = new OpenAI({ baseURL: llmConfig.baseUrl, apiKey: llmConfig.apiKey });
+  const response = await llm.chat.completions.create({
+    model: llmConfig.model,
+    messages: [
+      { role: "system", content: ROUTING_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: `Projects:\n${formatProjectsForPrompt(projects)}\n\nEvidence from similar existing work items:\n${formatEvidence(
+          hits,
+          projects,
+        )}\n\nWork item:\n${text}`,
+      },
+    ],
+    temperature: 0,
+    max_tokens: LLM_MAX_TOKENS,
+  }, { timeout: LLM_TIMEOUT_MS, maxRetries: 1 });
+
+  const raw = response.choices[0]?.message?.content?.trim() || "";
+  const parsed = JSON.parse(raw.replace(/^```(?:json)?|```$/g, "").trim());
+  return {
+    projectId: String(parsed.project_id),
+    confidence: Number(parsed.confidence) || 0,
+    reason: String(parsed.reason || ""),
+    source: "llm",
+  };
+}
+
+async function pickProjectWithJev(text: string, projects: ProjectSummary[], hits: QdrantHit[]): Promise<ProjectPick> {
+  const answers = await askJev(
+    { work_item: text, evidence: formatEvidence(hits, projects) },
+    {
+      project: {
+        type: "choice",
+        instructions:
+          "Which project should `work_item` be filed in? `evidence` shows where the most similar existing work items are filed; when it disagrees with a project's description, follow the evidence.",
+        criteria: Object.fromEntries(
+          projects.map((project) => [project.id, `${project.name} (${project.identifier})${project.description ? `: ${project.description}` : ""}`]),
+        ),
+      },
+    },
+  );
+
+  const answer = answers.project;
+  if (answer?.type !== "choice") throw new Error("Jev response is missing the project answer");
+  if (answer.confidence < config.decisionMinConfidence) {
+    throw new JevUncertainError(`Jev project concentration ${answer.confidence.toFixed(2)} is below ${config.decisionMinConfidence}`);
+  }
+  return {
+    projectId: answer.choice,
+    confidence: answer.confidence,
+    reason: `Jev chose this project (concentration ${answer.confidence.toFixed(2)}).`,
+    source: "jev",
+  };
+}
+
 export async function routeWorkItem(
   input: { workspace: string; title: string; description?: string; projectHint?: string },
   client: TaskPilotClient,
@@ -260,43 +332,28 @@ export async function routeWorkItem(
   }
 
   try {
-    const llmConfig = await getLlmConfig();
-    if (!llmConfig.apiKey) throw new Error("No LLM API key configured");
+    const pick = await decide({
+      feature: "route_project",
+      subject: input.title.slice(0, 255),
+      jev: () => pickProjectWithJev(text, projects, neighbourHits),
+      fallback: () => pickProjectWithLlm(text, projects, neighbourHits),
+      same: (jev, llm) => jev.projectId === llm.projectId,
+    });
 
-    const llm = new OpenAI({ baseURL: llmConfig.baseUrl, apiKey: llmConfig.apiKey });
-    const response = await llm.chat.completions.create({
-      model: llmConfig.model,
-      messages: [
-        { role: "system", content: ROUTING_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Projects:\n${formatProjectsForPrompt(projects)}\n\nEvidence from similar existing work items:\n${formatEvidence(
-            neighbourHits,
-            projects,
-          )}\n\nWork item:\n${text}`,
-        },
-      ],
-      temperature: 0,
-      max_tokens: 1024,
-    }, { timeout: LLM_TIMEOUT_MS, maxRetries: 1 });
-
-    const raw = response.choices[0]?.message?.content?.trim() || "";
-    const parsed = JSON.parse(raw.replace(/^```(?:json)?|```$/g, "").trim());
-
-    const chosen = projects.find((project) => project.id === parsed.project_id);
-    if (!chosen) throw new Error(`LLM returned unknown project id "${parsed.project_id}"`);
+    const chosen = projects.find((project) => project.id === pick.projectId);
+    if (!chosen) throw new Error(`${pick.source} returned unknown project id "${pick.projectId}"`);
 
     // Without neighbour evidence we cap what the model is allowed to claim,
     // so a degraded run lands in Intake instead of being trusted.
     const ceiling = degraded ? config.routeConfidenceThreshold - 0.01 : 1;
-    const confidence = Math.max(Math.min(Number(parsed.confidence) || 0, ceiling), 0);
+    const confidence = Math.max(Math.min(pick.confidence, ceiling), 0);
 
     return {
       projectId: confidence >= config.routeConfidenceThreshold ? chosen.id : null,
       confidence,
-      reason: String(parsed.reason || ""),
+      reason: pick.reason,
       candidates: projects,
-      source: confidence >= config.routeConfidenceThreshold ? "llm" : "undecided",
+      source: confidence >= config.routeConfidenceThreshold ? pick.source : "undecided",
       vector,
     };
   } catch (err: any) {

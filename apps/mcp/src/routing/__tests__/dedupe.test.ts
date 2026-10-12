@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
+
+vi.mock("../../tools/smart-router.js", () => ({
+  getLlmConfig: async () => ({ apiKey: "test-key", baseUrl: "http://litellm.test", model: "test-llm" }),
+}));
+
 import { pickDuplicate, findDuplicate } from "../dedupe.js";
 
 const hit = (score: number, id = "i1") => ({
@@ -58,7 +63,7 @@ describe("findDuplicate", () => {
     // missing or empty scope must never fall through to a workspace-wide (or
     // instance-wide) search.
     const spy = stubFetch([
-      { embedding: new Array(1024).fill(0.1) },
+      { data: [{ index: 0, embedding: new Array(768).fill(0.1) }] },
       {
         result: [
           { id: "i1", score: 0.93, payload: { issue_id: "i1", identifier: "SUDIPTASCF-1" } },

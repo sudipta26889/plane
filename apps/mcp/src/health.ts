@@ -2,6 +2,7 @@ import Redis from "ioredis";
 import { db } from "./db.js";
 import { config } from "./config.js";
 import { getLlmConfig } from "./tools/smart-router.js";
+import { embed } from "./knowledge/embeddings.js";
 import { getIndexSyncStatus, getApprovalWorkerStatus, getEmbedderStatus } from "./a2a/background.js";
 import { ping as longmemoryPing } from "./agent/longmemory.js";
 import { ping as mqttPing, publish as publishMqtt, TOPIC as MQTT_TOPIC } from "./agent/mqtt.js";
@@ -113,11 +114,9 @@ export async function checkDependencies(force = false): Promise<HealthReport> {
     probe("mqtt", async () => await mqttPing()),
 
     probe("embeddings", async () => {
-      if (!config.embeddingUrl) throw new Error("EMBEDDING_DIRECT_URL is not configured");
-      // EMBEDDING_DIRECT_URL points at /embed; the server's health lives at /health.
-      const base = config.embeddingUrl.replace(/\/embed\/?$/, "");
-      await getJson(`${base}/health`);
-      return `${base} reachable`;
+      // A real embed: reachability of the gateway says nothing about the model.
+      await embed("health");
+      return `${config.embeddingModel} ok`;
     }),
 
     // Every peer write waits on this gateway. If it is down, writes fail at

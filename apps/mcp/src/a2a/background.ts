@@ -373,7 +373,7 @@ export function getIndexSyncStatus(): { ok: boolean; detail: string } {
 }
 
 export async function syncKnowledgeIndex() {
-  if (!config.qdrantUrl || !config.embeddingUrl) return;
+  if (!config.qdrantUrl || !config.embeddingModel) return;
   if (syncInFlight) {
     console.warn("[knowledge] Previous sync still running; skipping this tick");
     return;
@@ -418,7 +418,7 @@ export function getEmbedderStatus(): { ok: boolean; detail: string } {
  * reload. A cheap embed every few minutes keeps it resident.
  */
 export async function keepEmbedderWarm() {
-  if (!config.embeddingUrl) return;
+  if (!config.embeddingModel) return;
 
   try {
     await embed("keepalive");

@@ -1,4 +1,5 @@
 import { config } from "../config.js";
+import { getLlmConfig } from "../tools/smart-router.js";
 
 // The server lazily unloads after 300s idle. Warm throughput on real work-item
 // text is ~1750 chars/sec, so a full batch runs tens of seconds; a cold start
@@ -16,16 +17,17 @@ function assertDims(vector: number[]): number[] {
   return vector;
 }
 
-async function post(path: string, body: unknown): Promise<any> {
-  if (!config.embeddingUrl) {
-    throw new Error("EMBEDDING_DIRECT_URL is not configured");
+async function post(input: string[]): Promise<number[][]> {
+  if (!config.embeddingModel) {
+    throw new Error("EMBEDDING_MODEL is not configured");
   }
 
-  const url = path ? `${config.embeddingUrl.replace(/\/$/, "")}${path}` : config.embeddingUrl;
-  const response = await fetch(url, {
+  // Same gateway and key as the chat model, so there is one credential to rotate.
+  const llm = await getLlmConfig();
+  const response = await fetch(`${llm.baseUrl.replace(/\/$/, "")}/embeddings`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${llm.apiKey}` },
+    body: JSON.stringify({ model: config.embeddingModel, input }),
     signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
   });
 
@@ -34,12 +36,14 @@ async function post(path: string, body: unknown): Promise<any> {
     throw new Error(`Embedding request failed (${response.status}): ${text.slice(0, 200)}`);
   }
 
-  return response.json();
+  const data: any = await response.json();
+  // OpenAI-style: one entry per input, each carrying its input position.
+  return [...(data.data || [])].sort((a: any, b: any) => a.index - b.index).map((item: any) => item.embedding || []);
 }
 
 export async function embed(text: string): Promise<number[]> {
-  const data = await post("", { text });
-  return assertDims(data.embedding || []);
+  const [vector] = await embedBatch([text]);
+  return vector!;
 }
 
 export async function embedBatch(texts: string[]): Promise<number[][]> {
@@ -53,8 +57,7 @@ export async function embedBatch(texts: string[]): Promise<number[][]> {
     throw new Error(`embedBatch received an empty string at index ${emptyAt}; callers must skip rows with no text`);
   }
 
-  const data = await post("/batch", { inputs: texts.map((text) => ({ text })) });
-  const embeddings: number[][] = data.embeddings || [];
+  const embeddings = await post(texts);
 
   if (embeddings.length !== texts.length) {
     throw new Error(

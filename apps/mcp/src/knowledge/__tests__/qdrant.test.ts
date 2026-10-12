@@ -35,7 +35,14 @@ describe("ensureCollection", () => {
     const [url, init] = spy.mock.calls[1];
     expect(url).toContain("/collections/");
     expect(init.method).toBe("PUT");
-    expect(JSON.parse(init.body).vectors).toEqual({ size: 1024, distance: "Cosine" });
+    expect(JSON.parse(init.body).vectors).toEqual({ size: 768, distance: "Cosine" });
+  });
+
+  it("refuses a collection built by a model of a different dimension", async () => {
+    // Upserting 768-dim vectors into the old 1024-dim collection fails every
+    // batch; say why once, at the start, instead.
+    stubFetch([{ result: { config: { params: { vectors: { size: 1024, distance: "Cosine" } } } } }]);
+    await expect(ensureCollection()).rejects.toThrow(/1024-dim vectors.*produces 768/);
   });
 
   it("throws on 500 error and does not attempt to create", async () => {

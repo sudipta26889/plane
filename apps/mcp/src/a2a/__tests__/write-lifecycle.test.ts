@@ -32,7 +32,7 @@ vi.mock("../../config.js", () => ({
     dharahilAppId: "a",
     baseUrl: "http://mcp.test",
     qdrantUrl: "",
-    embeddingUrl: "",
+    embeddingModel: "",
   },
 }));
 

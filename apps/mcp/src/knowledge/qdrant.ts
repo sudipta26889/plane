@@ -47,7 +47,19 @@ async function requestJson(method: string, path: string, body?: unknown): Promis
 /** Create the collection if it does not exist. Safe to call on every boot. */
 export async function ensureCollection(): Promise<void> {
   const existing = await request("GET", `/collections/${config.qdrantCollection}`);
-  if (existing.ok) return;
+  if (existing.ok) {
+    // A collection built by a different embedding model would reject every
+    // upsert, or worse, if the sizes happen to match, answer every search
+    // with meaningless neighbours. Refuse rather than mix the two.
+    const size = (await existing.json())?.result?.config?.params?.vectors?.size;
+    if (size !== undefined && size !== config.embeddingDims) {
+      throw new Error(
+        `Qdrant collection ${config.qdrantCollection} holds ${size}-dim vectors but ${config.embeddingModel} produces ${config.embeddingDims}. ` +
+          `Point QDRANT_COLLECTION_NAME at a new collection; the sync re-indexes it from scratch.`,
+      );
+    }
+    return;
+  }
 
   if (existing.status !== 404) {
     const message = await formatError(existing, "GET", `/collections/${config.qdrantCollection}`);

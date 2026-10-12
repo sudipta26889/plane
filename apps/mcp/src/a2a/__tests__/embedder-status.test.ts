@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from "vitest";
  */
 const { embedMock } = vi.hoisted(() => ({ embedMock: vi.fn() }));
 
-vi.mock("../../config.js", () => ({ config: { embeddingUrl: "http://embed.test/embed" } }));
+vi.mock("../../config.js", () => ({ config: { embeddingModel: "test-embedder" } }));
 vi.mock("../../db.js", () => ({ db: { query: async () => ({ rows: [] }) } }));
 vi.mock("../../agent/loop.js", () => ({ runAgent: vi.fn() }));
 vi.mock("../../agent/state.js", () => ({ clearRunState: vi.fn(), loadRunState: vi.fn(), saveRunState: vi.fn() }));

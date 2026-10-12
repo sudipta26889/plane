@@ -90,7 +90,7 @@ function schedule(): void {
  * handed to someone else and the LISTEN registration lost with it.
  */
 export async function startLiveIndex(): Promise<void> {
-  if (!config.databaseUrl || !config.qdrantUrl || !config.embeddingUrl) return;
+  if (!config.databaseUrl || !config.qdrantUrl || !config.embeddingModel) return;
 
   try {
     client = new pg.Client({ connectionString: config.databaseUrl });
@@ -126,7 +126,7 @@ export async function startLiveIndex(): Promise<void> {
 
 /** Status for /health, so a dead listener is visible rather than merely quiet. */
 export function getLiveIndexStatus(): { ok: boolean; detail: string } {
-  if (!config.qdrantUrl || !config.embeddingUrl) {
+  if (!config.qdrantUrl || !config.embeddingModel) {
     return { ok: true, detail: "disabled (no index configured)" };
   }
   if (connected) return { ok: true, detail: `listening on ${CHANNEL}` };

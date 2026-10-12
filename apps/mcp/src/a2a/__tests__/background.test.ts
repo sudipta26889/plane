@@ -36,7 +36,7 @@ vi.mock("../../config.js", () => ({
     dharahilTenantId: "t",
     dharahilAppId: "a",
     qdrantUrl: "",
-    embeddingUrl: "",
+    embeddingModel: "",
   },
 }));
 

@@ -36,7 +36,9 @@ export const config = {
   // LLM (smart routing)
   llmApiBaseUrl: process.env.LLM_API_BASE_URL || "http://nuc.lan:4000",
   llmApiKey: process.env.LLM_API_KEY || "",
-  llmModel: process.env.LLM_MODEL || "gpt-4o-mini",
+  // Fallback only: the instance_configurations row LLM_MODEL wins when set.
+  // Not "nemotron-3-nano" — that is a local 4B model, a different thing.
+  llmModel: process.env.LLM_MODEL || "nemotron-3-nano-cloud",
 
   // MQTT event bus. The broker carries ~100 msg/sec across 1,115 topics, so
   // nothing subscribes to a wildcard — inbound is an explicit allowlist only.
@@ -58,12 +60,22 @@ export const config = {
   // Vector store (Qdrant) — awareness of existing work items
   qdrantUrl: process.env.QDRANT_URL || "",
   qdrantApiKey: process.env.QDRANT_API_KEY || "",
-  qdrantCollection: process.env.QDRANT_COLLECTION_NAME || "taskpilot_vector_db",
+  qdrantCollection: process.env.QDRANT_COLLECTION_NAME || "taskpilot_embeddinggemma2",
 
-  // Embedding server. Dimension is fixed by the model and by the PKM
-  // collection we reuse — changing it invalidates every stored vector.
-  embeddingUrl: process.env.EMBEDDING_DIRECT_URL || "",
-  embeddingDims: 1024,
+  // Embedding model, served by the same LiteLLM gateway as the chat model.
+  // Unset disables the vector index. The dimension is fixed by the model:
+  // changing either invalidates every stored vector, so a new model gets a new
+  // QDRANT_COLLECTION_NAME and a full re-index rather than a mixed collection.
+  embeddingModel: process.env.EMBEDDING_MODEL || "",
+  embeddingDims: 768,
+
+  // Jev decision model, via LiteLLM's /systemone pass-through. Unset = off.
+  // Every feature runs in shadow unless named in DECISION_MODEL_LIVE
+  // (comma-separated: route_project, dedupe). See src/decisions/jev.ts.
+  decisionModel: process.env.DECISION_MODEL || "",
+  decisionModelLive: (process.env.DECISION_MODEL_LIVE || "").split(",").map((item) => item.trim()).filter(Boolean),
+  // Below this concentration Jev hands the decision back to the LLM.
+  decisionMinConfidence: parseFloat(process.env.DECISION_MIN_CONFIDENCE || "0.8"),
 
   // Routing thresholds. Tuned by scripts/eval-routing.ts, not by feel.
   routeConfidenceThreshold: parseFloat(process.env.A2A_ROUTE_CONFIDENCE || "0.7"),

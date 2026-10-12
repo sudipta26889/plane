@@ -3,6 +3,7 @@ import { config } from "../config.js";
 import { getAllSkills } from "./skill-registry.js";
 import { getToolDefinitions } from "../tools/handlers.js";
 import { getLlmConfig } from "../tools/smart-router.js";
+import { LLM_MAX_TOKENS } from "../routing/router.js";
 
 /**
  * A2A peers such as OpenClaw's built-in channel can only send free text — their
@@ -21,13 +22,13 @@ export interface IntentResult {
   reason: string;
 }
 
-// Measured against this instance: a routing call is 1-2s and an intent call
-// 1.3-1.7s. The OpenAI SDK defaults to a 600s timeout with 2 retries — up to 30
+// nemotron-3-nano-cloud reasons first: measured routing calls average ~10s and
+// reach 45s on the items it thinks longest about. The OpenAI SDK defaults to a 600s timeout with 2 retries — up to 30
 // minutes for one call — while the calling A2A peer gives up at 120s, so a hung
 // LLM held a connection open long after anyone was listening and then completed
-// work nobody received. 30s is ~20x the measured cost and well inside the
-// peer's budget.
-const LLM_TIMEOUT_MS = 30_000;
+// work nobody received. 60s covers the slowest measured call and stays well
+// inside the peer's budget.
+const LLM_TIMEOUT_MS = 60_000;
 
 const SYSTEM_PROMPT = `You translate a user's message into one TaskPilot skill call.
 
@@ -104,7 +105,7 @@ export async function resolveIntent(text: string): Promise<IntentResult | null> 
         { role: "user", content: `Skills:\n${buildIntentMenu()}\n\nMessage:\n${text}` },
       ],
       temperature: 0,
-      max_tokens: 512,
+      max_tokens: LLM_MAX_TOKENS,
     }, { timeout: LLM_TIMEOUT_MS, maxRetries: 1 });
 
     const intent = parseIntentResponse(response.choices[0]?.message?.content ?? "", validSkills);
