@@ -127,6 +127,10 @@ async function initA2aDatabase(client: any): Promise<void> {
     -- Jev's raw answers for every outcome, uncertain ones included: the
     -- calibration data. model is the version that actually answered.
     ALTER TABLE decision_model_runs ADD COLUMN IF NOT EXISTS answers JSONB;
+    -- A human's check of an accepted decision ('ok' | 'wrong'), from a uniform
+    -- random sample — scripts/decision-report.ts. Certification uses these,
+    -- never labels from abstained items alone (those are a biased sample).
+    ALTER TABLE decision_model_runs ADD COLUMN IF NOT EXISTS audit_verdict VARCHAR(8);
 
     CREATE TABLE IF NOT EXISTS a2a_agent_runs (
       task_id VARCHAR(255) PRIMARY KEY,
