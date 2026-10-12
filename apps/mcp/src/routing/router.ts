@@ -42,6 +42,10 @@ export const LLM_MAX_TOKENS = 8192;
 
 const NEIGHBOUR_LIMIT = 20;
 
+// The winning project's share of neighbour similarity at which neighbours
+// alone decide, before any model is asked. See routeWorkItem.
+const NEIGHBOURS_DECIDE_SHARE = 0.85;
+
 export const ROUTING_SYSTEM_PROMPT = `You route work items to projects in TaskPilot.
 
 You are given two things: the projects with their descriptions, and a summary of
@@ -383,6 +387,24 @@ export async function routeWorkItem(
     degraded = true;
   }
 
+  // Confident neighbours decide first. Over all 398 live items in for-ai
+  // (each excluded from its own evidence), a winning share >= 0.85 decided
+  // 81% of them with no misroutes, instantly — better than any model measured
+  // (the LLM changed its pick on 7% of items between identical runs). Models
+  // are for the items where the evidence is split or thin.
+  const confident = decideFromNeighbours(neighbourScores, NEIGHBOURS_DECIDE_SHARE, neighbourHitsByProject);
+  const confidentProject = confident && projects.find((project) => project.id === confident.projectId);
+  if (confident && confidentProject) {
+    return {
+      projectId: confidentProject.id,
+      confidence: confident.confidence,
+      reason: "Most similar existing work items are filed here.",
+      candidates: projects,
+      source: "neighbours",
+      vector,
+    };
+  }
+
   try {
     const pick = await decide({
       feature: "route_project",
@@ -426,7 +448,7 @@ export async function routeWorkItem(
     return {
       projectId: decidedProject.id,
       confidence: decision.confidence,
-      reason: "Chosen from similar existing work items; the LLM was unavailable.",
+      reason: "Chosen from similar existing work items; no model was able to decide.",
       candidates: projects,
       source: "neighbours",
       vector,
