@@ -8,10 +8,11 @@ import { ensureCollection, upsertPoints, retrievePayloads, scrollPointIds, delet
 // cost as much as six average items on its own.
 const MAX_INDEX_CHARS = 4096;
 
-// Measured on real work items (avg ~1018 chars): ~1750 chars/sec warm, so 32
-// items is ~19s. The earlier 64 came from a benchmark of 60-char strings and
-// was ~37s warm — which blew the timeout as soon as a cold start landed on top.
-const BATCH_SIZE = 32;
+// embeddinggemma-2 on the shared NUC runs ~0.75s per average item idle and
+// ~2.4s under load, so a 32-item batch took 72s and, with a second client on
+// the embedder, blew the 180s timeout and aborted the whole sync. Per-item cost
+// is the same at any batch size; 8 keeps one request well inside the timeout.
+const BATCH_SIZE = 8;
 
 // Rows fetched per keyset page. Independent of BATCH_SIZE: this bounds the
 // SQL result and the Qdrant payload lookup, not the embedding call.

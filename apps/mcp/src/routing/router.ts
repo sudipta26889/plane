@@ -102,11 +102,12 @@ export function countHitsByProject(hits: QdrantHit[]): Map<string, number> {
   return counts;
 }
 
-// Measured against the live index: genuine neighbours score 0.60-0.93, while a
-// deliberately unrelated query tops out at ~0.35. 0.55 sits between the two.
+// embeddinggemma-2 scores everything higher than the old model did: genuine
+// neighbours sit at p5 0.74 / p50 0.81. Re-scoring 952 real neighbour pairs,
+// the old floor of 0.55 maps to 0.69 at 98.2% agreement.
 // Without this, `share` alone reports relative dominance as confidence — two
 // weak hits in the only project with any history would score 1.0.
-const MIN_NEIGHBOUR_SIMILARITY = 0.55;
+const MIN_NEIGHBOUR_SIMILARITY = 0.69;
 
 /**
  * Decide from neighbour evidence alone, used only when the LLM is unavailable.

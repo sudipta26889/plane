@@ -67,14 +67,14 @@ describe("decideFromNeighbours", () => {
 
   it("returns the project with a dominant share when the winner has two hits", () => {
     const scores = new Map([
-      ["p1", 1.2],
-      ["p2", 0.3],
+      ["p1", 1.6],
+      ["p2", 0.4],
     ]);
     const hitsByProject = new Map([
       ["p1", 2],
       ["p2", 1],
     ]);
-    // share = 1.2 / 1.5 = 0.8
+    // share = 1.6 / 2.0 = 0.8
     const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
     expect(decision?.projectId).toBe("p1");
     expect(decision?.confidence).toBeCloseTo(0.8);
@@ -83,10 +83,10 @@ describe("decideFromNeighbours", () => {
   it("caps confidence at 1 when a negative score would otherwise inflate the share", () => {
     // Cosine similarity ranges over [-1, 1]. A negative score is evidence
     // against p2, not weak evidence for it, so it must not shrink the
-    // denominator: naively summing raw scores gives total = 0.7 and
-    // share = 1.2 / 0.7 ≈ 1.71, which must never be returned.
+    // denominator: naively summing raw scores gives total = 1.1 and
+    // share = 1.6 / 1.1 ≈ 1.45, which must never be returned.
     const scores = new Map([
-      ["p1", 1.2],
+      ["p1", 1.6],
       ["p2", -0.5],
     ]);
     const hitsByProject = new Map([
@@ -101,12 +101,12 @@ describe("decideFromNeighbours", () => {
 
   it("returns null when the winner clears the floor but not the dominance threshold", () => {
     // The only case that actually reaches the share gate: corroborated (2 hits)
-    // and above the similarity floor (1.2/2 = 0.6), but 1.2/2.1 = 0.571 is not
+    // and above the similarity floor (1.6/2 = 0.8), but 1.6/2.8 = 0.571 is not
     // dominant enough. The evenly-split test below is stopped by the floor gate
     // first, so without this case the share check has no regression cover.
     const scores = new Map([
-      ["p1", 1.2],
-      ["p2", 0.9],
+      ["p1", 1.6],
+      ["p2", 1.2],
     ]);
     const hitsByProject = new Map([
       ["p1", 2],
@@ -151,10 +151,16 @@ describe("decideFromNeighbours", () => {
     expect(decideFromNeighbours(scores, THRESHOLD, hitsByProject)).toBeNull();
   });
 
+  it("returns null for an average that cleared the old model's floor but not embeddinggemma-2's", () => {
+    // avg 0.6 was genuine evidence on the old embedder; on gemma, random pairs
+    // in this corpus score a median 0.69, so it is noise.
+    expect(decideFromNeighbours(new Map([["p1", 1.2]]), THRESHOLD, new Map([["p1", 2]]))).toBeNull();
+  });
+
   it("returns the project when the winner's average score per hit clears the similarity floor", () => {
-    const scores = new Map([["p1", 1.4]]);
+    const scores = new Map([["p1", 1.6]]);
     const hitsByProject = new Map([["p1", 2]]);
-    // avg = 1.4 / 2 = 0.7, above the 0.55 floor; share = 1.4 / 1.4 = 1.
+    // avg = 1.6 / 2 = 0.8, above the 0.69 floor; share = 1.6 / 1.6 = 1.
     const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
     expect(decision?.projectId).toBe("p1");
     expect(decision?.confidence).toBeCloseTo(1);
@@ -195,9 +201,9 @@ describe("decideFromNeighbours", () => {
   });
 
   it("reaches share = 1 when a single project holds all the similarity mass", () => {
-    const scores = new Map([["p1", 1.2]]);
+    const scores = new Map([["p1", 1.5]]);
     const hitsByProject = new Map([["p1", 2]]);
-    // avg = 1.2 / 2 = 0.6, clears the floor; share = 1.2 / 1.2 = 1.
+    // avg = 1.5 / 2 = 0.75, clears the floor; share = 1.5 / 1.5 = 1.
     const decision = decideFromNeighbours(scores, THRESHOLD, hitsByProject);
     expect(decision?.projectId).toBe("p1");
     expect(decision?.confidence).toBeCloseTo(1);

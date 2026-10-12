@@ -79,12 +79,14 @@ export const config = {
 
   // Routing thresholds. Tuned by scripts/eval-routing.ts, not by feel.
   routeConfidenceThreshold: parseFloat(process.env.A2A_ROUTE_CONFIDENCE || "0.7"),
-  // Measured over 20 real work items: true duplicates scored 0.895-1.000, while
-  // "[P24-1] Confidence calibration API" vs "[P24-3] Accounting-engine gap fix"
-  // — same workstream, different tasks — scored 0.877. 0.90 clears that false
-  // positive. A missed duplicate only creates an item, which is the status quo;
-  // a false match blocks real work, so the bias is deliberate.
-  dedupeSimilarityThreshold: parseFloat(process.env.A2A_DEDUPE_SIMILARITY || "0.90"),
+  // Calibrated for embeddinggemma-2 (2026-10-12) by re-scoring 120 real
+  // nearest-neighbour pairs under both models. The old 0.90 (bge-m3) maps to
+  // 0.94 at 97.5% agreement, but one old near-miss scores 0.941 under gemma;
+  // 0.945 stays below it. "[P24-1] Confidence calibration API" vs "[P24-3]
+  // Accounting-engine gap fix" — same workstream, different tasks — scores
+  // 0.864. A missed duplicate only creates an item, which is the status quo; a
+  // false match blocks real work, so the bias is deliberate.
+  dedupeSimilarityThreshold: parseFloat(process.env.A2A_DEDUPE_SIMILARITY || "0.945"),
 
   // Where low-confidence items go, per workspace. Unset means the router
   // returns "undecided" and nothing is written.

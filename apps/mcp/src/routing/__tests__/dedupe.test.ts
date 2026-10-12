@@ -66,14 +66,14 @@ describe("findDuplicate", () => {
       { data: [{ index: 0, embedding: new Array(768).fill(0.1) }] },
       {
         result: [
-          { id: "i1", score: 0.93, payload: { issue_id: "i1", identifier: "SUDIPTASCF-1" } },
+          { id: "i1", score: 0.96, payload: { issue_id: "i1", identifier: "SUDIPTASCF-1" } },
         ],
       },
     ]);
 
     const result = await findDuplicate("fix the login bug", { projectIds: ["p1", "p2"] });
 
-    expect(result).toEqual({ issueId: "i1", identifier: "SUDIPTASCF-1", score: 0.93 });
+    expect(result).toEqual({ issueId: "i1", identifier: "SUDIPTASCF-1", score: 0.96 });
 
     const [, searchInit] = spy.mock.calls[1];
     const body = JSON.parse(searchInit.body);
