@@ -4,6 +4,7 @@ import { getAllSkills } from "./skill-registry.js";
 import { getToolDefinitions } from "../tools/handlers.js";
 import { getLlmConfig, defuseMessages } from "../tools/smart-router.js";
 import { LLM_MAX_TOKENS } from "../routing/router.js";
+import { askJev, decide, isLive, type JevSink } from "../decisions/jev.js";
 
 /**
  * A2A peers such as OpenClaw's built-in channel can only send free text — their
@@ -91,6 +92,49 @@ export function parseIntentResponse(raw: string, validSkills: Set<string>): Inte
 export async function resolveIntent(text: string): Promise<IntentResult | null> {
   if (!text.trim()) return null;
 
+  // Jev classifies the skill in shadow next to the LLM, so decision_model_runs
+  // accumulates the comparison the two-stage design needs (Jev picks the skill,
+  // the LLM only extracts that skill's arguments) before anyone switches it on.
+  return decide<IntentResult | null>({
+    feature: "intent",
+    subject: text.slice(0, 255),
+    jev: (sink) => classifySkillWithJev(text, sink),
+    fallback: () => resolveWithLlm(text),
+    same: (jev, llm) => (jev?.skill ?? null) === (llm?.skill ?? null),
+  });
+}
+
+const JEV_NO_SKILL = "none";
+
+async function classifySkillWithJev(text: string, sink: JevSink): Promise<IntentResult | null> {
+  // Jev picks a skill but cannot write its arguments. Acting on it alone would
+  // run a skill with empty input, so it stays shadow-only even if "intent" is
+  // listed in DECISION_MODEL_LIVE: live, this throws and the LLM decides.
+  if (isLive("intent")) throw new Error("intent is shadow-only until argument extraction is split out");
+
+  const skills = [...getAllSkills()].sort((a, b) => a.name.localeCompare(b.name));
+  const answers = await askJev(
+    { message: text },
+    {
+      skill: {
+        type: "choice",
+        instructions: "Which TaskPilot action does `message` ask for? Prefer a read action when it is a question.",
+        criteria: {
+          ...Object.fromEntries(skills.map((skill) => [skill.name, skill.description])),
+          [JEV_NO_SKILL]: "Small talk, or a request no listed action covers.",
+        },
+      },
+    },
+    sink,
+  );
+  const answer = answers.skill;
+  if (answer?.type !== "choice") throw new Error("Jev response is missing the skill answer");
+  if (answer.choice === JEV_NO_SKILL) return null;
+  return { skill: answer.choice, input: {}, confidence: answer.confidence, reason: "Jev skill classification (shadow)" };
+}
+
+/** The incumbent: one LLM call picks the skill and builds its input. */
+async function resolveWithLlm(text: string): Promise<IntentResult | null> {
   const validSkills = new Set(getAllSkills().map((skill) => skill.name));
 
   try {

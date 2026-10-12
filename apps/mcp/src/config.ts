@@ -71,7 +71,8 @@ export const config = {
 
   // Jev decision model, via LiteLLM's /systemone pass-through. Unset = off.
   // Every feature runs in shadow unless named in DECISION_MODEL_LIVE
-  // (comma-separated: route_project, dedupe). See src/decisions/jev.ts.
+  // (comma-separated: route_project, dedupe). "intent" also logs in shadow but
+  // can never go live: Jev picks a skill, not its arguments. See src/decisions/jev.ts.
   decisionModel: process.env.DECISION_MODEL || "",
   decisionModelLive: (process.env.DECISION_MODEL_LIVE || "").split(",").map((item) => item.trim()).filter(Boolean),
   // Jev's concentration below which it does not act. On the 75 hard items of
