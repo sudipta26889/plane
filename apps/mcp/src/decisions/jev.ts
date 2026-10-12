@@ -146,9 +146,16 @@ export async function decide<T>(opts: {
   if (!(run.error instanceof JevUncertainError)) {
     console.warn(`[jev] ${opts.feature} failed, falling back: ${message(run.error)}`);
   }
-  const result = await opts.fallback();
-  void record(sink, opts, "live", run.error instanceof JevUncertainError ? "escalated" : "fallback", run.ms, undefined, result, message(run.error));
-  return result;
+  const outcome = run.error instanceof JevUncertainError ? "escalated" : "fallback";
+  try {
+    const result = await opts.fallback();
+    void record(sink, opts, "live", outcome, run.ms, undefined, result, message(run.error));
+    return result;
+  } catch (fallbackError) {
+    // Kept even when nothing decides: these rows are the calibration data.
+    void record(sink, opts, "live", outcome, run.ms, undefined, undefined, `${message(run.error)} | fallback: ${message(fallbackError)}`);
+    throw fallbackError;
+  }
 }
 
 async function record(

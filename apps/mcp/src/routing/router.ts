@@ -9,7 +9,7 @@ import {
   type ProjectSummary,
 } from "../knowledge/context.js";
 import { getLlmConfig, defuseMessages } from "../tools/smart-router.js";
-import { askJev, decide, JevUncertainError, type JevSink } from "../decisions/jev.js";
+import { askJev, decide, isLive, JevUncertainError, type JevSink } from "../decisions/jev.js";
 import { db } from "../db.js";
 import type { TaskPilotClient } from "../tools/taskpilot-client.js";
 
@@ -410,7 +410,15 @@ export async function routeWorkItem(
       feature: "route_project",
       subject: input.title.slice(0, 255),
       jev: (sink) => pickProjectWithJev(input, projects, neighbourHits, sink),
-      fallback: () => pickProjectWithLlm(text, projects, neighbourHits),
+      // Live, the LLM is not Jev's fallback. On the 75 items that reach
+      // this stage, the LLM was wrong on 10 of the 64 it was sure about;
+      // adding it for Jev's uncertain items gained 23 decisions with 6 wrong.
+      // Unsure means the looser neighbour check below, then Intake.
+      fallback: isLive("route_project")
+        ? async () => {
+            throw new Error("Jev was not confident enough to route");
+          }
+        : () => pickProjectWithLlm(text, projects, neighbourHits),
       same: (jev, llm) => jev.projectId === llm.projectId,
     });
 
@@ -431,7 +439,7 @@ export async function routeWorkItem(
       vector,
     };
   } catch (err: any) {
-    console.warn(`[router] LLM routing failed: ${err.message}`);
+    console.warn(`[router] Model routing did not decide: ${err.message}`);
   }
 
   // No LLM. Neighbours alone decide only if the evidence itself clears the bar.

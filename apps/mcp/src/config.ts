@@ -74,8 +74,9 @@ export const config = {
   // (comma-separated: route_project, dedupe). See src/decisions/jev.ts.
   decisionModel: process.env.DECISION_MODEL || "",
   decisionModelLive: (process.env.DECISION_MODEL_LIVE || "").split(",").map((item) => item.trim()).filter(Boolean),
-  // Below this concentration Jev hands the decision back to the LLM.
-  decisionMinConfidence: parseFloat(process.env.DECISION_MIN_CONFIDENCE || "0.8"),
+  // Jev's concentration below which it does not act. On the 75 hard items of
+  // for-ai (2026-10-12): >= 0.9 decided 43 with 1 wrong; >= 0.8, 53 with 3.
+  decisionMinConfidence: parseFloat(process.env.DECISION_MIN_CONFIDENCE || "0.9"),
 
   // Routing thresholds. Tuned by scripts/eval-routing.ts, not by feel.
   routeConfidenceThreshold: parseFloat(process.env.A2A_ROUTE_CONFIDENCE || "0.7"),
