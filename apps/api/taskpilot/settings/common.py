@@ -333,6 +333,10 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["application/json"]
+# RabbitMQ 4 denies transient non-exclusive queues; the pidbox (remote control) queue is one,
+# and nothing here uses celery control/inspect. Gossip/mingle (the other one, celeryev.*) are
+# off via the worker entrypoint flags.
+CELERY_WORKER_ENABLE_REMOTE_CONTROL = False
 
 
 CELERY_IMPORTS = (
