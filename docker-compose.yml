@@ -103,8 +103,6 @@ services:
     command: ./bin/docker-entrypoint-api.sh
     env_file:
       - .env
-    depends_on:
-      - taskpilot-mq
 
   worker:
     container_name: taskpilot-worker
@@ -121,7 +119,6 @@ services:
       - .env
     depends_on:
       - api
-      - taskpilot-mq
 
   beat-worker:
     container_name: taskpilot-beat-worker
@@ -138,7 +135,6 @@ services:
       - .env
     depends_on:
       - api
-      - taskpilot-mq
 
   migrator:
     container_name: taskpilot-migrator
@@ -153,8 +149,6 @@ services:
     command: ./bin/docker-entrypoint-migrator.sh
     env_file:
       - .env
-    depends_on:
-      - taskpilot-mq
 
   # ---------- MCP + A2A Server ----------
   # Serves both MCP (POST /mcp-server) and A2A (POST /a2a) protocols
@@ -175,20 +169,6 @@ services:
       - api
     restart: always
 
-  # ---------- Infrastructure (local) ----------
+  # RabbitMQ lives on db-server (db.lan:5672, vhost taskpilot) since 2026-10-22;
+  # the old taskpilot_rabbitmq_data volume is kept for rollback.
 
-  taskpilot-mq:
-    container_name: taskpilot-mq
-    image: rabbitmq:3.13.6-management-alpine
-    restart: always
-    env_file:
-      - .env
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
-volumes:
-  rabbitmq_data:
